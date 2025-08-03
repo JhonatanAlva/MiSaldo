@@ -1,0 +1,350 @@
+:root {
+  --bg-light: #f5f7fb;
+  --bg-dark: #000000;
+  --text-light: #2e2828;
+  --text-dark: #e2e8f0;
+  --card-light: #ffffff;
+  --card-dark: #111111;
+  --accent: #00c57a;
+  --accent-dark: #00e676;
+  --muted-light: #666;
+  --muted-dark: #aaa;
+
+  --resumen-bg-light: #ffffff;
+  --resumen-bg-dark: #0a0a0a;
+  --resumen-text: #ffffff;
+
+  --grafica-bg-light: #ffffff;
+  --grafica-bg-dark: #1a1a1a;
+  --grafica-text-dark: #f1f1f1;
+}
+
+/* Tema claro */
+body[data-theme='light'] {
+  --bg: var(--bg-light);
+  --text: var(--text-light);
+  --card: var(--card-light);
+  --muted: var(--muted-light);
+  --resumen-bg: var(--resumen-bg-light);
+  --resumen-text: var(--text-light); /* <--- AÑADIR ESTO */
+  --grafica-bg: var(--grafica-bg-light);
+}
+
+
+/* Tema oscuro */
+body[data-theme='dark'] {
+  --bg: var(--bg-dark);
+  --text: var(--text-dark);
+  --card: var(--card-dark);
+  --muted: var(--muted-dark);
+  --resumen-bg: var(--resumen-bg-dark);
+  --grafica-bg: var(--grafica-bg-dark);
+}
+
+/* Reset básico */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", sans-serif;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+
+/* Panel usuario */
+.usuario-panel {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 1.5rem 1rem;
+}
+
+/* Tarjetas generales */
+.card {
+  background-color: var(--card);
+  color: var(--text);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-width: 260px;
+  flex: 1;
+  margin-bottom: 0.75rem;
+}
+.card:hover {
+  transform: scale(1.01);
+}
+
+/* Tarjeta de resumen destacada */
+.resumen-card, 
+.resumen-item, .card-body {
+  background-color: var(--resumen-bg) !important;
+  color: var(--resumen-text) !important;
+  border: none !important;
+}
+.resumen-card .card-body {
+  background-color: transparent;
+}
+
+/* Scroll horizontal para tarjetas de resumen mensual */
+.resumen-scroll-responsive {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.resumen-scroll-responsive > .resumen-card,
+.resumen-scroll-responsive > .resumen-item {
+  flex: 1 1 auto;
+  min-width: 260px;
+  max-width: 100%;
+}
+
+/* Expandir proporcionalmente en pantallas grandes */
+@media (min-width: 768px) {
+  .resumen-scroll-responsive > .resumen-card,
+  .resumen-scroll-responsive > .resumen-item {
+    flex: 1 1 calc(33.333% - 1rem);
+  }
+}
+
+/* Scroll horizontal puro en pantallas pequeñas */
+@media (max-width: 767px) {
+  .resumen-scroll-responsive > .resumen-card,
+  .resumen-scroll-responsive > .resumen-item {
+    flex: 0 0 auto;
+  }
+}
+
+.resumen-scroll-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.resumen-scroll-responsive::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.4);
+  border-radius: 3px;
+}
+.resumen-scroll-responsive::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(128, 128, 128, 0.7);
+}
+
+/* Contraste fijo para textos importantes */
+.card .card-title,
+.card .fw-bold {
+  color: var(--text) !important;
+}
+
+.card .text-success {
+  color: #008000 !important;
+}
+.card .text-danger {
+  color: #c00 !important;
+}
+
+.resumen-card .card-title,
+.resumen-card .fw-bold,
+.resumen-card .text-success,
+.resumen-card .text-danger {
+  color: var(--text) !important;
+}
+
+/* Botones personalizados */
+.usuario-panel .btn-primary,
+.usuario-panel .btn-outline-primary:hover,
+.usuario-panel .btn-outline-primary.active,
+.usuario-panel .btn-outline-primary:focus,
+.usuario-panel .btn.active {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+.usuario-panel .btn-outline-primary {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  background-color: transparent !important;
+}
+.usuario-panel .btn-outline-primary:hover {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Botón cerrar sesión */
+.btn-outline-danger {
+  color: var(--text);
+  border-color: #ff4d4d;
+}
+.btn-outline-danger:hover {
+  background-color: #ff4d4d;
+  color: #fff;
+}
+
+
+/* Formularios */
+.form-select,
+.form-control {
+  background-color: var(--card);
+  color: var(--text);
+  border-color: #ccc;
+}
+.form-control::placeholder {
+  color: var(--muted);
+}
+
+/* Progreso */
+.progress-bar {
+  background-color: var(--accent);
+}
+.progress {
+  height: 0.6rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+}
+
+/* Títulos y textos */
+h5, h6, .card-title {
+  color: var(--text);
+}
+small {
+  color: var(--muted);
+}
+
+/* Botones de navegación */
+.d-flex.flex-wrap.gap-2.mb-4 .btn {
+  border-radius: 30px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-weight: 500;
+}
+
+/* Gráfica */
+.recharts-wrapper {
+  background-color: var(--grafica-bg);
+  color: var(--text);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: background-color 0.3s ease;
+  flex-grow: 1;
+}
+
+/* Scroll para tarjetas internas */
+.card-body::-webkit-scrollbar {
+  width: 6px;
+}
+.card-body::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 3px;
+}
+.card-body::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+/* Espaciado entre columnas */
+.row.g-3, .row.g-4 {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+}
+
+/* Transiciones suaves */
+.card, .btn, .form-control, .form-select, .progress-bar {
+  transition: all 0.3s ease-in-out;
+}
+
+
+.saludo-usuario {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.saludo-usuario span {
+  color: var(--accent);
+}
+
+.text-success {
+  color: var(--accent) !important;
+}
+
+.saludo-animado {
+  display: inline-block;
+  animation: saludar 2s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes saludar {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(20deg); }
+  20% { transform: rotate(-10deg); }
+  30% { transform: rotate(20deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.alerta-negativa,
+.alerta-cero {
+  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
+
+.alerta-negativa {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #ff4d4d;
+}
+
+.alerta-cero {
+  background-color: rgba(255, 165, 0, 0.1);
+  color: #ffa500;
+}
+
+body[data-theme="dark"] .alerta-negativa {
+  background-color: #330000;
+  color: #ff9999;
+}
+
+body[data-theme="dark"] .alerta-cero {
+  background-color: #332200;
+  color: #ffcc66;
+}
+
+.pdf-export {
+  background-color: white !important;
+  color: black !important;
+  box-shadow: none !important;
+}
+
+.only-pdf {
+  display: none;
+}
+.pdf-export .only-pdf {
+  display: block;
+}
+.grafica-bloque {
+  page-break-inside: avoid;
+}
+
+.only-pdf-pagebreak {
+  page-break-before: always;
+  height: 20px;
+}
+
+
+@media print {
+  .grafica-bloque {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+}
+
+

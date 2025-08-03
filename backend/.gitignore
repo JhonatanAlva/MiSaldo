@@ -1,0 +1,42 @@
+#########################
+# Dependencias & builds #
+#########################
+node_modules/
+dist/
+build/
+
+###################
+# Variables secre… #
+###################
+.env
+.env.*
+
+########
+# Logs #
+########
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+################
+# Cobertura CI #
+################
+coverage/
+
+#####################
+# SO e IDE basura  #
+#####################
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-*
+
+##################
+# Otros archivos #
+##################
+*.pid
+*.seed
+*.pid.lock

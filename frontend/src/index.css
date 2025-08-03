@@ -1,0 +1,85 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tema claro */
+body[data-theme="light"] {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --button-bg: #f9f9f9;
+  --link: #646cff;
+  --link-hover: #747bff;
+}
+
+/* Tema oscuro */
+body[data-theme="dark"] {
+  --bg: #000000;
+  --text: #e2e8f0;
+  --button-bg: #1a1a1a;
+  --link: #646cff;
+  --link-hover: #535bf2;
+}
+
+/* Fondo y texto para toda la app */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden; /* ✅ Previene scroll horizontal */
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Tipografía general */
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* Enlaces */
+a {
+  font-weight: 500;
+  color: var(--link);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--link-hover);
+}
+
+/* Botones */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--button-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.25s, background-color 0.3s ease;
+}
+
+button:hover {
+  border-color: var(--link-hover);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}

@@ -1,0 +1,188 @@
+/* Estilos generales */
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;           /* ✅ Para permitir crecer en móviles */
+  width: 100vw;
+  background-color: #1e1e1e;
+  color: white;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-y: auto;            /* ✅ Permite scroll vertical */
+}
+
+
+.login-info {
+  flex: 1;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.login-logo {
+  max-width: 250px;
+  height: auto;
+  margin: 2rem 0;
+}
+
+.login-info blockquote {
+  font-style: italic;
+  font-size: 1.25rem;
+  color: #ddd;
+  margin-top: 1rem;
+}
+
+.login-info footer {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.login-box {
+  background-color: #2a2a2a;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.login-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid #555;
+  background-color: #1e1e1e;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.login-input:focus {
+  border-color: #0d6efd;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.login-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #1e1e1e;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.login-box input:focus {
+  border-color: #0d6efd;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.mensaje-exito {
+  background-color: #006f4e;
+  color: #dfffe7;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.mensaje-error {
+  color: #ffb3b3;
+  margin-top: 1rem;
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    justify-content: flex-start;     /* ✅ Para apilar verticalmente */
+    align-items: center;
+    padding: 1rem;
+    height: auto;
+  }
+
+  .login-info,
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+
+  .login-logo {
+    width: 150px;
+    margin: 1rem auto;
+  }
+}
+
+/* Estilos personalizados para botones */
+
+.btn-acento {
+  background-color: #00c896;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  padding: 10px;
+  margin-top: 0.5rem;
+  border-radius: 5px;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.btn-acento:hover {
+  background-color: #00b388;
+  transform: scale(1.02);
+}
+
+.btn-acento:active {
+  transform: scale(0.98);
+}
+
+.btn-google {
+  background-color: #db4437;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px;
+  margin-top: 0.5rem;
+  border-radius: 5px;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.btn-google:hover {
+  background-color: #c1351d;
+  transform: scale(1.02);
+}
+
+.btn-google:active {
+  transform: scale(0.98);
+}
+
+.btn-outline-light-custom {
+  border: 1px solid #00c896;
+  color: #00c896;
+  font-weight: bold;
+}
+
+.btn-outline-light-custom:hover {
+  background-color: #00c896;
+  color: #000;
+}
+
+.px-2-text-muted {
+  color: #ffffff;
+}
