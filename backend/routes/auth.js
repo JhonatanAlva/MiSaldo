@@ -50,16 +50,28 @@ router.get(
 
 // ---------------- USUARIO ACTUAL ----------------
 router.get("/usuario", verificarToken, (req, res) => {
-  const { id, nombres, apellidos, correo, rol_id } = req.usuario;
+  const userId = req.usuario.id;
 
-  res.json({
-    id,
-    nombres,
-    apellidos,
-    correo,
-    rol: rol_id === 1 ? "Administrador" : "Usuario",
-  });
+  db.query(
+    "SELECT id, nombres, apellidos, correo, celular, rol_id FROM usuarios WHERE id = ?",
+    [userId],
+    (err, r) => {
+      if (err || r.length === 0) {
+        return res.status(400).json({ mensaje: "Usuario no encontrado" });
+      }
+      const u = r[0];
+      res.json({
+        id: u.id,
+        nombres: u.nombres,
+        apellidos: u.apellidos,
+        correo: u.correo,
+        celular: u.celular,                 // <-- ahora sí
+        rol: u.rol_id === 1 ? "Administrador" : "Usuario",
+      });
+    }
+  );
 });
+
 
 // ---------------- LOGIN ----------------
 router.post("/login", (req, res) => {
