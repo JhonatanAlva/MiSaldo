@@ -38,7 +38,7 @@ app.use(passport.session());
 // Rutas
 app.use('/auth', require('./routes/auth'));
 app.use('/finanzas', require('./routes/finanzas'));
-app.use('/configuracion', require('./routes/ConfiguracionRoutes'));
+app.use('/configuraciones', require('./routes/configuracionesRoutes'));
 app.use('/ahorro', require('./routes/ahorro'));
 app.use('/admin', require('./routes/admin'));
 
