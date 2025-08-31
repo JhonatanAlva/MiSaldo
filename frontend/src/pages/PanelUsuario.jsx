@@ -80,7 +80,7 @@ const PanelUsuario = () => {
       <div className="vista-contenido">
         {vista === "resumen" && <ResumenDashboard setVista={setVista} />}
         {vista === "transacciones" && <TransaccionesUsuario />}
-        {vista === "ia" && <AsistenteIA />}
+        {vista === "ia" && <AsistenteIA nombreUsuario={usuario?.nombres} />}
         {vista === "ahorro" && <SeccionAhorro />}
         {vista === "analisis" && <AnalisisFinanciero />}
         {vista === "configuracion" && <ConfiguracionUsuario />}

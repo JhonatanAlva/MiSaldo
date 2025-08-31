@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 
-const AsistenteIA = () => {
+const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
   const [mensaje, setMensaje] = useState("");
-  const [respuestas, setRespuestas] = useState([
-    { rol: "asistente", texto: "Hola 👋 ¿En qué puedo ayudarte con tus finanzas hoy?" },
-  ]);
+  const [respuestas, setRespuestas] = useState([]);
   const [modoOscuro, setModoOscuro] = useState(false);
 
   useEffect(() => {
@@ -16,11 +14,23 @@ const AsistenteIA = () => {
       setModoOscuro(nuevoTema === "dark");
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, []);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
-  const manejarEnvio = (e) => {
+    // Mensaje inicial personalizado
+    setRespuestas([
+      {
+        rol: "asistente",
+        texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?`,
+      },
+    ]);
+
+    return () => observer.disconnect();
+  }, [nombreUsuario]);
+
+  const manejarEnvio = async (e) => {
     e.preventDefault();
     if (!mensaje.trim()) return;
 
@@ -28,20 +38,30 @@ const AsistenteIA = () => {
     setRespuestas((prev) => [...prev, nuevaPregunta]);
     setMensaje("");
 
-    setTimeout(() => {
-      const respuesta = generarRespuestaSimulada(mensaje);
-      setRespuestas((prev) => [...prev, { rol: "asistente", texto: respuesta }]);
-    }, 800);
-  };
+    try {
+      const res = await fetch("http://localhost:5000/asistente", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mensaje, nombre: nombreUsuario }),
+      });
 
-  const generarRespuestaSimulada = (texto) => {
-    if (texto.toLowerCase().includes("ahorro")) {
-      return "Te recomiendo apartar al menos el 10% de tus ingresos mensuales para ahorrar.";
+      const data = await res.json();
+      setRespuestas((prev) => [
+        ...prev,
+        { rol: "asistente", texto: data.respuesta },
+      ]);
+    } catch (error) {
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto: "❌ Hubo un error al conectarse con el asistente IA.",
+        },
+      ]);
     }
-    if (texto.toLowerCase().includes("gasto")) {
-      return "Evita gastar más del 50% de tus ingresos en gastos fijos mensuales.";
-    }
-    return "Estoy aprendiendo aún. ¿Podrías darme más detalles?";
   };
 
   const claseTarjeta = `card ${modoOscuro ? "bg-dark text-light" : ""}`;
@@ -58,10 +78,20 @@ const AsistenteIA = () => {
         <div className="card-body">
           <h4 className="mb-3">Asistente Inteligente</h4>
 
-          <div className="border rounded p-3 mb-3" style={{ maxHeight: "300px", overflowY: "auto" }}>
+          <div
+            className="border rounded p-3 mb-3"
+            style={{ maxHeight: "300px", overflowY: "auto" }}
+          >
             {respuestas.map((r, i) => (
-              <div key={i} className={`mb-2 text-${r.rol === "usuario" ? "end" : "start"}`}>
-                <span className={`d-inline-block px-3 py-2 rounded ${claseFondoMensaje(r.rol)}`}>
+              <div
+                key={i}
+                className={`mb-2 text-${r.rol === "usuario" ? "end" : "start"}`}
+              >
+                <span
+                  className={`d-inline-block px-3 py-2 rounded ${claseFondoMensaje(
+                    r.rol
+                  )}`}
+                >
                   {r.texto}
                 </span>
               </div>
@@ -76,7 +106,9 @@ const AsistenteIA = () => {
               value={mensaje}
               onChange={(e) => setMensaje(e.target.value)}
             />
-            <button type="submit" className="btn btn-success">Enviar</button>
+            <button type="submit" className="btn btn-success">
+              Enviar
+            </button>
           </form>
         </div>
       </div>
