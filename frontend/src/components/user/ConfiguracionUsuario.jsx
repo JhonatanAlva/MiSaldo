@@ -1,3 +1,4 @@
+// frontend/src/components/user/ConfiguracionUsuario.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -23,7 +24,7 @@ const ConfiguracionUsuario = () => {
     monthly: true,
     tips: false,
   });
-  const [formato, setFormato] = useState("pdf"); // Se deja por si se reactiva preferencias
+  const [formato, setFormato] = useState("pdf");
 
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -101,6 +102,13 @@ const ConfiguracionUsuario = () => {
     }
   };
 
+  const toggleNotif = (key, value) => {
+    setNotificaciones((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
   if (cargando) return <div className="container py-4">Cargando…</div>;
 
   return (
@@ -119,7 +127,6 @@ const ConfiguracionUsuario = () => {
             Perfil
           </button>
         </li>
-        {/* Pestaña de Preferencias oculta temporalmente */}
         <li className="nav-item">
           <button
             className={`nav-link ${tab === "notificaciones" && "active"}`}
@@ -193,7 +200,7 @@ const ConfiguracionUsuario = () => {
           <div className="card card-body">
             <h5 className="mb-3">Notificaciones</h5>
             {[
-              { key: "budgetAlerts", label: "Alertas de Presupuesto" },
+              { key: "push", label: "Alertas de Presupuesto" }, // ✅ corregido
               { key: "tips", label: "Consejos Financieros" },
             ].map(({ key, label }) => (
               <div className="form-check form-switch mb-2" key={key}>
