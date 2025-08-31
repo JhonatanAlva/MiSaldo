@@ -44,6 +44,9 @@ app.use('/admin', require('./routes/admin'));
 // app.js o index.js
 const notificacionesRoutes = require('./routes/notificacionesRoutes');
 app.use('/notificaciones', notificacionesRoutes);
+const asistenteRoutes = require('./routes/asistente');
+app.use('/asistente', asistenteRoutes);
+
 
 
 // Server
