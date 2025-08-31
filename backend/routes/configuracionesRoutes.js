@@ -40,9 +40,12 @@ router.get("/", verificarToken, (req, res) => {
 });
 
 // PUT /configuraciones  -> guarda switches + formato
-router.put("/", verificarToken, (req, res) => {
+router.put('/', verificarToken, (req, res) => {
   const usuarioId = req.usuario.id;
-  const { notificaciones = {}, formato = "pdf" } = req.body;
+  const { notificaciones = {}, formato = 'pdf' } = req.body;
+
+  const allowedFormatos = new Set(['pdf','excel','html']);
+  const finalFormato = allowedFormatos.has((formato||'').toLowerCase()) ? formato.toLowerCase() : 'pdf';
 
   const email   = notificaciones.email   ? 1 : 0;
   const push    = notificaciones.push    ? 1 : 0;
@@ -62,10 +65,9 @@ router.put("/", verificarToken, (req, res) => {
       notif_tips = VALUES(notif_tips),
       formato = VALUES(formato)
   `;
-
-  db.query(sql, [usuarioId, email, push, weekly, monthly, tips, formato], (err) => {
-    if (err) return res.status(500).json({ mensaje: "Error al guardar configuración" });
-    res.json({ mensaje: "Configuración actualizada correctamente" });
+  db.query(sql, [usuarioId, email, push, weekly, monthly, tips, finalFormato], (err) => {
+    if (err) return res.status(500).json({ mensaje: 'Error al guardar configuración' });
+    res.json({ mensaje: 'Configuración actualizada correctamente' });
   });
 });
 

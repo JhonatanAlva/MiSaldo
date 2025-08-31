@@ -41,6 +41,10 @@ app.use('/finanzas', require('./routes/finanzas'));
 app.use('/configuraciones', require('./routes/configuracionesRoutes'));
 app.use('/ahorro', require('./routes/ahorro'));
 app.use('/admin', require('./routes/admin'));
+// app.js o index.js
+const notificacionesRoutes = require('./routes/notificacionesRoutes');
+app.use('/notificaciones', notificacionesRoutes);
+
 
 // Server
 app.listen(process.env.PORT, () => {

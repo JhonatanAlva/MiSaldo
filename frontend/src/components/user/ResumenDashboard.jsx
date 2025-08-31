@@ -5,6 +5,13 @@ import GraficaBalance from "./GraficaBalance";
 import { FaShoppingBag, FaCreditCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+import useBudgetAlert from "../../hooks/useBudgetAlert";
+import BudgetAlertModal from "../ui/BudgetAlertModal";
+
+import useFinancialTip from "../../hooks/useFinancialTip";
+import FinancialTipModal from "../ui/FinancialTipModal";
+
+
 const ResumenDashboard = ({ setVista }) => {
   const [resumenMensual, setResumenMensual] = useState([]);
   const [resumenTotal, setResumenTotal] = useState([]);
@@ -17,6 +24,8 @@ const ResumenDashboard = ({ setVista }) => {
   const [modoOscuro, setModoOscuro] = useState(false);
   const [metas, setMetas] = useState([]);
   const navigate = useNavigate();
+  const { alerta, visible, setVisible } = useBudgetAlert();
+  const { tip, show, setShow } = useFinancialTip();
 
   useEffect(() => {
     const tema = document.body.getAttribute("data-theme");
@@ -198,12 +207,14 @@ const ResumenDashboard = ({ setVista }) => {
 
   const tarjetaBase = modoOscuro ? "card bg-dark text-light" : "card";
   const textoMuted = modoOscuro ? "text-secondary" : "text-muted";
-
+  
   return (
     <div
       className="w-100 px-3 pb-1"
       style={{ maxWidth: "100vw", overflowX: "hidden" }}
     >
+      <BudgetAlertModal open={visible} onClose={() => setVisible(false)} data={alerta} />
+      <FinancialTipModal open={show} onClose={() => setShow(false)} tip={tip} />
       {/* Fila con tarjeta de saldo + tarjetas de meses con scroll horizontal */}
       <div className="mb-3 resumen-scroll-responsive">
         {/* Tarjeta de saldo disponible */}
