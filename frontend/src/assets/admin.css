@@ -1,4 +1,3 @@
-
 /* ===== Reset y base ===== */
 html, body {
   margin: 0;
@@ -32,6 +31,8 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: left 0.3s ease;
+  z-index: 1000;
 }
 
 .sidebar-title {
@@ -57,11 +58,19 @@ html, body {
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .nav-button:hover {
   background-color: #222;
   color: #fff;
+  border-radius: 6px;
+}
+
+.nav-button.activo {
+  background-color: #00c89633;
+  color: #00c896;
   border-radius: 6px;
 }
 
@@ -75,10 +84,62 @@ html, body {
   cursor: pointer;
   transition: background 0.3s;
   margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-logout:hover {
   background-color: #a93226;
+}
+
+/* ===== Botón hamburguesa ===== */
+.menu-toggle {
+  display: none;
+  position: absolute; /* en lugar de fixed */
+  top: 15px;
+  left: 15px;
+  background: #00c896;
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* Ajuste en móvil */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+    position: fixed;   /* sigue flotando arriba */
+    top: 10px;
+    left: 10px;
+    background: #00c896;
+  }
+
+  .admin-main {
+    padding: 1rem;
+    margin-top: 0; /* eliminamos espacio extra */
+  }
+}
+
+
+/* ===== Overlay para móvil ===== */
+.sidebar-overlay {
+  display: none;
+}
+
+.sidebar-overlay.activo {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 900;
 }
 
 /* ===== Contenido principal ===== */
@@ -271,21 +332,189 @@ html, body {
     flex-direction: column;
   }
 
+  /* Sidebar oculto en móviles */
   .sidebar {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-around;
-    padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: -240px;
+    height: 100%;
+    width: 220px;
+    flex-direction: column;
+    justify-content: flex-start;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    padding-top: 4rem; /* espacio extra para el header */
   }
 
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
+  /* Sidebar abierto */
+  .sidebar.abierto {
+    left: 0;
+  }
+
+  /* Botón hamburguesa visible */
+  .menu-toggle {
+    display: block;
   }
 
   .admin-main {
     padding: 1rem;
+    margin-top: 3rem;
+  }
+}
+
+/* Inputs y botones del form de categorías */
+.categorias-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.categorias-form input,
+.categorias-form button {
+  flex: 1;
+  min-width: 180px; /* asegura que en móvil no se achiquen demasiado */
+}
+
+/* Ajuste móvil */
+@media (max-width: 600px) {
+  .categorias-form {
+    flex-direction: column;
+  }
+
+  .categorias-form input,
+  .categorias-form button {
+    width: 100%;
+  }
+}
+/* ===== Tabla de categorías responsiva ===== */
+.admin-table-container {
+  overflow-x: auto;
+}
+
+/* Estilo de tabla (solo visible en escritorio) */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #2a2a2a;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid #444;
+}
+
+.admin-table th {
+  background-color: #444;
+  color: white;
+}
+
+.admin-table td {
+  color: #ddd;
+}
+
+/* ===== Tarjetas en móvil ===== */
+.categoria-card {
+  display: none;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.categoria-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #00c896;
+}
+
+.categoria-card p {
+  margin: 0.2rem 0;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.categoria-card .acciones {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 10px;
+}
+
+.categoria-card .acciones button {
+  flex: 1;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.categoria-card .btn-editar {
+  background-color: #2980b9;
+  color: white;
+}
+
+.categoria-card .btn-eliminar {
+  background-color: #e74c3c;
+  color: white;
+}
+
+/* ===== Switch tabla -> tarjetas ===== */
+@media (max-width: 768px) {
+  .admin-table {
+    display: none;
+  }
+  .categoria-card {
+    display: block;
+  }
+}
+
+/* ===== Tarjetas de usuarios (móvil) ===== */
+.usuario-card {
+  display: none;
+  background-color: #2a2a2a;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.usuario-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #00c896;
+}
+
+.usuario-card p {
+  margin: 0.3rem 0;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.usuario-card .acciones {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.usuario-card .acciones button {
+  flex: 1 1 45%;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* Cambiar entre tabla y tarjetas */
+@media (max-width: 768px) {
+  .admin-table {
+    display: none;
+  }
+  .usuario-card {
+    display: block;
   }
 }

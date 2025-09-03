@@ -46,6 +46,8 @@ const notificacionesRoutes = require('./routes/notificacionesRoutes');
 app.use('/notificaciones', notificacionesRoutes);
 const asistenteRoutes = require('./routes/asistente');
 app.use('/asistente', asistenteRoutes);
+const categoriasRoutes = require("./routes/categorias");
+app.use("/categorias", categoriasRoutes);
 
 
 
