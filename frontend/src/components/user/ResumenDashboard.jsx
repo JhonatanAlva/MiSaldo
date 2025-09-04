@@ -11,7 +11,6 @@ import BudgetAlertModal from "../ui/BudgetAlertModal";
 import useFinancialTip from "../../hooks/useFinancialTip";
 import FinancialTipModal from "../ui/FinancialTipModal";
 
-
 const ResumenDashboard = ({ setVista }) => {
   const [resumenMensual, setResumenMensual] = useState([]);
   const [resumenTotal, setResumenTotal] = useState([]);
@@ -207,13 +206,17 @@ const ResumenDashboard = ({ setVista }) => {
 
   const tarjetaBase = modoOscuro ? "card bg-dark text-light" : "card";
   const textoMuted = modoOscuro ? "text-secondary" : "text-muted";
-  
+
   return (
     <div
       className="w-100 px-3 pb-1"
       style={{ maxWidth: "100vw", overflowX: "hidden" }}
     >
-      <BudgetAlertModal open={visible} onClose={() => setVisible(false)} data={alerta} />
+      <BudgetAlertModal
+        open={visible}
+        onClose={() => setVisible(false)}
+        data={alerta}
+      />
       <FinancialTipModal open={show} onClose={() => setShow(false)} tip={tip} />
       {/* Fila con tarjeta de saldo + tarjetas de meses con scroll horizontal */}
       <div className="mb-3 resumen-scroll-responsive">
@@ -222,7 +225,7 @@ const ResumenDashboard = ({ setVista }) => {
           <div className="card-body text-center">
             <h6 className="card-title">🪙 Saldo Disponible Total</h6>
             <h4 className="fw-bold">Q {saldoTotalDisponible.toFixed(2)}</h4>
-            <small className={textoMuted}>Suma de todos los saldos</small>
+            {/* <small className={textoMuted}>Suma de todos los saldos</small> */}
 
             {/* Mensaje si el saldo es negativo */}
             {saldoTotalDisponible < 0 && (
@@ -244,22 +247,44 @@ const ResumenDashboard = ({ setVista }) => {
 
         {/* Tarjetas mensuales dinámicas */}
         {(tipoVista === "mensual" || tipoVista === "trimestral") &&
-          resumenMensual.map((mes, i) => (
-            <div className="card resumen-item" key={i}>
-              <div className="card-body text-center">
-                <h6 className="card-title">{mes.periodo}</h6>
-                <p className="mb-1 text-success fw-bold">
-                  Ingresos: Q {mes.ingresos.toFixed(2)}
-                </p>
-                <p className="mb-1 text-danger fw-bold">
-                  Gastos: Q {mes.gastos.toFixed(2)}
-                </p>
-                <p className="mb-0 fw-bold">
-                  Balance: Q {mes.saldo.toFixed(2)}
-                </p>
+          resumenMensual.map((mes, i) => {
+            // Buscar el mes anterior
+            const gastoAnterior = resumenMensual[i + 1]?.gastos || 0;
+            const cambio = gastoAnterior
+              ? ((mes.gastos - gastoAnterior) / gastoAnterior) * 100
+              : 0;
+
+            return (
+              <div className="card resumen-item" key={i}>
+                <div className="card-body text-center">
+                  <h6 className="card-title">{mes.periodo}</h6>
+                  <p className="mb-1 text-success fw-bold">
+                    Ingresos: Q {mes.ingresos.toFixed(2)}
+                  </p>
+                  <p className="mb-1 text-danger fw-bold">
+                    Gastos: Q {mes.gastos.toFixed(2)}
+                  </p>
+                  <p className="mb-0 fw-bold">
+                    Balance: Q {mes.saldo.toFixed(2)}
+                  </p>
+
+                  {/* 📊 Mostrar porcentaje solo si hay un mes anterior */}
+                  {resumenMensual[i + 1] && gastoAnterior > 0 && (
+                    <p
+                      className={`mt-2 fw-bold ${
+                        cambio < 0 ? "text-success" : "text-danger"
+                      }`}
+                    >
+                      {cambio < 0 ? "📉" : "📈"} {Math.abs(cambio).toFixed(1)}%{" "}
+                      {cambio < 0
+                        ? "menos gastos que el mes anterior"
+                        : "más gastos que el mes anterior"}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       {/* Gráfica + Categorías */}
