@@ -239,16 +239,16 @@ router.post("/registro", async (req, res) => {
 });
 
 // ---------------- OBTENER USUARIOS ADMIN ----------------
-// router.get('/usuarios', verificarToken, (req, res) => {
-//   if (req.usuario.rol_id !== 1) {
-//     return res.status(403).json({ mensaje: 'Acceso no autorizado' });
-//   }
+router.get('/usuarios', verificarToken, (req, res) => {
+  if (req.usuario.rol_id !== 1) {
+    return res.status(403).json({ mensaje: 'Acceso no autorizado' });
+  }
 
-//   db.query('SELECT id, nombres, apellidos, correo, celular, rol_id, confirmado FROM usuarios', (err, resultados) => {
-//     if (err) return res.status(500).json({ mensaje: 'Error al obtener usuarios' });
+  db.query('SELECT id, nombres, apellidos, correo, celular, rol_id, confirmado FROM usuarios', (err, resultados) => {
+    if (err) return res.status(500).json({ mensaje: 'Error al obtener usuarios' });
 
-//     res.json(resultados);
-//   });
-// });
+    res.json(resultados);
+  });
+});
 
 module.exports = router;
