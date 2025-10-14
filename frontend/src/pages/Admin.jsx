@@ -5,7 +5,7 @@ import SidebarAdmin from "../components/admin/SidebarAdmin";
 import VistaUsuarios from "../components/admin/VistaUsuarios";
 import VistaEstadisticas from "../components/admin/VistaEstadisticas";
 import VistaIA from "../components/admin/VistaIA";
-import VistaConfiguracion from "../components/admin/VistaConfiguracion";
+// import VistaConfiguracion from "../components/admin/VistaConfiguracion";
 import VistaCategorias from "../components/admin/VistaCategorias";
 import axios from "axios";
 import "../assets/Admin.css";
@@ -239,8 +239,8 @@ const Admin = () => {
 
       case "ia":
         return <VistaIA />;
-      case "configuracion":
-        return <VistaConfiguracion />;
+      // case "configuracion":
+      //   return <VistaConfiguracion />;
       case "categorias":
         return <VistaCategorias />;
       default:

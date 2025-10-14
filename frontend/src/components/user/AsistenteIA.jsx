@@ -53,12 +53,62 @@ const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
         ...prev,
         { rol: "asistente", texto: data.respuesta },
       ]);
-    } catch (error) {
+    } catch {
       setRespuestas((prev) => [
         ...prev,
         {
           rol: "asistente",
           texto: "❌ Hubo un error al conectarse con el asistente IA.",
+        },
+      ]);
+    }
+  };
+
+  const manejarAnalisis = async (tipo) => {
+    setRespuestas((prev) => [
+      ...prev,
+      { rol: "asistente", texto: `Analizando tus ${tipo}... 🔍` },
+    ]);
+
+    let url = "";
+    if (tipo === "gastos") url = "http://localhost:5000/finanzas/gastos";
+    else if (tipo === "ingresos")
+      url = "http://localhost:5000/finanzas/ingresos";
+    else if (tipo === "balance")
+      url = "http://localhost:5000/finanzas/resumen?tipo=mensual";
+
+    try {
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      // Enviar los datos al asistente IA para que los interprete
+      const aiRes = await fetch("http://localhost:5000/asistente/analisis", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo, datos: data, nombre: nombreUsuario }),
+      });
+
+      const resultado = await aiRes.json();
+
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto: resultado.resumen || "Análisis completado ✅",
+        },
+      ]);
+    } catch (error) {
+      console.error("❌ Error al analizar:", error);
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto: "❌ No se pudieron analizar tus datos. Intenta más tarde.",
         },
       ]);
     }
@@ -80,7 +130,10 @@ const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
 
           <div
             className="border rounded p-3 mb-3"
-            style={{ maxHeight: "300px", overflowY: "auto" }}
+            style={{
+              height: "min(50vh, 700px)", // máximo 700px, pero se adapta en pantallas pequeñas
+              overflowY: "auto",
+            }}
           >
             {respuestas.map((r, i) => (
               <div
@@ -96,6 +149,28 @@ const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
                 </span>
               </div>
             ))}
+          </div>
+          <div className="d-flex gap-2 mb-3">
+            <button
+              className="btn btn-outline-info"
+              onClick={() => manejarAnalisis("gastos")}
+            >
+              🧾 Analizar mis gastos
+            </button>
+
+            <button
+              className="btn btn-outline-success"
+              onClick={() => manejarAnalisis("ingresos")}
+            >
+              💰 Analizar mis ingresos
+            </button>
+
+            <button
+              className="btn btn-outline-warning"
+              onClick={() => manejarAnalisis("balance")}
+            >
+              📊 Analizar mi balance
+            </button>
           </div>
 
           <form onSubmit={manejarEnvio} className="d-flex gap-2">

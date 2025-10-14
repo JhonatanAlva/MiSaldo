@@ -51,6 +51,7 @@ app.use("/categorias", categoriasRoutes);
 
 
 // server.js
+//Desactivado para evitar conflictos con la app principal y las pruebas
 // const app = require('./app');
 
 const PORT = process.env.PORT || 3000;

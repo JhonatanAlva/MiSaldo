@@ -42,12 +42,12 @@ const SidebarAdmin = ({ seccionActiva, setSeccionActiva, cerrarSesion }) => {
           >
             <FaRobot style={{ marginRight: "8px" }} /> IA
           </button>
-          <button
+          {/* <button
             onClick={() => setSeccionActiva("configuracion")}
             className={`nav-button ${seccionActiva === "configuracion" ? "activo" : ""}`}
           >
             <FaCog style={{ marginRight: "8px" }} /> Configuración
-          </button>
+          </button> */}
         </nav>
         <button onClick={cerrarSesion} className="admin-logout">
           <FaSignOutAlt style={{ marginRight: "8px" }} /> Cerrar sesión
