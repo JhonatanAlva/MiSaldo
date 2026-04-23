@@ -1,0 +1,61 @@
+#  Resumen de Pruebas Implementadas
+
+##  1. Pruebas Unitarias – Jest
+
+**Objetivo:** Validar el correcto funcionamiento de las funciones y módulos individuales del sistema.  
+**Herramienta:** Jest  
+**Cobertura:**
+
+- Funciones matemáticas o lógicas internas (por ejemplo: cálculos de totales, validaciones, conversiones).
+- Asegura que cada componente independiente devuelva los resultados esperados.  
+  **Resultado:** Todas las funciones principales superan las pruebas sin errores.
+
+---
+
+comandos test jest
+npm test
+
+npm test -- tests/auth.test.js
+npm test -- tests/finanzas.test.js
+npm test -- tests/usuarios.test.js
+npm test -- tests/categorias.test.js
+npm test -- tests/ahorro.test.js
+
+##  2. Pruebas de Integración / API – Postman
+
+**Objetivo:** Comprobar la comunicación entre el backend (Node.js / Express) y la base de datos MySQL.  
+**Herramienta:** Postman  
+**Cobertura:**
+
+- Endpoints: `/auth/login`, `/finanzas/gastos`, `/finanzas/ingresos`, `/ahorro`, `/usuarios`
+- Validación de respuestas HTTP (`200`, `401`, `500`), tiempos de respuesta y formato JSON.  
+  **Resultado:** Los endpoints responden correctamente con los datos esperados y tiempos óptimos.
+
+---
+
+##  3. Pruebas de Aceptación y Rendimiento – Playwright
+
+**Objetivo:** Validar el flujo completo del usuario en el sistema desde la interfaz gráfica.  
+**Herramienta:** Playwright (modo visual con `--headed` y `slowMo`)  
+**Flujo probado:**
+
+1. Inicio de sesión exitoso
+2. Creación de meta de ahorro
+3. Registro de gasto
+4. Registro de ingreso
+5. Visualización de análisis financiero
+6. Cierre de sesión  
+   **Resultado:** Flujo completo ejecutado correctamente (`1 passed` en 9s).  
+   **Extras configurados:**
+
+---
+
+##  Conclusión general
+
+El sistema **MiSaldo** cumple satisfactoriamente con los criterios de calidad en las tres fases de validación:
+
+- Correctitud funcional (Jest)
+- Comunicación entre capas (Postman)
+- Experiencia de usuario y flujo real (Playwright)
+
+Esto garantiza un nivel de calidad adecuado para su implementación en entorno productivo.

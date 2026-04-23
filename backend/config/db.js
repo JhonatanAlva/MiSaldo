@@ -15,7 +15,7 @@ const connectionConfig = {
 // Agregar SSL solo si es necesario
 if (ssl) {
   connectionConfig.ssl = {
-    ca: fs.readFileSync("./ca-certificate.crt"), // Asegúrate que esté en la raíz del proyecto
+    ca: fs.readFileSync("./ca-certificate.crt"),
   };
 }
 
@@ -23,10 +23,10 @@ const connection = mysql.createConnection(connectionConfig);
 
 connection.connect((err) => {
   if (err) {
-    console.error("❌ Error de conexión a MySQL:", err);
+    console.error("Error de conexión a MySQL:", err);
     return;
   }
-  console.log("✅ Conectado a MySQL con mysql2");
+  console.log("Conectado a MySQL con mysql2");
 });
 
 module.exports = connection;
