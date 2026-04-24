@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: misaldo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: misaldo
+      POSTGRES_PASSWORD: misaldo123
+      POSTGRES_DB: proyectofinanzas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - misaldo_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: misaldo_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@misaldo.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - misaldo_net
+
+volumes:
+  postgres_data:
+
+networks:
+  misaldo_net:
+    driver: bridge

@@ -14,7 +14,7 @@ const Login = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("confirmado") === "1") {
-      setMensajeConfirmacion("✅ Tu cuenta ha sido confirmada.");
+      setMensajeConfirmacion("Tu cuenta ha sido confirmada.");
     }
     if (params.get("error") === "cuenta_inactiva") {
       setMensaje("Tu cuenta está desactivada. Contacta al administrador.");
