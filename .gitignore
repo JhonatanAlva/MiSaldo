@@ -4,4 +4,4 @@ dist
 build
 pgdata
 tests
-ca-certificate.crt
+ca-certificate
