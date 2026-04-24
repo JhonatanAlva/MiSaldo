@@ -1,31 +1,42 @@
-const { generarRespuestaIA } = require("../utils/openaiService");
+const asistenteService = require('../services/asistenteService');
 
-// --- Analiza gráficas con IA ---
-const analizarGraficasIA = async (req, res) => {
+// ── Chat del asistente ────────────────────────────────────────
+const manejarAsistente = async (req, res) => {
+  const { mensaje } = req.body;
+
+  if (!mensaje || mensaje.trim() === '') {
+    return res.status(400).json({ error: 'Mensaje vacío' });
+  }
+
   try {
-    const { usuariosPorDatos, datosOperaciones, datosEvolucion } = req.body;
-
-    const prompt = `
-Eres un asistente financiero. Analiza los siguientes datos de estadísticas de un sistema de finanzas personales y genera un resumen con observaciones y recomendaciones breves.
-
-Usuarios con más datos registrados:
-${JSON.stringify(usuariosPorDatos, null, 2)}
-
-Tipos de operaciones más comunes:
-${JSON.stringify(datosOperaciones, null, 2)}
-
-Evolución mensual de registros:
-${JSON.stringify(datosEvolucion, null, 2)}
-
-Proporciona el análisis de forma clara y en español.
-    `;
-
-    const respuesta = await generarRespuestaIA(prompt);
+    const respuesta = await asistenteService.manejarMensaje(mensaje);
     res.json({ respuesta });
-  } catch (error) {
-    console.error("Error en analizarGraficasIA:", error);
-    res.status(500).json({ error: "Error al analizar las gráficas" });
+  } catch (err) {
+    console.error('Error al generar respuesta IA:', err);
+    res.status(500).json({ error: 'Error al generar respuesta de IA' });
   }
 };
 
-module.exports = { analizarGraficasIA };
+// ── Análisis de gráficas (admin) ──────────────────────────────
+const analizarGraficasIA = async (req, res) => {
+  try {
+    const respuesta = await asistenteService.analizarGraficas(req.body);
+    res.json({ respuesta });
+  } catch (err) {
+    console.error('Error en analizarGraficasIA:', err);
+    res.status(500).json({ error: 'Error al analizar las gráficas' });
+  }
+};
+
+// ── Análisis financiero personal ──────────────────────────────
+const analizarFinanzas = async (req, res) => {
+  try {
+    const data = await asistenteService.analizarDatos(req.body);
+    res.json(data);
+  } catch (err) {
+    console.error('Error al generar análisis con IA:', err.message);
+    res.status(500).json({ resumen: 'Error al generar análisis con IA.' });
+  }
+};
+
+module.exports = { manejarAsistente, analizarGraficasIA, analizarFinanzas };
