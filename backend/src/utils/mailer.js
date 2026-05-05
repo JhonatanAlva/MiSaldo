@@ -1,31 +1,21 @@
-require('dotenv').config();
+const { Resend } = require("resend");
 
-const nodemailer = require('nodemailer');
-
-// Configuración del transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to,
-        subject,
-        html,
-      });
-      console.log('Correo enviado exitosamente.');
-    } catch (error) {
-      console.error('Error al enviar el correo:', error);
-      throw error;
-    }
-  };  
+  try {
+    await resend.emails.send({
+      from: "MiSaldo <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
+
+    console.log("✅ Correo enviado correctamente");
+  } catch (error) {
+    console.error("❌ Error al enviar correo:", error);
+    throw error;
+  }
+};
 
 module.exports = { sendEmail };
