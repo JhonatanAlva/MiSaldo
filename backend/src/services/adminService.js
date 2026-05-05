@@ -2,7 +2,7 @@ const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/mailer');
-const { BACKEND_URL } = require("../utils/urls");
+const { BACKEND_URL, FRONTEND_URL } = require("../utils/urls");
 
 // ── Obtener todos los usuarios ────────────────────────────────
 const listarUsuarios = async () => {
