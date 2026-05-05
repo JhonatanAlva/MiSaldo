@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/mailer');
 const { generarToken } = require('../utils/jwt');
 const { registrarBitacora } = require('../utils/bitacora');
+const { BACKEND_URL } = require("../utils/urls");
 
 // ── Login ─────────────────────────────────────────────────────
 const login = async (correo, contrasena) => {
@@ -64,7 +65,7 @@ const registro = async ({ nombres, apellidos, correo, celular, contrasena }) => 
     [nombres, apellidos, correo, celular, hash, 2, token]
   );
 
-  const url  = `http://localhost:5000/auth/confirmar/${token}`;
+  const url  = `${BACKEND_URL}/auth/confirmar/${token}`;
   const html = `
     <h2>¡Bienvenido a MiSaldo, ${nombres}!</h2>
     <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
@@ -131,8 +132,8 @@ const googleCallback = async (usuario) => {
   await registrarBitacora(usuario.id, 'Inicio de sesión con Google');
   const token = generarToken(usuario);
   const destino = usuario.rol_id === 1
-    ? 'http://localhost:5173/admin'
-    : 'http://localhost:5173/usuario';
+    ? `${FRONTEND_URL}/admin`
+    : `${FRONTEND_URL}/usuario`;
 
   return { token, destino };
 };

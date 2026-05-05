@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Tabs, Tab, Button, Spinner } from "react-bootstrap";
 import {
   BarChart,
@@ -18,6 +17,7 @@ import {
 } from "recharts";
 import { Icon } from "@iconify/react";
 import BotonesExportar from "../user/BotonesExportar";
+import api from "../../services/api";
 
 const AnalisisFinanciero = () => {
   const [tabKey, setTabKey] = useState("resumen");
@@ -26,7 +26,7 @@ const AnalisisFinanciero = () => {
   const [savingsData, setSavingsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mesSeleccionado, setMesSeleccionado] = useState(
-    new Date().getMonth() + 1 // mes actual
+    new Date().getMonth() + 1, // mes actual
   );
   const [tendenciaAhorro, setTendenciaAhorro] = useState([]);
   const isDarkMode = document.body.classList.contains("dark");
@@ -45,14 +45,8 @@ const AnalisisFinanciero = () => {
       try {
         setLoading(true);
 
-        const resBalance = await axios.get(
-          "http://localhost:5000/finanzas/balance?tipo=mensual",
-          { withCredentials: true }
-        );
-        const resCategorias = await axios.get(
-          "http://localhost:5000/finanzas/clasificacion-gastos",
-          { withCredentials: true }
-        );
+        const resBalance = await api.get("/finanzas/balance?tipo=mensual");
+        const resCategorias = await api.get("/finanzas/clasificacion-gastos");
 
         const datosBalance = resBalance.data.map((item) => ({
           name: item.mes || item.periodo,
@@ -90,12 +84,7 @@ const AnalisisFinanciero = () => {
 
   const obtenerTendenciaAhorro = async (mes) => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/ahorro/tendencia?mes=${mes}`,
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await api.get(`/ahorro/tendencia?mes=${mes}`);
 
       const datos = res.data.map((item) => ({
         fecha: item.dia,
@@ -342,7 +331,7 @@ const AnalisisFinanciero = () => {
                         formatter={(value) => formatCurrency(value)}
                         labelFormatter={(label) =>
                           `Fecha: ${new Date(label).toLocaleDateString(
-                            "es-ES"
+                            "es-ES",
                           )}`
                         }
                         contentStyle={{
@@ -403,7 +392,7 @@ const AnalisisFinanciero = () => {
                     Último ahorro:{" "}
                     <strong>
                       {new Date(
-                        tendenciaAhorro[tendenciaAhorro.length - 1].fecha
+                        tendenciaAhorro[tendenciaAhorro.length - 1].fecha,
                       ).toLocaleDateString("es-ES")}
                     </strong>{" "}
                     — llevas{" "}
@@ -411,9 +400,9 @@ const AnalisisFinanciero = () => {
                       {Math.floor(
                         (new Date() -
                           new Date(
-                            tendenciaAhorro[tendenciaAhorro.length - 1].fecha
+                            tendenciaAhorro[tendenciaAhorro.length - 1].fecha,
                           )) /
-                          (1000 * 60 * 60 * 24)
+                          (1000 * 60 * 60 * 24),
                       )}
                     </strong>{" "}
                     días sin ahorrar.

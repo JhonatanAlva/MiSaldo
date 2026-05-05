@@ -2,6 +2,7 @@ const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/mailer');
+const { BACKEND_URL } = require("../utils/urls");
 
 // ── Obtener todos los usuarios ────────────────────────────────
 const listarUsuarios = async () => {
@@ -51,7 +52,7 @@ const reenviarConfirmacion = async (id) => {
         );
     }
 
-    const url = `http://localhost:5000/auth/confirmar/${token}`;
+    const url = `${BACKEND_URL}/auth/confirmar/${token}`;
     const html = `
     <h2>Hola ${usuario.nombres},</h2>
     <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>

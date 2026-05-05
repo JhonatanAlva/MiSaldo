@@ -1,9 +1,10 @@
 const authService = require("../services/authService");
+const { FRONTEND_URL } = require("../utils/urls");
 
 // ── Google callback ───────────────────────────────────────────
 const googleCallback = async (req, res) => {
   if (!req.user.activo) {
-    return res.redirect("http://localhost:5173/login?error=cuenta_inactiva");
+    return res.redirect(`${FRONTEND_URL}/login?error=cuenta_inactiva`);
   }
 
   const { token, destino } = await authService.googleCallback(req.user);
@@ -87,7 +88,7 @@ const confirmarCuenta = async (req, res) => {
     const data = await authService.confirmarCuenta(req.params.token);
     if (data.error) return res.status(data.error).send(data.mensaje);
 
-    res.redirect("http://localhost:5173/login?confirmado=1");
+    res.redirect(`${FRONTEND_URL}/login?confirmado=1`);
   } catch (err) {
     res.status(500).send("Error al confirmar cuenta");
   }
