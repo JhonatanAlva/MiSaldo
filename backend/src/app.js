@@ -11,6 +11,9 @@ const app = express();
 
 const isProduction = process.env.NODE_ENV === "production";
 
+//  IMPORTANTE PARA RAILWAY (proxy + https)
+app.set('trust proxy', 1);
+
 // ── Middleware ────────────────────────────────────────────────
 app.use(cookieParser());
 
@@ -32,8 +35,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,                  // obligatorio en producción
+      sameSite: isProduction ? "none" : "lax", // clave para Vercel ↔ Railway
     },
   })
 );
