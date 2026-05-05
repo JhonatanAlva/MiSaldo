@@ -1,6 +1,8 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+console.log("🚀 Inicializando conexión a DB...");
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 const pool = isProduction
@@ -15,5 +17,10 @@ const pool = isProduction
       database: process.env.DB_NAME,
       port: process.env.DB_PORT || 5432,
     });
+
+// 👇 PROBAMOS CONEXIÓN REAL
+pool.connect()
+  .then(() => console.log('✅ Conectado a PostgreSQL'))
+  .catch(err => console.error('❌ Error de conexión a PostgreSQL:', err.message));
 
 module.exports = pool;
