@@ -70,7 +70,7 @@ const cambiarEstado = async (id, activo) => {
 // ── Bitácora de un usuario ────────────────────────────────────
 const getBitacoraUsuario = async (id) => {
     const result = await db.query(
-        'SELECT tipo, descripcion, fecha FROM bitacora WHERE usuario_id = $1 ORDER BY fecha DESC',
+        'SELECT accion, fecha FROM bitacora WHERE usuario_id = $1 ORDER BY fecha DESC',
         [id]
     );
     return result.rows;

@@ -1,25 +1,23 @@
-const notificacionesService = require("../services/notificacionesService");
+const notificacionesService = require('../services/notificacionesService');
 
-async function getEstadoPresupuesto(req, res) {
+const getEstadoPresupuesto = async (req, res) => {
   try {
-    const resultado = await notificacionesService.obtenerEstadoPresupuesto(
-      req.usuario.id
-    );
-    return res.json(resultado);
-  } catch (error) {
-    console.error("Error en getEstadoPresupuesto:", error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    const data = await notificacionesService.getEstadoPresupuesto(req.usuario.id);
+    res.json(data);
+  } catch (err) {
+    console.error('Error al obtener estado de presupuesto:', err);
+    res.status(500).json({ mensaje: 'Error al obtener estado de presupuesto' });
   }
-}
+};
 
-async function getTip(req, res) {
+const getTip = async (req, res) => {
   try {
-    const resultado = await notificacionesService.obtenerTip(req.usuario.id);
-    return res.json(resultado);
-  } catch (error) {
-    console.error("Error en getTip:", error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    const data = await notificacionesService.getTip(req.usuario.id);
+    res.json(data);
+  } catch (err) {
+    console.error('Error al obtener tip:', err);
+    res.status(500).json({ mensaje: 'Error al obtener tip' });
   }
-}
+};
 
 module.exports = { getEstadoPresupuesto, getTip };

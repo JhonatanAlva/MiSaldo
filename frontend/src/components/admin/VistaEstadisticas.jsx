@@ -1,95 +1,58 @@
-import React from "react";
-import GraficaActividad from "./GraficaActividad";
+import GraficaActividad   from "./GraficaActividad";
 import GraficaOperaciones from "./GraficaOperaciones";
-import GraficaEvolucion from "./GraficaEvolucion";
+import GraficaEvolucion   from "./GraficaEvolucion";
 
-const VistaEstadisticas = ({
-  usuarioSeleccionado,
-  setUsuarioSeleccionado,
-  listaUsuarios,
-  usuariosPorDatos,
-  datosOperaciones,
-  datosEvolucion,
-}) => {
+const Card = ({ title, subtitle, children }) => (
+  <div className="bg-[#0f1117] border border-white/[0.07] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+    <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-gray-600 font-semibold mb-1">{title}</p>
+    {subtitle && <p className="text-gray-500 text-[11px] sm:text-[12px] mb-4 sm:mb-5">{subtitle}</p>}
+    {children}
+  </div>
+);
+
+export default function VistaEstadisticas({
+  usuarioSeleccionado, setUsuarioSeleccionado,
+  listaUsuarios, usuariosPorDatos, datosOperaciones, datosEvolucion,
+}) {
   return (
     <>
-      <h1 className="admin-title">Estadísticas de los usuarios</h1>
-      <div
-        className="admin-card"
-        style={{ marginTop: "1rem", marginBottom: "1rem" }}
-      >
-        <label
-          htmlFor="filtroUsuario"
-          style={{
-            color: "#eee",
-            fontWeight: "bold",
-            marginRight: "0.5rem",
-          }}
-        >
-          Filtrar:
-        </label>
+      <div className="mb-5 sm:mb-7">
+        <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Estadísticas de usuarios</h1>
+        <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Actividad y métricas del sistema</p>
+      </div>
+
+      {/* Filtro */}
+      <Card title="Filtrar por usuario">
         <select
-          id="filtroUsuario"
           value={usuarioSeleccionado}
           onChange={(e) => setUsuarioSeleccionado(e.target.value)}
-          style={{ padding: "0.4rem", borderRadius: "6px" }}
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm text-gray-200 focus:outline-none transition-all"
+          style={{
+            backgroundColor: "#0a0c10",
+            border: "1px solid rgba(255,255,255,0.08)",
+            colorScheme: "dark",
+          }}
         >
-          <option value="">Todos</option>
-          {listaUsuarios
-            .filter((u) => u.rol_id !== 1) 
-            .map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nombres} {u.apellidos}
-              </option>
-            ))}
+          <option value=""           style={{ backgroundColor: "#0a0c10", color: "#ccc" }}>Todos los usuarios</option>
+          {listaUsuarios.filter(u => u.rol_id !== 1).map(u => (
+            <option key={u.id} value={u.id} style={{ backgroundColor: "#0a0c10", color: "#ccc" }}>
+              {u.nombres} {u.apellidos}
+            </option>
+          ))}
         </select>
-      </div>
+      </Card>
 
-      {/* Primera gráfica */}
-      <div className="admin-card" style={{ marginTop: "2rem" }}>
-        <h3 style={{ marginBottom: "1rem", color: "#eee" }}>
-          Usuarios con más datos registrados
-        </h3>
-        <p style={{ color: "#ccc" }}>
-          Se contabilizan registros en ingresos, gastos y planes de ahorro.
-        </p>
+      <Card title="Usuarios con más datos registrados" subtitle="Contabiliza ingresos, gastos y planes de ahorro.">
+        <GraficaActividad usuariosConMasActividad={usuariosPorDatos} />
+      </Card>
 
-        <div style={{ marginTop: "2rem" }}>
-          <GraficaActividad usuariosConMasActividad={usuariosPorDatos} />
-        </div>
-      </div>
+      <Card title="Tipos de operaciones más comunes" subtitle="Ingresos, gastos y planes de ahorro registrados.">
+        <GraficaOperaciones data={datosOperaciones} />
+      </Card>
 
-      {/* Segunda gráfica */}
-      <div className="admin-card" style={{ marginTop: "3rem" }}>
-        <h3 style={{ marginBottom: "1rem", color: "#eee" }}>
-          Tipos de operaciones más comunes
-        </h3>
-        <p style={{ color: "#ccc" }}>
-          Se muestran cuántos ingresos, gastos y planes de ahorro han sido
-          registrados.
-        </p>
-
-        <div style={{ marginTop: "2rem" }}>
-          <GraficaOperaciones data={datosOperaciones} />
-        </div>
-      </div>
-
-      {/* Tercera gráfica */}
-      <div className="admin-card" style={{ marginTop: "3rem" }}>
-        <h3 style={{ marginBottom: "1rem", color: "#eee" }}>
-          Evolución mensual de registros
-        </h3>
-        <p style={{ color: "#ccc" }}>
-          Se observa cómo han evolucionado los ingresos, gastos y planes de
-          ahorro a lo largo del tiempo.
-        </p>
-
-        <div style={{ marginTop: "2rem" }}>
-          <GraficaEvolucion data={datosEvolucion} />
-        </div>
-      </div>
+      <Card title="Evolución mensual de registros" subtitle="Cómo han evolucionado los registros a lo largo del tiempo.">
+        <GraficaEvolucion data={datosEvolucion} />
+      </Card>
     </>
   );
-};
-
-export default VistaEstadisticas;
+}

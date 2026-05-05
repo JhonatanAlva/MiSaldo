@@ -3,72 +3,98 @@ import { useLocation } from "react-router-dom";
 import LoginForm from "../components/login/LoginForm";
 import GoogleLoginButton from "../components/login/GoogleLoginButton";
 
-import "../assets/login.css";
-
 const Login = () => {
   const location = useLocation();
   const [mensaje, setMensaje] = useState("");
-  const [error, setError] = useState("");
   const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("confirmado") === "1") {
-      setMensajeConfirmacion("Tu cuenta ha sido confirmada.");
+      setMensajeConfirmacion("Tu cuenta ha sido confirmada. Ya puedes iniciar sesión.");
     }
     if (params.get("error") === "cuenta_inactiva") {
       setMensaje("Tu cuenta está desactivada. Contacta al administrador.");
-      const nuevaURL = window.location.pathname;
-      window.history.replaceState({}, "", nuevaURL);
+      window.history.replaceState({}, "", window.location.pathname);
       setTimeout(() => setMensaje(""), 5000);
     }
   }, [location.search]);
 
-
   return (
-    <div className="login-container">
-      {/* Lado izquierdo: logo y mensaje */}
-      <div className="login-info">
-        <img src="/logo.png" alt="Logo" className="login-logo" />
-        <blockquote className="mt-4">
-          “Cada quetzal cuenta. Organiza tu dinero con MiSaldo.”
-        </blockquote>
-        <footer className="mt-5">© 2025 MiSaldo. Todos los derechos reservados.</footer>
+    <div className="min-h-screen w-screen bg-[#111318] flex items-stretch overflow-y-auto">
+
+      {/* ── Panel izquierdo ───────────────────────────────── */}
+      <div className="hidden md:flex flex-col items-center justify-center flex-1 px-12 relative overflow-hidden">
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00c896]/10 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-1/4 -left-20 w-72 h-72 bg-[#00c896]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
+          <img src="..//logo.png" alt="MiSaldo" className="w-52 mb-8 drop-shadow-lg" />
+
+          <blockquote className="text-lg text-gray-300 italic leading-relaxed border-l-2 border-[#00c896] pl-4 text-left">
+            "Cada quetzal cuenta.<br />Organiza tu dinero con MiSaldo."
+          </blockquote>
+
+          <p className="mt-10 text-xs text-gray-600 tracking-widest uppercase">
+            © 2025 MiSaldo · Todos los derechos reservados
+          </p>
+        </div>
       </div>
 
-      {/* Lado derecho: formulario de login */}
-      <div className="login-box tarjeta">
-        <h2>Iniciar sesión</h2>
+      {/* ── Divisor vertical ──────────────────────────────── */}
+      <div className="hidden md:block w-px bg-white/5 my-12" />
 
-        {mensaje && <div className="alert alert-danger">{mensaje}</div>}
-        {mensajeConfirmacion && (
-          <div className="alert alert-success">{mensajeConfirmacion}</div>
-        )}
+      {/* ── Panel derecho (formulario) ────────────────────── */}
+      <div className="flex flex-col items-center justify-center flex-1 px-6 py-12">
 
-        <LoginForm
-          setError={setError}
-          setMensajeConfirmacion={setMensajeConfirmacion}
-        />
+        {/* Logo solo en móvil */}
+        <img src="/logo.png" alt="MiSaldo" className="w-32 mb-8 md:hidden" />
 
-        {error && <div className="alert alert-danger mt-3">{error}</div>}
+        <div className="w-full max-w-sm">
+          <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">
+            Bienvenido de vuelta
+          </h2>
+          <p className="text-sm text-gray-500 mb-7">Inicia sesión en tu cuenta</p>
 
-        {/* Separador visual */}
-        <div className="my-4 d-flex align-items-center">
-          <hr className="flex-grow-1" />
-          <span className="px-2 text-muted"></span>
-          <span className="px-2-text-muted">o</span>
-          <span className="px-2 text-muted"></span>
-          <hr className="flex-grow-1" />
+          {/* Alertas */}
+          {mensaje && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {mensaje}
+            </div>
+          )}
+          {mensajeConfirmacion && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-[#00c896]/10 border border-[#00c896]/30 text-[#00c896] text-sm">
+              {mensajeConfirmacion}
+            </div>
+          )}
+
+          <LoginForm setError={setError} setMensajeConfirmacion={setMensajeConfirmacion} />
+
+          {error && (
+            <div className="mt-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Separador */}
+          <div className="flex items-center gap-3 my-5">
+            <hr className="flex-1 border-white/10" />
+            <span className="text-xs text-gray-600 uppercase tracking-widest">o</span>
+            <hr className="flex-1 border-white/10" />
+          </div>
+
+          <GoogleLoginButton />
+
+          <button
+            onClick={() => (window.location.href = "/registro")}
+            className="w-full mt-3 py-2.5 rounded-lg border border-[#00c896]/40 text-[#00c896] text-sm font-medium
+                       hover:bg-[#00c896]/10 transition-all duration-200"
+          >
+            Crear nueva cuenta
+          </button>
         </div>
-
-        <GoogleLoginButton />
-
-        <button
-          className="btn btn-outline-primary w-100 mt-3"
-          onClick={() => (window.location.href = "/registro")}
-        >
-          Crear nueva cuenta
-        </button>
       </div>
     </div>
   );

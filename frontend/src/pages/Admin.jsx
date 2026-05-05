@@ -1,262 +1,105 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
-import SidebarAdmin from "../components/admin/SidebarAdmin";
-import VistaUsuarios from "../components/admin/VistaUsuarios";
+import SidebarAdmin    from "../components/admin/SidebarAdmin";
+import VistaDashboard  from "../components/admin/VistaDashboard";
+import VistaUsuarios   from "../components/admin/VistaUsuarios";
 import VistaEstadisticas from "../components/admin/VistaEstadisticas";
-import VistaIA from "../components/admin/VistaIA";
-// import VistaConfiguracion from "../components/admin/VistaConfiguracion";
+import VistaIA         from "../components/admin/VistaIA";
 import VistaCategorias from "../components/admin/VistaCategorias";
-import axios from "axios";
-import "../assets/Admin.css";
+import VistaBitacora   from "../components/admin/VistaBitacora";
+import VistaReportes   from "../components/admin/VistaReportes";
+import {
+  getUsuarios, actualizarUsuario,
+  
+  cambiarContrasena as cambiarContrasenaAPI,
+  reenviarConfirmacion as reenviarConfirmacionAPI,
+  cambiarEstado as cambiarEstadoAPI,
+  getActividadDatos, getEstadisticasOperaciones, getEvolucionMensual,
+} from "../services/adminService";
 
-const Admin = () => {
-  const { usuario } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [seccionActiva, setSeccionActiva] = useState("usuarios");
-  const [usuarios, setUsuarios] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
+export default function Admin() {
+  const { usuario, cerrarSesion }         = useContext(AuthContext);
+  const [seccionActiva, setSeccionActiva] = useState("dashboard");
+  const [usuarios,      setUsuarios]      = useState([]);
+  const [busqueda,      setBusqueda]      = useState("");
 
-  const usuariosFiltrados = usuarios.filter((u) => {
-    const nombreCompleto = `${u.nombres} ${u.apellidos}`.toLowerCase();
-    return (
-      nombreCompleto.includes(busqueda.toLowerCase()) ||
-      u.correo.toLowerCase().includes(busqueda.toLowerCase())
-    );
+  const [usuariosPorDatos,   setUsuariosPorDatos]   = useState([]);
+  const [datosOperaciones,   setDatosOperaciones]   = useState([]);
+  const [datosEvolucion,     setDatosEvolucion]     = useState([]);
+  const [listaUsuarios,      setListaUsuarios]      = useState([]);
+  const [usuarioSeleccionado,setUsuarioSeleccionado]= useState("");
+
+  const usuariosFiltrados = usuarios.filter(u => {
+    const n = `${u.nombres} ${u.apellidos}`.toLowerCase();
+    return n.includes(busqueda.toLowerCase()) || u.correo.toLowerCase().includes(busqueda.toLowerCase());
   });
 
   const obtenerUsuarios = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/admin/usuarios", {
-        withCredentials: true,
-      });
-      setUsuarios(res.data);
-    } catch (err) {
-      console.error("Error al obtener usuarios", err);
-    }
+    try { const r = await getUsuarios(); setUsuarios(r.data); } catch(e){ console.error(e); }
   };
 
-  useEffect(() => {
-    if (seccionActiva === "usuarios") {
-      obtenerUsuarios();
-    }
-  }, [seccionActiva]);
 
-  const cerrarSesion = async () => {
+  const cambiarEstado = async (id, actual) => {
     try {
-      await axios.get("http://localhost:5000/auth/logout", {
-        withCredentials: true,
-      });
-      navigate("/login");
-    } catch (err) {
-      console.error("Error al cerrar sesión", err);
-    }
-  };
-
-  const eliminarUsuario = async (id) => {
-    if (window.confirm("¿Eliminar este usuario?")) {
-      try {
-        await axios.delete(`http://localhost:5000/admin/usuarios/${id}`, {
-          withCredentials: true,
-        });
-        setUsuarios(usuarios.filter((u) => u.id !== id));
-      } catch (err) {
-        console.error("Error al eliminar usuario", err);
-      }
-    }
-  };
-
-  const cambiarEstado = async (id, estadoActual) => {
-    const nuevoEstado = estadoActual === 1 ? 0 : 1;
-    try {
-      await axios.put(
-        `http://localhost:5000/admin/usuarios/${id}/estado`,
-        { activo: nuevoEstado },
-        { withCredentials: true }
-      );
-      setUsuarios(
-        usuarios.map((u) => (u.id === id ? { ...u, activo: nuevoEstado } : u))
-      );
-    } catch (err) {
-      console.error("Error al cambiar estado", err);
-    }
+      await cambiarEstadoAPI(id, !actual);
+      setUsuarios(prev => prev.map(u => u.id === id ? { ...u, activo: !actual } : u));
+    } catch(e){ console.error(e); }
   };
 
   const reenviarConfirmacion = async (id) => {
-    try {
-      await axios.post(
-        `http://localhost:5000/admin/usuarios/${id}/reenviar-confirmacion`,
-        {},
-        { withCredentials: true }
-      );
-      alert("Correo de confirmación reenviado.");
-    } catch (err) {
-      console.error("Error al reenviar correo", err);
-    }
+    try { await reenviarConfirmacionAPI(id); alert("Correo de confirmación reenviado."); } catch(e){ console.error(e); }
   };
 
-  const guardarCambios = async (usuarioEditado) => {
-    try {
-      await axios.put(
-        `http://localhost:5000/admin/usuarios/${usuarioEditado.id}`,
-        usuarioEditado,
-        { withCredentials: true }
-      );
-      setUsuarios(
-        usuarios.map((u) => (u.id === usuarioEditado.id ? usuarioEditado : u))
-      );
-    } catch (err) {
-      console.error("Error al editar usuario", err);
-    }
+  const guardarCambios = async (u) => {
+    try { await actualizarUsuario(u.id, u); setUsuarios(prev => prev.map(p => p.id === u.id ? u : p)); } catch(e){ console.error(e); }
   };
 
-  const guardarContrasena = async (id, nuevaContrasena) => {
-    try {
-      await axios.put(
-        `http://localhost:5000/admin/usuarios/${id}/contrasena`,
-        { contrasena: nuevaContrasena },
-        { withCredentials: true }
-      );
-    } catch (err) {
-      console.error("Error al cambiar contraseña", err);
-    }
+  const guardarContrasena = async (id, c) => {
+    try { await cambiarContrasenaAPI(id, c); } catch(e){ console.error(e); }
   };
 
-  //Estadísticas
-  const [usuariosPorDatos, setUsuariosPorDatos] = useState([]);
-  const [datosOperaciones, setDatosOperaciones] = useState([]);
-  const [datosEvolucion, setDatosEvolucion] = useState([]);
-  const [listaUsuarios, setListaUsuarios] = useState([]);
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState("");
-
-  //Obtener lista de usuarios para el filtro
-  const obtenerListaUsuarios = async () => {
+  const cargarEstadisticas = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/admin/usuarios", {
-        withCredentials: true,
-      });
-      setListaUsuarios(res.data);
-    } catch (err) {
-      console.error("Error al obtener lista de usuarios:", err);
-    }
+      const [rD, rO, rE] = await Promise.all([
+        getActividadDatos(usuarioSeleccionado),
+        getEstadisticasOperaciones(usuarioSeleccionado),
+        getEvolucionMensual(usuarioSeleccionado),
+      ]);
+      const data = Array.isArray(rD.data) ? rD.data : [rD.data];
+      setUsuariosPorDatos(data.filter(u => u.usuario));
+      setDatosOperaciones(rO.data);
+      setDatosEvolucion(rE.data);
+    } catch(e){ console.error(e); }
   };
 
-  //Datos: usuarios con más actividad
- const obtenerUsuariosPorDatos = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/admin/actividad-datos${
-          usuarioSeleccionado ? `?usuario_id=${usuarioSeleccionado}` : ""
-        }`,
-        { withCredentials: true }
-      );
-
-      //Asegurarse de que siempre sea array
-      const data = Array.isArray(res.data) ? res.data : [res.data];
-      setUsuariosPorDatos(data.filter((u) => u.usuario)); // solo usuarios válidos con nombre
-    } catch (err) {
-      console.error("Error al obtener datos registrados por usuarios:", err);
-    }
-  };
-  1;
-
-  //Datos: operaciones registradas
-  const obtenerDatosOperaciones = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/admin/estadisticas/operaciones${
-          usuarioSeleccionado ? `?usuario_id=${usuarioSeleccionado}` : ""
-        }`,
-        { withCredentials: true }
-      );
-      setDatosOperaciones(res.data);
-    } catch (error) {
-      console.error("Error al obtener datos de operaciones:", error);
-    }
-  };
-
-  // Datos: evolución mensual
-  const obtenerEvolucionMensual = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/admin/estadisticas/evolucion-mensual${
-          usuarioSeleccionado ? `?usuario_id=${usuarioSeleccionado}` : ""
-        }`,
-        { withCredentials: true }
-      );
-      setDatosEvolucion(res.data);
-    } catch (error) {
-      console.error("Error al obtener evolución mensual:", error);
-    }
-  };
-
-  // Cargar datos al cambiar usuario seleccionado
   useEffect(() => {
-    if (seccionActiva === "estadisticas") {
-      obtenerUsuariosPorDatos();
-      obtenerDatosOperaciones();
-      obtenerEvolucionMensual();
-    }
-  }, [usuarioSeleccionado]);
-
-  // Cargar datos al cambiar a la vista de estadísticas
-  useEffect(() => {
-    if (seccionActiva === "estadisticas") {
-      obtenerListaUsuarios();
-      obtenerUsuariosPorDatos();
-      obtenerDatosOperaciones();
-      obtenerEvolucionMensual();
-    }
+    if (seccionActiva === "usuarios")     obtenerUsuarios();
+    if (seccionActiva === "estadisticas") { obtenerUsuarios().then(() => setListaUsuarios(usuarios)); cargarEstadisticas(); }
   }, [seccionActiva]);
+
+  useEffect(() => {
+    if (seccionActiva === "estadisticas") cargarEstadisticas();
+  }, [usuarioSeleccionado]);
 
   const renderContenido = () => {
     switch (seccionActiva) {
-      case "usuarios":
-        return (
-          <VistaUsuarios
-            usuario={usuario}
-            usuariosFiltrados={usuariosFiltrados}
-            busqueda={busqueda}
-            setBusqueda={setBusqueda}
-            reenviarConfirmacion={reenviarConfirmacion}
-            eliminarUsuario={eliminarUsuario}
-            cambiarEstado={cambiarEstado}
-            guardarCambios={guardarCambios}
-            guardarContrasena={guardarContrasena}
-          />
-        );
-      case "estadisticas":
-        return (
-          <VistaEstadisticas
-            usuarioSeleccionado={usuarioSeleccionado}
-            setUsuarioSeleccionado={setUsuarioSeleccionado}
-            listaUsuarios={listaUsuarios}
-            usuariosPorDatos={usuariosPorDatos}
-            datosOperaciones={datosOperaciones}
-            datosEvolucion={datosEvolucion}
-          />
-        );
-
-      case "ia":
-        return <VistaIA />;
-      // case "configuracion":
-      //   return <VistaConfiguracion />;
-      case "categorias":
-        return <VistaCategorias />;
-      default:
-        return <p>Selecciona una opción del menú.</p>;
+      case "dashboard":    return <VistaDashboard />;
+      case "usuarios":     return <VistaUsuarios usuario={usuario} usuariosFiltrados={usuariosFiltrados} busqueda={busqueda} setBusqueda={setBusqueda} reenviarConfirmacion={reenviarConfirmacion} cambiarEstado={cambiarEstado} guardarCambios={guardarCambios} guardarContrasena={guardarContrasena} />;
+      case "estadisticas": return <VistaEstadisticas usuarioSeleccionado={usuarioSeleccionado} setUsuarioSeleccionado={setUsuarioSeleccionado} listaUsuarios={listaUsuarios} usuariosPorDatos={usuariosPorDatos} datosOperaciones={datosOperaciones} datosEvolucion={datosEvolucion} />;
+      case "categorias":   return <VistaCategorias />;
+      case "bitacora":     return <VistaBitacora />;
+      case "reportes":     return <VistaReportes />;
+      case "ia":           return <VistaIA />;
+      default:             return null;
     }
   };
 
   return (
-    <div className="admin-layout">
-      <SidebarAdmin
-        setSeccionActiva={setSeccionActiva}
-        cerrarSesion={cerrarSesion}
-      />
-      <main className="admin-main">{renderContenido()}</main>
+    <div className="flex h-screen w-screen bg-[#080a0e] text-white overflow-hidden">
+      <SidebarAdmin seccionActiva={seccionActiva} setSeccionActiva={setSeccionActiva} cerrarSesion={cerrarSesion} />
+      <main className="flex-1 overflow-y-auto px-8 py-8">
+        {renderContenido()}
+      </main>
     </div>
   );
-};
-
-export default Admin;
+}
