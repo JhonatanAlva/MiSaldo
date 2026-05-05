@@ -5,6 +5,7 @@ const { sendEmail } = require("../utils/mailer");
 const { generarToken } = require("../utils/jwt");
 const { registrarBitacora } = require("../utils/bitacora");
 const { BACKEND_URL, FRONTEND_URL } = require("../utils/urls");
+const { generarEmailConfirmacion } = require("../utils/emailTemplates");
 
 // ── Login ─────────────────────────────────────────────────────
 const login = async (correo, contrasena) => {
@@ -73,11 +74,7 @@ const registro = async ({
   );
 
   const url = `${BACKEND_URL}/auth/confirmar/${token}`;
-  const html = `
-    <h2>¡Bienvenido a MiSaldo, ${nombres}!</h2>
-    <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
-    <a href="${url}">${url}</a>
-  `;
+  const html = generarEmailConfirmacion(nombres, url);
 
   await sendEmail(correo, "Confirma tu cuenta en MiSaldo", html);
 
