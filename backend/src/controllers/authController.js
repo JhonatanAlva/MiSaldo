@@ -47,6 +47,7 @@ const login = async (req, res) => {
       })
       .json({ mensaje: 'Inicio de sesión exitoso', usuario: data.usuario });
   } catch (err) {
+    console.error("Error en login:", err);
     res.status(500).json({ mensaje: 'Error del servidor' });
   }
 };
