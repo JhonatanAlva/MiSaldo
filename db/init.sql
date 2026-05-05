@@ -52,9 +52,7 @@ CREATE TABLE usuarios (
 );
 
 INSERT INTO usuarios (id, nombres, apellidos, correo, celular, contrasena, rol_id, confirmado, token_confirmacion, activo) VALUES
-  (1,  'Jhonatan', 'Alvarado', 'alexisalvaradolool@gmail.com',      '55328760',  '$2b$10$N5ls9mMA9H4szqwhu2rf6.xwJXFzJmcaN.e3FvNo2xqOwnI9xaJCm', 1, TRUE,  NULL, TRUE),
-  (2,  'Alexis',   'Alvarado', 'jloola@miumg.edu.gt',               '55328760',  '$2b$10$3NSBDB33XOXioR34rqpiDOZ2lxQmV3QeV3AIlJ/imeeUpBsZO.H0O',  2, TRUE,  NULL, TRUE),
-  (17, 'Prueba',   'Anteproyecto', 'pruebaanteproyecto@gmail.com',  '55328760',  '$2b$10$nZfEx6sm0By0rutO1HTgL.JUemtsp23gI4O2yYAY2WRPEaG3Ac5Je',  2, TRUE,  NULL, TRUE);
+  (1,  'Jhonatan', 'Alvarado', 'alexisalvaradolool@gmail.com',      '55328760',  '$2b$10$N5ls9mMA9H4szqwhu2rf6.xwJXFzJmcaN.e3FvNo2xqOwnI9xaJCm', 1, TRUE,  NULL, TRUE);
 
 SELECT setval('usuarios_id_seq', (SELECT MAX(id) FROM usuarios));
 
