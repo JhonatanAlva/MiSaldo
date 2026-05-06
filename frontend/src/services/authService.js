@@ -13,5 +13,6 @@ export const getUsuario = () =>
     api.get('/auth/usuario');
 
 export const loginGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/auth/google`;
+    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    window.location.href = `${baseURL}/auth/google`;
 };

@@ -1,16 +1,16 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import SidebarAdmin    from "../components/admin/SidebarAdmin";
-import VistaDashboard  from "../components/admin/VistaDashboard";
-import VistaUsuarios   from "../components/admin/VistaUsuarios";
+import SidebarAdmin from "../components/admin/SidebarAdmin";
+import VistaDashboard from "../components/admin/VistaDashboard";
+import VistaUsuarios from "../components/admin/VistaUsuarios";
 import VistaEstadisticas from "../components/admin/VistaEstadisticas";
-import VistaIA         from "../components/admin/VistaIA";
+import VistaIA from "../components/admin/VistaIA";
 import VistaCategorias from "../components/admin/VistaCategorias";
-import VistaBitacora   from "../components/admin/VistaBitacora";
-import VistaReportes   from "../components/admin/VistaReportes";
+import VistaBitacora from "../components/admin/VistaBitacora";
+import VistaReportes from "../components/admin/VistaReportes";
 import {
   getUsuarios, actualizarUsuario,
-  
+
   cambiarContrasena as cambiarContrasenaAPI,
   reenviarConfirmacion as reenviarConfirmacionAPI,
   cambiarEstado as cambiarEstadoAPI,
@@ -18,16 +18,16 @@ import {
 } from "../services/adminService";
 
 export default function Admin() {
-  const { usuario, cerrarSesion }         = useContext(AuthContext);
+  const { usuario, cerrarSesion } = useContext(AuthContext);
   const [seccionActiva, setSeccionActiva] = useState("dashboard");
-  const [usuarios,      setUsuarios]      = useState([]);
-  const [busqueda,      setBusqueda]      = useState("");
+  const [usuarios, setUsuarios] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
 
-  const [usuariosPorDatos,   setUsuariosPorDatos]   = useState([]);
-  const [datosOperaciones,   setDatosOperaciones]   = useState([]);
-  const [datosEvolucion,     setDatosEvolucion]     = useState([]);
-  const [listaUsuarios,      setListaUsuarios]      = useState([]);
-  const [usuarioSeleccionado,setUsuarioSeleccionado]= useState("");
+  const [usuariosPorDatos, setUsuariosPorDatos] = useState([]);
+  const [datosOperaciones, setDatosOperaciones] = useState([]);
+  const [datosEvolucion, setDatosEvolucion] = useState([]);
+  const [listaUsuarios, setListaUsuarios] = useState([]);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState("");
 
   const usuariosFiltrados = usuarios.filter(u => {
     const n = `${u.nombres} ${u.apellidos}`.toLowerCase();
@@ -35,7 +35,14 @@ export default function Admin() {
   });
 
   const obtenerUsuarios = async () => {
-    try { const r = await getUsuarios(); setUsuarios(r.data); } catch(e){ console.error(e); }
+    try {
+      const r = await getUsuarios();
+      setUsuarios(r.data);
+      return r.data;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
   };
 
 
@@ -43,19 +50,19 @@ export default function Admin() {
     try {
       await cambiarEstadoAPI(id, !actual);
       setUsuarios(prev => prev.map(u => u.id === id ? { ...u, activo: !actual } : u));
-    } catch(e){ console.error(e); }
+    } catch (e) { console.error(e); }
   };
 
   const reenviarConfirmacion = async (id) => {
-    try { await reenviarConfirmacionAPI(id); alert("Correo de confirmación reenviado."); } catch(e){ console.error(e); }
+    try { await reenviarConfirmacionAPI(id); alert("Correo de confirmación reenviado."); } catch (e) { console.error(e); }
   };
 
   const guardarCambios = async (u) => {
-    try { await actualizarUsuario(u.id, u); setUsuarios(prev => prev.map(p => p.id === u.id ? u : p)); } catch(e){ console.error(e); }
+    try { await actualizarUsuario(u.id, u); setUsuarios(prev => prev.map(p => p.id === u.id ? u : p)); } catch (e) { console.error(e); }
   };
 
   const guardarContrasena = async (id, c) => {
-    try { await cambiarContrasenaAPI(id, c); } catch(e){ console.error(e); }
+    try { await cambiarContrasenaAPI(id, c); } catch (e) { console.error(e); }
   };
 
   const cargarEstadisticas = async () => {
@@ -69,12 +76,15 @@ export default function Admin() {
       setUsuariosPorDatos(data.filter(u => u.usuario));
       setDatosOperaciones(rO.data);
       setDatosEvolucion(rE.data);
-    } catch(e){ console.error(e); }
+    } catch (e) { console.error(e); }
   };
 
   useEffect(() => {
-    if (seccionActiva === "usuarios")     obtenerUsuarios();
-    if (seccionActiva === "estadisticas") { obtenerUsuarios().then(() => setListaUsuarios(usuarios)); cargarEstadisticas(); }
+    if (seccionActiva === "usuarios") obtenerUsuarios();
+    if (seccionActiva === "estadisticas") {
+      obtenerUsuarios().then(data => setListaUsuarios(data));
+      cargarEstadisticas();
+    }
   }, [seccionActiva]);
 
   useEffect(() => {
@@ -83,14 +93,14 @@ export default function Admin() {
 
   const renderContenido = () => {
     switch (seccionActiva) {
-      case "dashboard":    return <VistaDashboard />;
-      case "usuarios":     return <VistaUsuarios usuario={usuario} usuariosFiltrados={usuariosFiltrados} busqueda={busqueda} setBusqueda={setBusqueda} reenviarConfirmacion={reenviarConfirmacion} cambiarEstado={cambiarEstado} guardarCambios={guardarCambios} guardarContrasena={guardarContrasena} />;
+      case "dashboard": return <VistaDashboard />;
+      case "usuarios": return <VistaUsuarios usuario={usuario} usuariosFiltrados={usuariosFiltrados} busqueda={busqueda} setBusqueda={setBusqueda} reenviarConfirmacion={reenviarConfirmacion} cambiarEstado={cambiarEstado} guardarCambios={guardarCambios} guardarContrasena={guardarContrasena} />;
       case "estadisticas": return <VistaEstadisticas usuarioSeleccionado={usuarioSeleccionado} setUsuarioSeleccionado={setUsuarioSeleccionado} listaUsuarios={listaUsuarios} usuariosPorDatos={usuariosPorDatos} datosOperaciones={datosOperaciones} datosEvolucion={datosEvolucion} />;
-      case "categorias":   return <VistaCategorias />;
-      case "bitacora":     return <VistaBitacora />;
-      case "reportes":     return <VistaReportes />;
-      case "ia":           return <VistaIA />;
-      default:             return null;
+      case "categorias": return <VistaCategorias />;
+      case "bitacora": return <VistaBitacora />;
+      case "reportes": return <VistaReportes />;
+      case "ia": return <VistaIA />;
+      default: return null;
     }
   };
 

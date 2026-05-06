@@ -84,7 +84,7 @@ export default function VistaIA() {
     setEnviando(true);
     try {
       const res = await api.post("/asistente", { mensaje: msg });
-      setMensajes(prev => { const c = [...prev]; c[c.length-1] = { rol: "assistant", contenido: res.data.respuesta || "Sin respuesta." }; return c; });
+      setMensajes(prev => { const c = [...prev]; c[c.length-1] = { rol: "assistant", contenido: res.data.respuesta || res.data.resumen || "Sin respuesta" }; return c; });
     } catch {
       setMensajes(prev => { const c = [...prev]; c[c.length-1] = { rol: "assistant", contenido: "Error al conectar." }; return c; });
     } finally { setEnviando(false); inputRef.current?.focus(); }
@@ -96,7 +96,7 @@ export default function VistaIA() {
   const generarAnalisis = async () => {
     if (!statsData || analizando) return;
     setAnalizando(true); setAnalisisTexto("");
-    try { const res = await analizarConIA(statsData); setAnalisisTexto(res.data.respuesta || "Sin respuesta."); }
+    try { const res = await analizarConIA(statsData); setAnalisisTexto(res.data.respuesta || res.data.resumen || "Sin respuesta"); }
     catch { setAnalisisTexto("Error al generar el análisis."); }
     finally { setAnalizando(false); }
   };
