@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api";
 import {
   PieChart,
   Pie,
@@ -22,9 +22,7 @@ const GraficaCategorias = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/finanzas/clasificacion-gastos", {
-          withCredentials: true,
-        });
+        const res = await api.get("/finanzas/clasificacion-gastos");
 
         const datosConvertidos = res.data.map(d => ({
           ...d,

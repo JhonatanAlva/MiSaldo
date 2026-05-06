@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { ProgressBar, Button } from "react-bootstrap";
 import GraficaBalance from "./GraficaBalance";
 import { FaShoppingBag, FaCreditCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 
 import useBudgetAlert from "../../hooks/useBudgetAlert";
 import BudgetAlertModal from "../ui/BudgetAlertModal";
@@ -54,9 +54,8 @@ const ResumenDashboard = ({ setVista }) => {
 
   const obtenerResumenCompleto = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/finanzas/resumen?tipo=mensual",
-        { withCredentials: true }
+      const res = await api.get(
+        "/finanzas/resumen?tipo=mensual"
       );
       setResumenTotal(res.data);
     } catch (err) {
@@ -67,11 +66,11 @@ const ResumenDashboard = ({ setVista }) => {
   const obtenerResumen = async () => {
     try {
       if (tipoVista === "personalizado" && (!fechaInicio || !fechaFin)) return;
-      let url = `http://localhost:5000/finanzas/resumen?tipo=${tipoVista}`;
+      let url = `/finanzas/resumen?tipo=${tipoVista}`;
       if (tipoVista === "personalizado") {
         url += `&inicio=${fechaInicio}&fin=${fechaFin}`;
       }
-      const res = await axios.get(url, { withCredentials: true });
+      const res = await api.get(url);
       setResumenMensual(res.data);
     } catch (err) {
       console.error("Error al obtener resumen financiero", err);
@@ -80,9 +79,8 @@ const ResumenDashboard = ({ setVista }) => {
 
   const obtenerMovimientos = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/finanzas/movimientos-recientes",
-        { withCredentials: true }
+      const res = await api.get(
+        "/finanzas/movimientos-recientes"
       );
       setMovimientos(res.data);
     } catch (err) {
@@ -92,11 +90,11 @@ const ResumenDashboard = ({ setVista }) => {
 
   const obtenerCategorias = async () => {
     try {
-      let url = `http://localhost:5000/finanzas/clasificacion-gastos?tipo=${tipoVista}`;
+      let url = `/finanzas/clasificacion-gastos?tipo=${tipoVista}`;
       if (tipoVista === "personalizado" && fechaInicio && fechaFin) {
         url += `&inicio=${fechaInicio}&fin=${fechaFin}`;
       }
-      const res = await axios.get(url, { withCredentials: true });
+      const res = await api.get(url);
       setCategorias(res.data);
     } catch (err) {
       console.error("Error al obtener clasificación de gastos", err);
@@ -105,13 +103,13 @@ const ResumenDashboard = ({ setVista }) => {
 
   const obtenerBalance = async () => {
     try {
-      let url = `http://localhost:5000/finanzas/balance?tipo=${tipoVista}`;
+      let url = `/finanzas/balance?tipo=${tipoVista}`;
 
       if (tipoVista === "personalizado" && fechaInicio && fechaFin) {
         url += `&inicio=${fechaInicio}&fin=${fechaFin}`;
       }
 
-      const res = await axios.get(url, { withCredentials: true });
+      const res = await api.get(url);
 
       // Función para dar formato legible a los períodos
       const formatearPeriodo = (periodo) => {
@@ -164,14 +162,12 @@ const ResumenDashboard = ({ setVista }) => {
 
   const obtenerMetas = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/ahorro/todos", {
-        withCredentials: true,
-      });
+      const res = await api.get("/ahorro/todos");
 
       const metasConTotales = await Promise.all(
         res.data.map(async (plan) => {
-          const totalRes = await axios.get(
-            `http://localhost:5000/ahorro/total-ahorrado/${plan.id}`,
+          const totalRes = await api.get(
+            `/ahorro/total-ahorrado/${plan.id}`,
             {
               withCredentials: true,
             }

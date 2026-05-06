@@ -1,9 +1,8 @@
 // frontend/src/components/user/ConfiguracionUsuario.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api";
 
-axios.defaults.withCredentials = true;
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+api.defaults.withCredentials = true;
 
 const ConfiguracionUsuario = () => {
   const [tab, setTab] = useState("perfil");
@@ -34,7 +33,7 @@ const ConfiguracionUsuario = () => {
     const cargar = async () => {
       try {
         // 1) Perfil
-        const u = await axios.get(`${API}/auth/usuario`);
+        const u = await api.get("/auth/usuario");
         setPerfil({
           nombres: u.data.nombres || "",
           apellidos: u.data.apellidos || "",
@@ -43,7 +42,7 @@ const ConfiguracionUsuario = () => {
         });
 
         // 2) Configuraciones
-        const c = await axios.get(`${API}/configuraciones`);
+        const c = await api.get("/configuraciones");
         if (c.data?.notificaciones) setNotificaciones(c.data.notificaciones);
         if (c.data?.formato) setFormato(c.data.formato);
       } catch (e) {
@@ -60,7 +59,7 @@ const ConfiguracionUsuario = () => {
     setGuardando(true);
     setMsg("");
     try {
-      const { data } = await axios.put(`${API}/configuraciones/usuario`, {
+      const { data } = await api.put("/configuraciones/usuario", {
         nombres: perfil.nombres,
         apellidos: perfil.apellidos,
         celular: perfil.celular ?? "",
@@ -89,7 +88,7 @@ const ConfiguracionUsuario = () => {
     setGuardando(true);
     setMsg("");
     try {
-      await axios.put(`${API}/configuraciones`, {
+      await api.put("/configuraciones", {
         notificaciones,
         formato,
       });

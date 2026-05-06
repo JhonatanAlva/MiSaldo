@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import { Icon } from "@iconify/react";
 
@@ -48,16 +48,12 @@ const SeccionAhorro = () => {
 
   const obtenerPlanes = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/ahorro/todos", {
-        withCredentials: true,
-      });
+      const res = await api.get("/ahorro/todos");
 
       const planesConTotales = await Promise.all(
         res.data.map(async (plan) => {
           try {
-            const respuesta = await axios.get(`http://localhost:5000/ahorro/total-ahorrado/${plan.id}`, {
-              withCredentials: true,
-            });
+            const respuesta = await api.get(`/ahorro/total-ahorrado/${plan.id}`);
             return { ...plan, total_ahorrado: respuesta.data.total };
           } catch (error) {
             console.error("Error al obtener total ahorrado:", error);
@@ -83,13 +79,9 @@ const SeccionAhorro = () => {
     e.preventDefault();
     try {
       if (modoEdicion && metaSeleccionada) {
-        await axios.put(`http://localhost:5000/ahorro/${metaSeleccionada}`, nuevaMeta, {
-          withCredentials: true,
-        });
+        await api.put(`/ahorro/${metaSeleccionada}`, nuevaMeta);
       } else {
-        await axios.post("http://localhost:5000/ahorro", nuevaMeta, {
-          withCredentials: true,
-        });
+        await api.post("/ahorro", nuevaMeta);
       }
       mostrarAlerta(modoEdicion ? "Meta actualizada" : "Meta guardada correctamente");
       setShowModal(false);
@@ -103,9 +95,7 @@ const SeccionAhorro = () => {
 
   const eliminarMeta = async () => {
     try {
-      await axios.delete(`http://localhost:5000/ahorro/${metaSeleccionada}`, {
-        withCredentials: true,
-      });
+      await api.delete(`/ahorro/${metaSeleccionada}`);
       mostrarAlerta("Meta eliminada correctamente");
       setShowEliminar(false);
       setMetaSeleccionada(null);
@@ -149,11 +139,9 @@ const SeccionAhorro = () => {
 
   const realizarDeposito = async () => {
     try {
-      await axios.post("http://localhost:5000/ahorro/abono", {
+      await api.post("/ahorro/abono", {
         plan_id: metaSeleccionada,
         monto: parseFloat(abono),
-      }, {
-        withCredentials: true,
       });
       mostrarAlerta("Depósito realizado correctamente");
       setShowDeposito(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../../services/api";
 
 const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
   const [mensaje, setMensaje] = useState("");
@@ -39,7 +40,7 @@ const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:5000/asistente", {
+      const res = await api.post("/asistente", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -71,26 +72,22 @@ const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
     ]);
 
     let url = "";
-    if (tipo === "gastos") url = "http://localhost:5000/finanzas/gastos";
+    if (tipo === "gastos") url = "/finanzas/gastos";
     else if (tipo === "ingresos")
-      url = "http://localhost:5000/finanzas/ingresos";
+      url = "/finanzas/ingresos";
     else if (tipo === "balance")
-      url = "http://localhost:5000/finanzas/resumen?tipo=mensual";
+      url = "/finanzas/resumen?tipo=mensual";
 
     try {
-      const res = await fetch(url, {
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await api.get(url);
 
       const data = await res.json();
 
       // Enviar los datos al asistente IA para que los interprete
-      const aiRes = await fetch("http://localhost:5000/asistente/analisis", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo, datos: data, nombre: nombreUsuario }),
+      const aiRes = await api.post("/asistente/analisis", {
+        tipo,
+        datos: data,
+        nombre: nombreUsuario,
       });
 
       const resultado = await aiRes.json();

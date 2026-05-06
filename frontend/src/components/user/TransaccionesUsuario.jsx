@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import api from "../../services/api";
 import { Button, Form, InputGroup, FormSelect, Alert } from "react-bootstrap";
 import { Icon } from "@iconify/react";
 
@@ -53,9 +53,7 @@ const TransaccionesUsuario = () => {
 
   const obtenerCategorias = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/finanzas/categorias", {
-        withCredentials: true,
-      });
+      const res = await api.get("/finanzas/categorias");
       setCategorias(res.data);
     } catch (err) {
       console.error("Error al obtener categorías:", err);
@@ -64,9 +62,7 @@ const TransaccionesUsuario = () => {
 
   const obtenerHistorial = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/finanzas/historial", {
-        withCredentials: true,
-      });
+      const res = await api.get("/finanzas/historial");
       const datos = res.data.map((t, index) => ({
         ...t,
         id: t.id || index + 1,
@@ -97,37 +93,32 @@ const TransaccionesUsuario = () => {
           payload.descripcion = description;
 
           // Obtener o crear categoría
-          const categoriaRes = await axios.post(
-            "http://localhost:5000/finanzas/categoria",
-            { nombre: category },
-            { withCredentials: true }
-          );
+          const categoriaRes = await api.post("/finanzas/categoria", { nombre: category });
           payload.categoria_id = categoriaRes.data.id;
         }
 
-        await axios.put(
-          `http://localhost:5000/finanzas/movimiento/${type}/${transaccionSeleccionada.id}`,
-          payload,
-          { withCredentials: true }
+        await api.put(
+          `/finanzas/movimiento/${type}/${transaccionSeleccionada.id}`,
+          payload
         );
 
         mostrarAlerta("Movimiento actualizado correctamente");
       } else {
         if (type === "ingreso") {
-          await axios.post(
-            "http://localhost:5000/finanzas/ingresos",
+          await api.post(
+            "/finanzas/ingresos",
             { monto: parseFloat(amount), fuente: category, fecha: date },
             { withCredentials: true }
           );
         } else {
-          const categoriaRes = await axios.post(
-            "http://localhost:5000/finanzas/categoria",
+          const categoriaRes = await api.post(
+            "/finanzas/categoria",
             { nombre: category },
             { withCredentials: true }
           );
 
-          await axios.post(
-            "http://localhost:5000/finanzas/gastos",
+          await api.post(
+            "/finanzas/gastos",
             {
               monto: parseFloat(amount),
               descripcion: description,
@@ -151,11 +142,8 @@ const TransaccionesUsuario = () => {
 
   const eliminarTransaccion = async (tipo, id) => {
     try {
-      await axios.delete(
-        `http://localhost:5000/finanzas/movimiento/${tipo}/${id}`,
-        {
-          withCredentials: true,
-        }
+      await api.delete(
+        `/finanzas/movimiento/${tipo}/${id}`
       );
       mostrarAlerta("Movimiento eliminado correctamente");
       await obtenerHistorial();
