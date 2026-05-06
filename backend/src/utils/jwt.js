@@ -2,7 +2,18 @@ const jwt = require('jsonwebtoken');
 
 // Verificar token desde cookie
 const verificarToken = (req, res, next) => {
-  const token = req.cookies.token;
+  let token = null;
+
+  // 1. Intentar leer desde Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  }
+
+  //  2. Fallback a cookie (login normal)
+  if (!token && req.cookies.token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ mensaje: 'No token provided' });
@@ -19,7 +30,16 @@ const verificarToken = (req, res, next) => {
 
 // Verificar si es administrador (rol_id === 1)
 const verificarAdmin = (req, res, next) => {
-  const token = req.cookies.token;
+  let token = null;
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  }
+
+  if (!token && req.cookies.token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ mensaje: 'No token provided' });
@@ -27,9 +47,11 @@ const verificarAdmin = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     if (decoded.rol_id !== 1) {
       return res.status(403).json({ mensaje: 'Acceso restringido a administradores' });
     }
+
     req.usuario = decoded;
     next();
   } catch (err) {
