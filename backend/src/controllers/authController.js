@@ -1,6 +1,19 @@
 const authService = require("../services/authService");
 const { FRONTEND_URL } = require("../utils/urls");
 
+// Helper para no repetir lógica
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProduction, // en local false
+    sameSite: isProduction ? "none" : "lax",
+    domain: isProduction ? ".misaldo.lat" : undefined,
+    maxAge: 2 * 60 * 60 * 1000,
+  };
+};
+
 // ── Google callback ───────────────────────────────────────────
 const googleCallback = async (req, res) => {
   if (!req.user.activo) {
@@ -9,14 +22,7 @@ const googleCallback = async (req, res) => {
 
   const { token, destino } = await authService.googleCallback(req.user);
 
-  const isProduction = process.env.NODE_ENV === "production";
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-    maxAge: 2 * 60 * 60 * 1000,
-  });
+  res.cookie("token", token, getCookieOptions());
 
   res.redirect(destino);
 };
@@ -27,6 +33,7 @@ const getUsuario = async (req, res) => {
     const data = await authService.getUsuario(req.usuario.id);
     if (data.error)
       return res.status(data.error).json({ mensaje: data.mensaje });
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ mensaje: "Error del servidor" });
@@ -42,14 +49,7 @@ const login = async (req, res) => {
     if (data.error)
       return res.status(data.error).json({ mensaje: data.mensaje });
 
-    const isProduction = process.env.NODE_ENV === "production";
-
-    res.cookie("token", data.token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
-    });
+    res.cookie("token", data.token, getCookieOptions());
 
     res.json({
       mensaje: "Inicio de sesión exitoso",
@@ -66,16 +66,19 @@ const logout = (req, res) => {
   req.logout((err) => {
     if (err) return res.status(500).send("Error al cerrar sesión");
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.clearCookie("connect.sid", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
 
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      domain: isProduction ? ".misaldo.lat" : undefined,
     });
 
     res.status(200).json({ mensaje: "Sesión cerrada" });
