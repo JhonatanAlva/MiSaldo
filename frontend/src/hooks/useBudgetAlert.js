@@ -16,8 +16,6 @@ export default function useBudgetAlert() {
           withCredentials: true,
         });
 
-        console.log("💡 Datos de presupuesto recibidos:", res.data);
-
         const data = res.data;
 
         if (!data.pushOn) return;

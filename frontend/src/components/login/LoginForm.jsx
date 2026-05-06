@@ -1,24 +1,32 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
 import { login } from "../../services/authService";
+import { AuthContext } from "../../context/AuthContext";
 
 const LoginForm = ({ setError }) => {
-  const [correo, setCorreo]       = useState("");
+  const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
-  const [cargando, setCargando]   = useState(false);
+  const [cargando, setCargando] = useState(false);
+
   const navigate = useNavigate();
-  const { verificarUsuario } = useContext(AuthContext);
+  const { verificarUsuario } = useContext(AuthContext); // obtener función
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setCargando(true);
+
     try {
-      const res = await login(correo, contrasena);
-      await verificarUsuario();
-      const rol = res.data.usuario?.rol;
+      await login(correo, contrasena); // establece la cookie
+
+      await verificarUsuario(); // sincroniza el contexto con el backend
+
+      const res = await import("../../services/authService")
+        .then(m => m.getUsuario());
+      const rol = res.data?.rol;
+
       navigate(rol === "Administrador" ? "/admin" : "/usuario");
+
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al iniciar sesión");
     } finally {
@@ -43,6 +51,7 @@ const LoginForm = ({ setError }) => {
         className={inputClass}
         required
       />
+
       <input
         type="password"
         placeholder="Contraseña"
@@ -51,6 +60,7 @@ const LoginForm = ({ setError }) => {
         className={inputClass}
         required
       />
+
       <button
         type="submit"
         disabled={cargando}

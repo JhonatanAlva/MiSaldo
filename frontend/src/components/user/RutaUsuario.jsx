@@ -5,7 +5,6 @@ import { AuthContext } from '../../context/AuthContext';
 const RutaUsuario = ({ children }) => {
   const { usuario, cargando } = useContext(AuthContext);
 
-  console.log("Usuario:", usuario);
 
   if (cargando) return <p>Cargando...</p>;
 

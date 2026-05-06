@@ -10,24 +10,27 @@ const Login = () => {
   const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
   const [error, setError] = useState("");
 
-useEffect(() => {
-  localStorage.removeItem("token"); // BORRAR TOKEN VIEJO
+  useEffect(() => {
 
-  api.get("/auth/logout").catch(() => {});
+    const params = new URLSearchParams(location.search);
 
-  const params = new URLSearchParams(location.search);
+    if (params.get("confirmado") === "1") {
+      setMensajeConfirmacion(
+        "Tu cuenta ha sido confirmada. Ya puedes iniciar sesión."
+      );
+    }
 
-  if (params.get("confirmado") === "1") {
-    setMensajeConfirmacion("Tu cuenta ha sido confirmada. Ya puedes iniciar sesión.");
-  }
+    if (params.get("error") === "cuenta_inactiva") {
+      setMensaje(
+        "Tu cuenta está desactivada. Contacta al administrador."
+      );
 
-  if (params.get("error") === "cuenta_inactiva") {
-    setMensaje("Tu cuenta está desactivada. Contacta al administrador.");
-    window.history.replaceState({}, "", window.location.pathname);
-    setTimeout(() => setMensaje(""), 5000);
-  }
+      window.history.replaceState({}, "", window.location.pathname);
 
-}, [location.search]);
+      setTimeout(() => setMensaje(""), 5000);
+    }
+
+  }, [location.search]);
 
   return (
     <div className="min-h-screen w-screen bg-[#111318] flex items-stretch overflow-y-auto">
