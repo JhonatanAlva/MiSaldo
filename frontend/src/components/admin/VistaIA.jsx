@@ -46,7 +46,7 @@ const Mensaje = ({ msg }) => {
 export default function VistaIA() {
   const [modo,          setModo]          = useState("chat");
   const [mensajes,      setMensajes]      = useState([
-    { rol: "assistant", contenido: "Hola, soy el asistente IA de MiSaldo. Puedo ayudarte a analizar estadísticas del sistema o responder preguntas sobre las finanzas de los usuarios. ¿En qué te ayudo?" }
+    { rol: "assistant", contenido: "Hola, soy el asistente IA de SaldoGt. Puedo ayudarte a analizar estadísticas del sistema o responder preguntas sobre las finanzas de los usuarios. ¿En qué te ayudo?" }
   ]);
   const [input,         setInput]         = useState("");
   const [enviando,      setEnviando]      = useState(false);

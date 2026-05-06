@@ -76,7 +76,7 @@ const registro = async ({
   const url = `${BACKEND_URL}/auth/confirmar/${token}`;
   const html = generarEmailConfirmacion(nombres, url);
 
-  await sendEmail(correo, "Confirma tu cuenta en MiSaldo", html);
+  await sendEmail(correo, "Confirma tu cuenta en SaldoGt", html);
 
   return {
     mensaje: "Registro exitoso. Revisa tu correo para confirmar tu cuenta.",

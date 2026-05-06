@@ -4,7 +4,7 @@ const generarEmailConfirmacion = (nombre, url) => {
     
     <div style="max-width:500px; margin:auto; background:#111827; padding:30px; border-radius:12px; text-align:center;">
 
-      <h1 style="color:#00c896; margin-bottom:10px;">MiSaldo</h1>
+      <h1 style="color:#00c896; margin-bottom:10px;">SaldoGt</h1>
 
       <h2 style="color:#ffffff;">Hola ${nombre},</h2>
 
@@ -24,7 +24,7 @@ const generarEmailConfirmacion = (nombre, url) => {
     </div>
 
     <p style="text-align:center; margin-top:20px; font-size:11px; color:#6b7280;">
-      © ${new Date().getFullYear()} MiSaldo
+      © ${new Date().getFullYear()} SaldoGt. Todos los derechos reservados.
     </p>
 
   </div>

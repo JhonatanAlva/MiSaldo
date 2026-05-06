@@ -14,12 +14,12 @@ const Registro = () => {
         <div className="absolute top-1/4 -left-20 w-72 h-72 bg-[#00c896]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
-          <img src="..//logo.png" alt="MiSaldo" className="w-52 mb-8 drop-shadow-lg" />
+          <img src="..//logo.png" alt="SaldoGt" className="w-52 mb-8 drop-shadow-lg" />
           <blockquote className="text-lg text-gray-300 italic leading-relaxed border-l-2 border-[#00c896] pl-4 text-left">
-            "Cada quetzal cuenta.<br />Organiza tu dinero con MiSaldo."
+            "Cada quetzal cuenta.<br />Organiza tu dinero con SaldoGt."
           </blockquote>
           <p className="mt-10 text-xs text-gray-600 tracking-widest uppercase">
-            © 2025 MiSaldo · Todos los derechos reservados
+            © 2025 SaldoGt · Todos los derechos reservados
           </p>
         </div>
       </div>
@@ -30,7 +30,7 @@ const Registro = () => {
       {/* ── Panel derecho ─────────────────────────────────── */}
       <div className="flex flex-col items-center justify-center flex-1 px-6 py-12">
 
-        <img src="/logo.png" alt="MiSaldo" className="w-32 mb-8 md:hidden" />
+        <img src="/logo.png" alt="SaldoGt" className="w-32 mb-8 md:hidden" />
 
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">

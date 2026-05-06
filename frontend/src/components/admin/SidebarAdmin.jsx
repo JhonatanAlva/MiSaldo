@@ -42,9 +42,9 @@ export default function SidebarAdmin({ seccionActiva, setSeccionActiva, cerrarSe
         <div className="px-5 pt-7 pb-6 border-b border-white/[0.06]">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#00c896] flex items-center justify-center">
-              <span className="text-black font-black text-xs">M</span>
+              <span className="text-black font-black text-xs">S</span>
             </div>
-            <span className="text-white font-bold tracking-tight text-sm">MiSaldo <span className="text-[#00c896]">Admin</span></span>
+            <span className="text-white font-bold tracking-tight text-sm">SaldoGt <span className="text-[#00c896]">Admin</span></span>
           </div>
         </div>
 

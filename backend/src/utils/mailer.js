@@ -7,7 +7,7 @@ const sendEmail = async (to, subject, html) => {
     console.log("📨 Enviando correo a:", to);
 
     const response = await resend.emails.send({
-      from: "MiSaldo <no-reply@misaldo.lat>",
+      from: "SaldoGt <no-reply@misaldo.lat>",
       to,
       subject,
       html,

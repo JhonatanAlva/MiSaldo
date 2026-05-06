@@ -64,7 +64,7 @@ const reenviarConfirmacion = async (id) => {
   //  USAR PLANTILLA
   const html = generarEmailConfirmacion(usuario.nombres, url);
 
-  await sendEmail(usuario.correo, "Confirma tu cuenta en MiSaldo", html);
+  await sendEmail(usuario.correo, "Confirma tu cuenta en SaldoGt", html);
 
   return {
     mensaje: "Correo de confirmación reenviado correctamente",
