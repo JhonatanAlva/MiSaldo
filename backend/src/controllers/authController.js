@@ -20,11 +20,10 @@ const googleCallback = async (req, res) => {
     return res.redirect(`${FRONTEND_URL}/login?error=cuenta_inactiva`);
   }
 
-  const { token, destino } = await authService.googleCallback(req.user);
+  const { token } = await authService.googleCallback(req.user);
 
-  res.cookie("token", token, getCookieOptions());
-
-  return res.redirect(`${FRONTEND_URL}/oauth-success`);
+  // Pasar el token por query param en vez de cookie
+  return res.redirect(`${FRONTEND_URL}/oauth-success?token=${token}`);
 };
 
 // ── Obtener usuario actual ────────────────────────────────────
