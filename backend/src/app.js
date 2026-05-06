@@ -3,6 +3,7 @@ const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
+const { FRONTEND_URL } = require("./utils/urls");
 
 require("./config/db");
 require("./config/passport");
@@ -18,11 +19,11 @@ app.set('trust proxy', 1);
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://mi-saldo.vercel.app",
+  FRONTEND_URL,
+  process.env.CLIENT_URL,
   "https://misaldo.lat",
-  "https://www.misaldo.lat"
-];
+  "https://www.misaldo.lat",
+].filter(Boolean);
 
 app.use(
   cors({

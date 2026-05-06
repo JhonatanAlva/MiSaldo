@@ -14,7 +14,7 @@ const login = async (correo, contrasena) => {
   ]);
 
   if (result.rows.length === 0) {
-    return { error: 401, mensaje: "Correo no registrado" };
+    return { error: 401, mensaje: "Datos incorrectos" };
   }
 
   const usuario = result.rows[0];
@@ -32,7 +32,7 @@ const login = async (correo, contrasena) => {
 
   const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
   if (!coincide) {
-    return { error: 401, mensaje: "Contraseña incorrecta" };
+    return { error: 401, mensaje: "Datos incorrectos" };
   }
 
   await registrarBitacora(usuario.id, "Inicio de sesión");
