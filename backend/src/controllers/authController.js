@@ -22,9 +22,7 @@ const googleCallback = async (req, res) => {
 
   const { token, destino } = await authService.googleCallback(req.user);
 
-  res.cookie("token", token, getCookieOptions());
-
-  res.redirect(destino);
+  return res.redirect(`${FRONTEND_URL}/oauth-success?token=${token}`);
 };
 
 // ── Obtener usuario actual ────────────────────────────────────

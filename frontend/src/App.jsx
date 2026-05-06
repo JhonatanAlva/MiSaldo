@@ -5,6 +5,7 @@ import RutaAdmin from "./components/admin/RutaAdmin";
 import Admin from "./pages/Admin";
 import RutaUsuario from "./components/user/RutaUsuario";
 import PanelUsuario from "./pages/PanelUsuario";
+import OAuthSuccess from "./pages/OAuthSuccess";
 
 function App() {
   return (
@@ -12,6 +13,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
 
         <Route
           path="/admin"
