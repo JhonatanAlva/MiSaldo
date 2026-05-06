@@ -1,10 +1,11 @@
-const BACKEND_URL =
-  process.env.BACKEND_URL || "http://localhost:5000";
-
-const FRONTEND_URL =
-  process.env.CLIENT_URL || "http://localhost:5173";
+const isProduction = process.env.NODE_ENV === "production";
 
 module.exports = {
-  BACKEND_URL,
-  FRONTEND_URL,
+  FRONTEND_URL: isProduction
+    ? process.env.FRONTEND_URL
+    : "http://localhost:5173",
+
+  BACKEND_URL: isProduction
+    ? process.env.BACKEND_URL
+    : "http://localhost:5000",
 };
