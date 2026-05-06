@@ -17,9 +17,24 @@ app.set('trust proxy', 1);
 // ── Middleware ────────────────────────────────────────────────
 app.use(cookieParser());
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mi-saldo.vercel.app",
+  "https://misaldo.lat",
+  "https://www.misaldo.lat"
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // Postman o backend interno
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("No permitido por CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
