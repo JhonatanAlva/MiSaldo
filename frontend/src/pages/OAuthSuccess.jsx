@@ -6,17 +6,25 @@ export default function OAuthSuccess() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    const ejecutarLogin = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
 
-    if (!token) {
-      return navigate("/login");
-    }
+      if (!token) {
+        return navigate("/login");
+      }
 
-    localStorage.setItem("token", token);
+      // ✅ Guardar token
+      localStorage.setItem("token", token);
 
-    api.get("/auth/usuario")
-      .then((res) => {
+      try {
+        // 🔥 IMPORTANTE: enviar token manualmente (evita errores del interceptor)
+        const res = await api.get("/auth/usuario", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const rol = res.data.rol;
 
         if (rol === "Administrador") {
@@ -24,11 +32,14 @@ export default function OAuthSuccess() {
         } else {
           navigate("/usuario");
         }
-      })
-      .catch(() => {
-        navigate("/login");
-      });
 
+      } catch (error) {
+        console.error("Error validando usuario:", error);
+        navigate("/login");
+      }
+    };
+
+    ejecutarLogin();
   }, []);
 
   return <p>Iniciando sesión...</p>;
