@@ -49,14 +49,25 @@ const login = async (req, res) => {
     if (data.error)
       return res.status(data.error).json({ mensaje: data.mensaje });
 
+    const isProduction = process.env.NODE_ENV === "production";
+
+    //limpiar cualquier sesión anterior
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      domain: isProduction ? ".misaldo.lat" : undefined,
+    });
+
+    // crear nueva sesión
     res.cookie("token", data.token, getCookieOptions());
 
     res.json({
       mensaje: "Inicio de sesión exitoso",
       usuario: data.usuario,
     });
+
   } catch (err) {
-    console.error("Error en login:", err);
     res.status(500).json({ mensaje: "Error del servidor" });
   }
 };

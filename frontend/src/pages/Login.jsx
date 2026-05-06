@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import LoginForm from "../components/login/LoginForm";
 import GoogleLoginButton from "../components/login/GoogleLoginButton";
+import api from "../services/api";
 
 const Login = () => {
   const location = useLocation();
@@ -9,17 +10,24 @@ const Login = () => {
   const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("confirmado") === "1") {
-      setMensajeConfirmacion("Tu cuenta ha sido confirmada. Ya puedes iniciar sesión.");
-    }
-    if (params.get("error") === "cuenta_inactiva") {
-      setMensaje("Tu cuenta está desactivada. Contacta al administrador.");
-      window.history.replaceState({}, "", window.location.pathname);
-      setTimeout(() => setMensaje(""), 5000);
-    }
-  }, [location.search]);
+useEffect(() => {
+  localStorage.removeItem("token"); // BORRAR TOKEN VIEJO
+
+  api.get("/auth/logout").catch(() => {});
+
+  const params = new URLSearchParams(location.search);
+
+  if (params.get("confirmado") === "1") {
+    setMensajeConfirmacion("Tu cuenta ha sido confirmada. Ya puedes iniciar sesión.");
+  }
+
+  if (params.get("error") === "cuenta_inactiva") {
+    setMensaje("Tu cuenta está desactivada. Contacta al administrador.");
+    window.history.replaceState({}, "", window.location.pathname);
+    setTimeout(() => setMensaje(""), 5000);
+  }
+
+}, [location.search]);
 
   return (
     <div className="min-h-screen w-screen bg-[#111318] flex items-stretch overflow-y-auto">
