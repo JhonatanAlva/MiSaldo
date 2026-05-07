@@ -23,23 +23,6 @@ app.set("trust proxy", 1);
 app.disable("x-powered-by");
 
 // ─────────────────────────────────────
-// Rate limit AUTH
-// ─────────────────────────────────────
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-
-  max: 10,
-
-  standardHeaders: true,
-
-  legacyHeaders: false,
-
-  message: {
-    mensaje: "Demasiados intentos. Intenta nuevamente más tarde.",
-  },
-});
-
-// ─────────────────────────────────────
 // Rate limit IA
 // ─────────────────────────────────────
 const iaLimiter = rateLimit({
@@ -135,7 +118,7 @@ app.use(passport.session());
 // ─────────────────────────────────────
 // Rutas
 // ─────────────────────────────────────
-app.use("/auth", authLimiter, require("./routes/auth"));
+app.use("/auth", require("./routes/auth"));
 
 app.use("/asistente", iaLimiter, require("./routes/asistente"));
 
