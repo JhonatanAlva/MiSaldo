@@ -262,6 +262,49 @@ CREATE TABLE historial_gastos_fijos (
     fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- ------------------------------------------------------------
+-- 13. ingresos_fijos
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS ingresos_fijos CASCADE;
+
+CREATE TABLE ingresos_fijos (
+
+    id SERIAL PRIMARY KEY,
+
+    usuario_id INTEGER NOT NULL,
+
+    nombre VARCHAR(150) NOT NULL,
+
+    monto NUMERIC(10,2) NOT NULL,
+
+    frecuencia VARCHAR(20) NOT NULL
+    CHECK (
+        frecuencia IN (
+            'mensual',
+            'quincenal',
+            'semanal'
+        )
+    ),
+
+    dia_pago INTEGER DEFAULT NULL,
+
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    ultimo_pago DATE DEFAULT NULL,
+
+    ultima_notificacion DATE DEFAULT NULL,
+
+    creado_en TIMESTAMP NOT NULL
+    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_ingresos_fijos_usuario
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuarios(id)
+    ON DELETE CASCADE
+);
+
+
 -- ============================================================
 -- FIN DEL SCHEMA
 -- ============================================================
