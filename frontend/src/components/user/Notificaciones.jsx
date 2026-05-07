@@ -61,12 +61,23 @@ const Notificaciones = () => {
           </span>
         )}
       </button>
+      {/* Overlay */}
+      {abierto && (
+        <div
+          onClick={() => setAbierto(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99998,
+            background: "transparent",
+          }}
+        />
+      )}
 
       {/* Dropdown */}
       {abierto && (
         <div
           className={`
-      mt-3
       rounded-4
       shadow-lg
       border
@@ -79,15 +90,15 @@ const Notificaciones = () => {
       }
     `}
           style={{
-            top: "85px",
+            top: "78px",
 
-            right: window.innerWidth < 576 ? "10px" : "20px",
+            right: window.innerWidth < 576 ? "12px" : "20px",
 
-            width: window.innerWidth < 576 ? "calc(100vw - 20px)" : "360px",
+            width: window.innerWidth < 576 ? "300px" : "360px",
 
-            maxWidth: "360px",
+            maxWidth: "92vw",
 
-            maxHeight: "75vh",
+            maxHeight: "70vh",
 
             overflowY: "auto",
 
