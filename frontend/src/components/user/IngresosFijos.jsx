@@ -1,376 +1,243 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-
 import api from "../../services/api";
 
 const IngresosFijos = () => {
+  const [ingresos, setIngresos] = useState([]);
 
-  const [ingresos, setIngresos] =
-    useState([]);
+  const [mostrarModal, setMostrarModal] = useState(false);
 
-  const [mostrarModal,
-    setMostrarModal] =
-    useState(false);
+  const [editandoId, setEditandoId] = useState(null);
 
-  const [editandoId,
-    setEditandoId] =
-    useState(null);
+  const [errorFormulario, setErrorFormulario] = useState("");
 
-  const [errorFormulario,
-    setErrorFormulario] =
-    useState("");
+  const [historial, setHistorial] = useState([]);
 
-  const [formulario,
-    setFormulario] =
-    useState({
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
-      nombre: "",
-      monto: "",
-      frecuencia: "mensual",
+  const [nombreHistorial, setNombreHistorial] = useState("");
 
-      dia_pago: 1,
-
-      dia_pago_secundario: 15,
-
-      activo: true,
-
-    });
+  const [formulario, setFormulario] = useState({
+    nombre: "",
+    monto: "",
+    frecuencia: "mensual",
+    dia_pago: 1,
+    dia_pago_secundario: 15,
+    activo: true,
+  });
 
   // ─────────────────────────────
   // Obtener ingresos
   // ─────────────────────────────
-  const obtenerIngresos =
-    async () => {
+  const obtenerIngresos = async () => {
+    try {
+      const res = await api.get("/ingresos-fijos");
 
-      try {
-
-        const res =
-          await api.get(
-            "/ingresos-fijos"
-          );
-
-        setIngresos(res.data);
-
-      } catch (error) {
-
-        console.error(error);
-
-      }
-    };
+      setIngresos(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-
     obtenerIngresos();
-
   }, []);
 
   // ─────────────────────────────
   // Inputs
   // ─────────────────────────────
   const handleChange = (e) => {
-
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = e.target;
+    const { name, value, type, checked } = e.target;
 
     setFormulario({
       ...formulario,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
   // ─────────────────────────────
   // Limpiar
   // ─────────────────────────────
-  const limpiarFormulario =
-    () => {
+  const limpiarFormulario = () => {
+    setFormulario({
+      nombre: "",
+      monto: "",
+      frecuencia: "mensual",
+      dia_pago: 1,
+      dia_pago_secundario: 15,
+      activo: true,
+    });
 
-      setFormulario({
+    setErrorFormulario("");
 
-        nombre: "",
-        monto: "",
-        frecuencia: "mensual",
+    setEditandoId(null);
 
-        dia_pago: 1,
-
-        dia_pago_secundario: 15,
-
-        activo: true,
-
-      });
-
-      setErrorFormulario("");
-
-      setEditandoId(null);
-
-      setMostrarModal(false);
-    };
+    setMostrarModal(false);
+  };
 
   // ─────────────────────────────
   // Guardar
   // ─────────────────────────────
-  const guardarIngreso =
-    async (e) => {
+  const guardarIngreso = async (e) => {
+    e.preventDefault();
 
-      e.preventDefault();
+    setErrorFormulario("");
 
-      setErrorFormulario("");
+    if (!formulario.nombre.trim()) {
+      return setErrorFormulario("Debes ingresar un nombre.");
+    }
 
-      if (
-        !formulario.nombre.trim()
-      ) {
+    if (!formulario.monto || Number(formulario.monto) <= 0) {
+      return setErrorFormulario("Debes ingresar un monto válido.");
+    }
 
-        return setErrorFormulario(
-          "Debes ingresar un nombre."
-        );
+    if (formulario.frecuencia === "mensual") {
+      if (!formulario.dia_pago) {
+        return setErrorFormulario("Debes ingresar el día de pago.");
+      }
+    }
+
+    if (formulario.frecuencia === "quincenal") {
+      if (!formulario.dia_pago || !formulario.dia_pago_secundario) {
+        return setErrorFormulario("Debes ingresar ambos días de pago.");
+      }
+    }
+
+    try {
+      if (editandoId) {
+        await api.put(`/ingresos-fijos/${editandoId}`, formulario);
+
+        Swal.fire({
+          icon: "success",
+          title: "Ingreso actualizado",
+          timer: 1500,
+          showConfirmButton: false,
+          background: "#1e1e1e",
+          color: "#fff",
+        });
+      } else {
+        await api.post("/ingresos-fijos", formulario);
+
+        Swal.fire({
+          icon: "success",
+          title: "Ingreso agregado",
+          timer: 1500,
+          showConfirmButton: false,
+          background: "#1e1e1e",
+          color: "#fff",
+        });
       }
 
-      if (
-        !formulario.monto ||
-        Number(formulario.monto) <= 0
-      ) {
+      limpiarFormulario();
 
-        return setErrorFormulario(
-          "Debes ingresar un monto válido."
-        );
-      }
+      obtenerIngresos();
+    } catch (error) {
+      console.error(error);
 
-      if (
-        formulario.frecuencia ===
-        "mensual"
-      ) {
-
-        if (
-          !formulario.dia_pago
-        ) {
-
-          return setErrorFormulario(
-            "Debes ingresar el día de pago."
-          );
-        }
-      }
-
-      if (
-        formulario.frecuencia ===
-        "quincenal"
-      ) {
-
-        if (
-          !formulario.dia_pago ||
-          !formulario.dia_pago_secundario
-        ) {
-
-          return setErrorFormulario(
-            "Debes ingresar ambos días de pago."
-          );
-        }
-      }
-
-      try {
-
-        if (editandoId) {
-
-          await api.put(
-            `/ingresos-fijos/${editandoId}`,
-            formulario
-          );
-
-          Swal.fire({
-
-            icon: "success",
-
-            title:
-              "Ingreso actualizado",
-
-            timer: 1500,
-
-            showConfirmButton: false,
-
-            background:
-              "#1e1e1e",
-
-            color: "#fff",
-
-          });
-
-        } else {
-
-          await api.post(
-            "/ingresos-fijos",
-            formulario
-          );
-
-          Swal.fire({
-
-            icon: "success",
-
-            title:
-              "Ingreso agregado",
-
-            timer: 1500,
-
-            showConfirmButton: false,
-
-            background:
-              "#1e1e1e",
-
-            color: "#fff",
-
-          });
-        }
-
-        limpiarFormulario();
-
-        obtenerIngresos();
-
-      } catch (error) {
-
-        console.error(error);
-
-        setErrorFormulario(
-          "No se pudo guardar el ingreso."
-        );
-      }
-    };
+      setErrorFormulario("No se pudo guardar el ingreso.");
+    }
+  };
 
   // ─────────────────────────────
   // Editar
   // ─────────────────────────────
-  const editarIngreso =
-    (ingreso) => {
+  const editarIngreso = (ingreso) => {
+    setFormulario({
+      nombre: ingreso.nombre,
+      monto: ingreso.monto,
+      frecuencia: ingreso.frecuencia,
+      dia_pago: ingreso.dia_pago,
+      dia_pago_secundario: ingreso.dia_pago_secundario || 15,
+      activo: ingreso.activo,
+    });
 
-      setFormulario({
+    setEditandoId(ingreso.id);
 
-        nombre:
-          ingreso.nombre,
-
-        monto:
-          ingreso.monto,
-
-        frecuencia:
-          ingreso.frecuencia,
-
-        dia_pago:
-          ingreso.dia_pago,
-
-        dia_pago_secundario:
-          ingreso.dia_pago_secundario || 15,
-
-        activo:
-          ingreso.activo,
-
-      });
-
-      setEditandoId(
-        ingreso.id
-      );
-
-      setMostrarModal(true);
-    };
+    setMostrarModal(true);
+  };
 
   // ─────────────────────────────
   // Eliminar
   // ─────────────────────────────
-  const eliminarIngreso =
-    async (id) => {
+  const eliminarIngreso = async (id) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar ingreso fijo?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      background: "#1e1e1e",
+      color: "#fff",
+    });
 
-      const result =
-        await Swal.fire({
+    if (!result.isConfirmed) return;
 
-          title:
-            "¿Eliminar ingreso fijo?",
+    try {
+      await api.delete(`/ingresos-fijos/${id}`);
 
-          text:
-            "Esta acción no se puede deshacer.",
+      obtenerIngresos();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-          icon: "warning",
+  // ─────────────────────────────
+  // Historial
+  // ─────────────────────────────
+  const verHistorial = async (id, nombre) => {
+    try {
+      const res = await api.get(`/ingresos-fijos/${id}/historial`);
 
-          showCancelButton: true,
+      setHistorial(res.data);
 
-          confirmButtonText:
-            "Sí, eliminar",
+      setNombreHistorial(nombre);
 
-          cancelButtonText:
-            "Cancelar",
+      setMostrarHistorial(true);
+    } catch (error) {
+      console.error(error);
 
-          confirmButtonColor:
-            "#dc3545",
-
-          cancelButtonColor:
-            "#6c757d",
-
-          background:
-            "#1e1e1e",
-
-          color: "#fff",
-
-        });
-
-      if (!result.isConfirmed)
-        return;
-
-      try {
-
-        await api.delete(
-          `/ingresos-fijos/${id}`
-        );
-
-        obtenerIngresos();
-
-      } catch (error) {
-
-        console.error(error);
-
-      }
-    };
+      Swal.fire({
+        icon: "error",
+        title: "Error al obtener historial",
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+    }
+  };
 
   // ─────────────────────────────
   // Texto frecuencia
   // ─────────────────────────────
-  const obtenerTextoFrecuencia =
-    (ingreso) => {
+  const obtenerTextoFrecuencia = (ingreso) => {
+    if (ingreso.frecuencia === "mensual") {
+      return `
+        Cada mes el día
+        ${ingreso.dia_pago}
+      `;
+    }
 
-      if (
-        ingreso.frecuencia ===
-        "mensual"
-      ) {
+    if (ingreso.frecuencia === "quincenal") {
+      return `
+        Días
+        ${ingreso.dia_pago}
+        y
+        ${ingreso.dia_pago_secundario}
+        de cada mes
+      `;
+    }
 
-        return `Cada mes el día ${ingreso.dia_pago}`;
-      }
+    if (ingreso.frecuencia === "semanal") {
+      return "Cada semana";
+    }
 
-      if (
-        ingreso.frecuencia ===
-        "quincenal"
-      ) {
-
-        return `Días ${ingreso.dia_pago} y ${ingreso.dia_pago_secundario} de cada mes`;
-      }
-
-      if (
-        ingreso.frecuencia ===
-        "semanal"
-      ) {
-
-        return `Cada semana`;
-      }
-
-      return ingreso.frecuencia;
-    };
+    return ingreso.frecuencia;
+  };
 
   return (
-
     <div className="container-fluid py-4">
-
       {/* Header */}
       <div
         className="
@@ -382,17 +249,10 @@ const IngresosFijos = () => {
           mb-4
         "
       >
-
         <div>
+          <h2 className="fw-bold">💰 Ingresos Fijos</h2>
 
-          <h2 className="fw-bold">
-            💰 Ingresos Fijos
-          </h2>
-
-          <p className="text-muted mb-0">
-            Gestiona ingresos automáticos
-          </p>
-
+          <p className="text-muted mb-0">Gestiona ingresos automáticos</p>
         </div>
 
         <button
@@ -403,18 +263,14 @@ const IngresosFijos = () => {
             px-4
             fw-semibold
           "
-          onClick={() =>
-            setMostrarModal(true)
-          }
+          onClick={() => setMostrarModal(true)}
         >
           + Agregar ingreso
         </button>
-
       </div>
 
-      {/* Modal */}
+      {/* Modal principal */}
       {mostrarModal && (
-
         <div
           className="
             position-fixed
@@ -427,21 +283,15 @@ const IngresosFijos = () => {
             align-items-center
           "
           style={{
-            background:
-              "rgba(0,0,0,0.70)",
-
+            background: "rgba(0,0,0,0.70)",
             zIndex: 9999,
-
-            backdropFilter:
-              "blur(5px)",
-
+            backdropFilter: "blur(5px)",
             padding: "1rem",
           }}
+          onClick={limpiarFormulario}
         >
-
           <div
             className="
-              bg-dark
               text-white
               rounded-4
               shadow-lg
@@ -453,9 +303,10 @@ const IngresosFijos = () => {
               maxWidth: "520px",
               maxHeight: "90vh",
               overflowY: "auto",
+              background: "linear-gradient(135deg,#111827,#1f2937)",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-
             {/* Header */}
             <div
               className="
@@ -465,15 +316,8 @@ const IngresosFijos = () => {
                 mb-4
               "
             >
-
               <h3 className="fw-bold">
-
-                {
-                  editandoId
-                    ? "✏️ Editar ingreso"
-                    : "💰 Nuevo ingreso"
-                }
-
+                {editandoId ? "✏️ Editar ingreso" : "💰 Nuevo ingreso"}
               </h3>
 
               <button
@@ -481,16 +325,12 @@ const IngresosFijos = () => {
                   btn-close
                   btn-close-white
                 "
-                onClick={
-                  limpiarFormulario
-                }
+                onClick={limpiarFormulario}
               />
-
             </div>
 
             {/* Error */}
             {errorFormulario && (
-
               <div
                 className="
                   alert
@@ -500,22 +340,13 @@ const IngresosFijos = () => {
               >
                 {errorFormulario}
               </div>
-
             )}
 
-            {/* Formulario */}
-            <form
-              onSubmit={
-                guardarIngreso
-              }
-            >
-
+            {/* Form */}
+            <form onSubmit={guardarIngreso}>
               {/* Nombre */}
               <div className="mb-3">
-
-                <label className="form-label">
-                  Nombre
-                </label>
+                <label className="form-label">Nombre</label>
 
                 <input
                   type="text"
@@ -525,22 +356,14 @@ const IngresosFijos = () => {
                     text-white
                   "
                   name="nombre"
-                  value={
-                    formulario.nombre
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  value={formulario.nombre}
+                  onChange={handleChange}
                 />
-
               </div>
 
               {/* Monto */}
               <div className="mb-3">
-
-                <label className="form-label">
-                  Monto
-                </label>
+                <label className="form-label">Monto</label>
 
                 <input
                   type="number"
@@ -550,22 +373,14 @@ const IngresosFijos = () => {
                     text-white
                   "
                   name="monto"
-                  value={
-                    formulario.monto
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  value={formulario.monto}
+                  onChange={handleChange}
                 />
-
               </div>
 
               {/* Frecuencia */}
               <div className="mb-3">
-
-                <label className="form-label">
-                  Frecuencia
-                </label>
+                <label className="form-label">Frecuencia</label>
 
                 <select
                   className="
@@ -574,39 +389,43 @@ const IngresosFijos = () => {
                     text-white
                   "
                   name="frecuencia"
-                  value={
-                    formulario.frecuencia
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  value={formulario.frecuencia}
+                  onChange={handleChange}
                 >
+                  <option value="mensual">Mensual</option>
 
-                  <option value="mensual">
-                    Mensual
-                  </option>
+                  <option value="quincenal">Quincenal</option>
 
-                  <option value="quincenal">
-                    Quincenal
-                  </option>
-
-                  <option value="semanal">
-                    Semanal
-                  </option>
-
+                  <option value="semanal">Semanal</option>
                 </select>
-
               </div>
 
               {/* Mensual */}
-              {formulario.frecuencia ===
-                "mensual" && (
+              {formulario.frecuencia === "mensual" && (
+                <div className="mb-4">
+                  <label className="form-label">Día de pago</label>
 
-                  <div className="mb-4">
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    className="
+                      form-control
+                      bg-dark
+                      text-white
+                    "
+                    name="dia_pago"
+                    value={formulario.dia_pago}
+                    onChange={handleChange}
+                  />
+                </div>
+              )}
 
-                    <label className="form-label">
-                      Día de pago
-                    </label>
+              {/* Quincenal */}
+              {formulario.frecuencia === "quincenal" && (
+                <div className="row">
+                  <div className="col-6 mb-4">
+                    <label className="form-label">Primer pago</label>
 
                     <input
                       type="number"
@@ -618,95 +437,43 @@ const IngresosFijos = () => {
                         text-white
                       "
                       name="dia_pago"
-                      value={
-                        formulario.dia_pago
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formulario.dia_pago}
+                      onChange={handleChange}
                     />
-
                   </div>
 
-                )}
+                  <div className="col-6 mb-4">
+                    <label className="form-label">Segundo pago</label>
 
-              {/* Quincenal */}
-              {formulario.frecuencia ===
-                "quincenal" && (
-
-                  <div className="row">
-
-                    <div className="col-6 mb-4">
-
-                      <label className="form-label">
-                        Primer pago
-                      </label>
-
-                      <input
-                        type="number"
-                        min="1"
-                        max="31"
-                        className="
-                          form-control
-                          bg-dark
-                          text-white
-                        "
-                        name="dia_pago"
-                        value={
-                          formulario.dia_pago
-                        }
-                        onChange={
-                          handleChange
-                        }
-                      />
-
-                    </div>
-
-                    <div className="col-6 mb-4">
-
-                      <label className="form-label">
-                        Segundo pago
-                      </label>
-
-                      <input
-                        type="number"
-                        min="1"
-                        max="31"
-                        className="
-                          form-control
-                          bg-dark
-                          text-white
-                        "
-                        name="dia_pago_secundario"
-                        value={
-                          formulario.dia_pago_secundario
-                        }
-                        onChange={
-                          handleChange
-                        }
-                      />
-
-                    </div>
-
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      className="
+                        form-control
+                        bg-dark
+                        text-white
+                      "
+                      name="dia_pago_secundario"
+                      value={formulario.dia_pago_secundario}
+                      onChange={handleChange}
+                    />
                   </div>
-
-                )}
+                </div>
+              )}
 
               {/* Semanal */}
-              {formulario.frecuencia ===
-                "semanal" && (
-
-                  <div
-                    className="
-                      alert
-                      alert-info
-                      border-0
-                    "
-                  >
-                    Este ingreso se registrará automáticamente cada semana.
-                  </div>
-
-                )}
+              {formulario.frecuencia === "semanal" && (
+                <div
+                  className="
+                    alert
+                    alert-info
+                    border-0
+                  "
+                >
+                  Este ingreso se registrará automáticamente cada semana.
+                </div>
+              )}
 
               {/* Botones */}
               <div
@@ -716,7 +483,6 @@ const IngresosFijos = () => {
                   mt-4
                 "
               >
-
                 <button
                   type="button"
                   className="
@@ -724,9 +490,7 @@ const IngresosFijos = () => {
                     btn-secondary
                     flex-fill
                   "
-                  onClick={
-                    limpiarFormulario
-                  }
+                  onClick={limpiarFormulario}
                 >
                   Cancelar
                 </button>
@@ -739,146 +503,243 @@ const IngresosFijos = () => {
                     flex-fill
                   "
                 >
-                  {
-                    editandoId
-                      ? "Actualizar"
-                      : "Guardar"
-                  }
+                  {editandoId ? "Actualizar" : "Guardar"}
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
+      )}
 
+      {/* Modal historial */}
+      {mostrarHistorial && (
+        <div
+          className="
+            position-fixed
+            top-0
+            start-0
+            w-100
+            h-100
+            d-flex
+            justify-content-center
+            align-items-center
+          "
+          style={{
+            background: "rgba(0,0,0,0.70)",
+            zIndex: 9999,
+            backdropFilter: "blur(5px)",
+            padding: "1rem",
+          }}
+          onClick={() => setMostrarHistorial(false)}
+        >
+          <div
+            className="
+              text-white
+              rounded-4
+              shadow-lg
+              p-4
+            "
+            style={{
+              width: "100%",
+              maxWidth: "650px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              background: "linear-gradient(135deg,#111827,#1f2937)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="
+                d-flex
+                justify-content-between
+                align-items-center
+                mb-4
+              "
+            >
+              <h3 className="fw-bold">📜 Historial de {nombreHistorial}</h3>
+
+              <button
+                className="
+                  btn-close
+                  btn-close-white
+                "
+                onClick={() => setMostrarHistorial(false)}
+              />
+            </div>
+
+            {historial.length === 0 ? (
+              <div
+                className="
+                  alert
+                  alert-secondary
+                "
+              >
+                No hay historial todavía.
+              </div>
+            ) : (
+              <>
+                <div
+                  className="
+                    table-responsive
+                  "
+                >
+                  <table
+                    className="
+                      table
+                      table-dark
+                      table-hover
+                      align-middle
+                    "
+                  >
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+
+                        <th>Monto</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {historial.map((item) => (
+                        <tr key={item.id}>
+                          <td>
+                            {new Date(item.fecha_pago).toLocaleDateString()}
+                          </td>
+
+                          <td>Q{item.monto}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div
+                  className="
+                    mt-3
+                    text-end
+                    fw-bold
+                    fs-5
+                    text-success
+                  "
+                >
+                  Total recibido: Q
+                  {historial
+                    .reduce((acc, item) => acc + Number(item.monto), 0)
+                    .toFixed(2)}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Cards */}
       <div className="row g-4">
-
-        {ingresos.map(
-          (ingreso) => (
-
+        {ingresos.map((ingreso) => (
+          <div
+            key={ingreso.id}
+            className="
+              col-md-6
+              col-lg-4
+            "
+          >
             <div
-              key={ingreso.id}
               className="
-                col-md-6
-                col-lg-4
+                card
+                border-0
+                shadow-lg
+                rounded-4
+                h-100
               "
+              style={{
+                transition: "0.25s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-5px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0px)";
+              }}
             >
+              <div className="card-body">
+                <div
+                  className="
+                    d-flex
+                    justify-content-between
+                    align-items-start
+                    mb-3
+                  "
+                >
+                  <div>
+                    <h3 className="fw-bold">{ingreso.nombre}</h3>
 
-              <div
-                className="
-                  card
-                  border-0
-                  shadow-sm
-                  rounded-4
-                  h-100
-                "
-              >
-
-                <div className="card-body">
-
-                  <div
-                    className="
-                      d-flex
-                      justify-content-between
-                      align-items-start
-                      mb-3
-                    "
-                  >
-
-                    <div>
-
-                      <h3 className="fw-bold">
-                        {
-                          ingreso.nombre
-                        }
-                      </h3>
-
-                      <p className="text-muted">
-
-                        {
-                          obtenerTextoFrecuencia(
-                            ingreso
-                          )
-                        }
-
-                      </p>
-
-                    </div>
-
-                    <span
-                      className="
-                        badge
-                        bg-success
-                        fs-6
-                        px-3
-                        py-2
-                        rounded-pill
-                      "
-                    >
-                      Q{
-                        ingreso.monto
-                      }
-                    </span>
-
+                    <p className="text-muted">
+                      {obtenerTextoFrecuencia(ingreso)}
+                    </p>
                   </div>
 
-                  <div
+                  <span
                     className="
-                      d-flex
-                      gap-2
-                      mt-4
+                      badge
+                      bg-success
+                      fs-6
+                      px-3
+                      py-2
+                      rounded-pill
                     "
                   >
-
-                    <button
-                      className="
-                        btn
-                        btn-outline-success
-                        flex-fill
-                      "
-                      onClick={() =>
-                        editarIngreso(
-                          ingreso
-                        )
-                      }
-                    >
-                      ✏️ Editar
-                    </button>
-
-                    <button
-                      className="
-                        btn
-                        btn-outline-danger
-                        flex-fill
-                      "
-                      onClick={() =>
-                        eliminarIngreso(
-                          ingreso.id
-                        )
-                      }
-                    >
-                      🗑️ Eliminar
-                    </button>
-
-                  </div>
-
+                    Q{ingreso.monto}
+                  </span>
                 </div>
 
+                {/* Botones */}
+                <div
+                  className="
+                    d-flex
+                    gap-2
+                    mt-4
+                  "
+                >
+                  <button
+                    className="
+                      btn
+                      btn-outline-success
+                      flex-fill
+                    "
+                    onClick={() => editarIngreso(ingreso)}
+                  >
+                    ✏️ Editar
+                  </button>
+
+                  <button
+                    className="
+                      btn
+                      btn-outline-danger
+                      flex-fill
+                    "
+                    onClick={() => eliminarIngreso(ingreso.id)}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+
+                <button
+                  className="
+                    btn
+                    btn-outline-dark
+                    w-100
+                    mt-3
+                    rounded-pill
+                  "
+                  onClick={() => verHistorial(ingreso.id, ingreso.nombre)}
+                >
+                  📜 Ver historial
+                </button>
               </div>
-
             </div>
-
-          )
-        )}
-
+          </div>
+        ))}
       </div>
-
     </div>
   );
 };

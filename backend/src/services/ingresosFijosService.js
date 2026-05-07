@@ -3,43 +3,29 @@ const db = require("../config/db");
 // ─────────────────────────────────────
 // Obtener ingresos fijos
 // ─────────────────────────────────────
-const getIngresosFijos = async (
-    usuarioId
-) => {
-
-    const res = await db.query(
-        `
+const getIngresosFijos = async (usuarioId) => {
+  const res = await db.query(
+    `
     SELECT *
     FROM ingresos_fijos
     WHERE usuario_id = $1
     ORDER BY creado_en DESC
     `,
-        [usuarioId]
-    );
+    [usuarioId],
+  );
 
-    return res.rows;
-
+  return res.rows;
 };
 
 // ─────────────────────────────────────
 // Crear ingreso fijo
 // ─────────────────────────────────────
-const crearIngresoFijo = async (
-    usuarioId,
-    data
-) => {
+const crearIngresoFijo = async (usuarioId, data) => {
+  const { nombre, monto, frecuencia, dia_pago, dia_pago_secundario, activo } =
+    data;
 
-    const {
-        nombre,
-        monto,
-        frecuencia,
-        dia_pago,
-        dia_pago_secundario,
-        activo,
-    } = data;
-
-    const res = await db.query(
-        `
+  const res = await db.query(
+    `
     INSERT INTO ingresos_fijos
     (
       usuario_id,
@@ -53,41 +39,29 @@ const crearIngresoFijo = async (
     VALUES ($1,$2,$3,$4,$5,$6,$7)
     RETURNING *
     `,
-        [
-            usuarioId,
-            nombre,
-            monto,
-            frecuencia,
-            dia_pago,
-            dia_pago_secundario || null,
-            activo ?? true,
-        ]
-    );
+    [
+      usuarioId,
+      nombre,
+      monto,
+      frecuencia,
+      dia_pago,
+      dia_pago_secundario || null,
+      activo ?? true,
+    ],
+  );
 
-    return res.rows[0];
-
+  return res.rows[0];
 };
 
 // ─────────────────────────────────────
 // Editar ingreso fijo
 // ─────────────────────────────────────
-const editarIngresoFijo = async (
-    id,
-    usuarioId,
-    data
-) => {
+const editarIngresoFijo = async (id, usuarioId, data) => {
+  const { nombre, monto, frecuencia, dia_pago, dia_pago_secundario, activo } =
+    data;
 
-    const {
-        nombre,
-        monto,
-        frecuencia,
-        dia_pago,
-        dia_pago_secundario,
-        activo,
-    } = data;
-
-    const res = await db.query(
-        `
+  const res = await db.query(
+    `
     UPDATE ingresos_fijos
     SET
       nombre = $1,
@@ -100,116 +74,100 @@ const editarIngresoFijo = async (
     AND usuario_id = $8
     RETURNING *
     `,
-        [
-            nombre,
-            monto,
-            frecuencia,
-            dia_pago,
-            dia_pago_secundario || null,
-            activo,
-            id,
-            usuarioId,
-        ]
-    );
+    [
+      nombre,
+      monto,
+      frecuencia,
+      dia_pago,
+      dia_pago_secundario || null,
+      activo,
+      id,
+      usuarioId,
+    ],
+  );
 
-    return res.rows[0];
-
+  return res.rows[0];
 };
 
 // ─────────────────────────────────────
 // Eliminar ingreso fijo
 // ─────────────────────────────────────
-const eliminarIngresoFijo = async (
-    id,
-    usuarioId
-) => {
-
-    const res = await db.query(
-        `
+const eliminarIngresoFijo = async (id, usuarioId) => {
+  const res = await db.query(
+    `
     DELETE FROM ingresos_fijos
     WHERE id = $1
     AND usuario_id = $2
     `,
-        [id, usuarioId]
-    );
+    [id, usuarioId],
+  );
 
-    return res.rowCount > 0;
-
+  return res.rowCount > 0;
 };
 
 // ─────────────────────────────────────
 // Obtener ingresos a cobrar
 // ─────────────────────────────────────
-const obtenerIngresosPorCobrar =
-    async () => {
+const obtenerIngresosPorCobrar = async () => {
+  const hoy = new Date();
 
-        const hoy = new Date();
+  const dia = hoy.getDate();
 
-        const dia =
-            hoy.getDate();
+  const diaSemana = hoy.getDay();
 
-        const diaSemana =
-            hoy.getDay();
-
-        const res = await db.query(
-            `
+  const res = await db.query(
+    `
       SELECT *
       FROM ingresos_fijos
       WHERE activo = TRUE
-      `
-        );
+      `,
+  );
 
-        return res.rows.filter(
-            (i) => {
+  return res.rows.filter((i) => {
+    // mensual
+    if (i.frecuencia === "mensual") {
+      return i.dia_pago === dia;
+    }
 
-                // mensual
-                if (
-                    i.frecuencia === "mensual"
-                ) {
+    // quincenal
+    if (i.frecuencia === "quincenal") {
+      return (
+        dia === Number(i.dia_pago) || dia === Number(i.dia_pago_secundario)
+      );
+    }
 
-                    return (
-                        i.dia_pago === dia
-                    );
+    // semanal
+    if (i.frecuencia === "semanal") {
+      return i.dia_pago === diaSemana;
+    }
 
-                }
+    return false;
+  });
+};
 
-                // quincenal
-                if (
-                    i.frecuencia ===
-                    "quincenal"
-                ) {
+// ─────────────────────────────────────
+// Obtener historial
+// ─────────────────────────────────────
+const obtenerHistorial = async (ingresoId, usuarioId) => {
+  const res = await db.query(
+    `
+        SELECT *
+        FROM historial_ingresos_fijos
+        WHERE ingreso_fijo_id = $1
+        AND usuario_id = $2
+        ORDER BY fecha_pago DESC
+        `,
+    [ingresoId, usuarioId],
+  );
 
-                    return (
-                        dia === Number(i.dia_pago) ||
-                        dia === Number(i.dia_pago_secundario)
-                    );
-
-                }
-
-                // semanal
-                if (
-                    i.frecuencia ===
-                    "semanal"
-                ) {
-
-                    return (
-                        i.dia_pago ===
-                        diaSemana
-                    );
-
-                }
-
-                return false;
-
-            }
-        );
-
-    };
+  return res.rows;
+};
 
 module.exports = {
-    getIngresosFijos,
-    crearIngresoFijo,
-    editarIngresoFijo,
-    eliminarIngresoFijo,
-    obtenerIngresosPorCobrar,
+  getIngresosFijos,
+  crearIngresoFijo,
+  editarIngresoFijo,
+  eliminarIngresoFijo,
+  obtenerIngresosPorCobrar,
+  obtenerHistorial,
 };

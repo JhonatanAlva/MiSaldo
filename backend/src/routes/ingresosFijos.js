@@ -2,38 +2,27 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-    verificarToken,
-} = require("../utils/jwt");
+const { verificarToken } = require("../utils/jwt");
 
-const ingresosFijosController =
-    require(
-        "../controllers/ingresosFijosController"
-    );
+const ingresosFijosController = require("../controllers/ingresosFijosController");
 
 // ─────────────────────────────────────
+router.get("/", verificarToken, ingresosFijosController.getIngresosFijos);
+
 router.get(
-    "/",
-    verificarToken,
-    ingresosFijosController.getIngresosFijos
+  "/:id/historial",
+  verificarToken,
+  ingresosFijosController.obtenerHistorial,
 );
 
-router.post(
-    "/",
-    verificarToken,
-    ingresosFijosController.crearIngresoFijo
-);
+router.post("/", verificarToken, ingresosFijosController.crearIngresoFijo);
 
-router.put(
-    "/:id",
-    verificarToken,
-    ingresosFijosController.editarIngresoFijo
-);
+router.put("/:id", verificarToken, ingresosFijosController.editarIngresoFijo);
 
 router.delete(
-    "/:id",
-    verificarToken,
-    ingresosFijosController.eliminarIngresoFijo
+  "/:id",
+  verificarToken,
+  ingresosFijosController.eliminarIngresoFijo,
 );
 
 module.exports = router;

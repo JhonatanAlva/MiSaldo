@@ -1,54 +1,40 @@
-const cron = require('node-cron');
+const cron = require("node-cron");
 
-const db = require('./config/db');
+const db = require("./config/db");
 
-const gastosFijosService =
-  require('./services/gastosFijosService');
+const gastosFijosService = require("./services/gastosFijosService");
 
-const notificacionesService =
-  require('./services/notificacionesService');
+const notificacionesService = require("./services/notificacionesService");
 
 // ─────────────────────────────────────────────
 // Ejecutar cada minuto
 // ─────────────────────────────────────────────
-cron.schedule('* * * * *', async () => {
-
-  console.log(
-    'Verificando gastos fijos...'
-  );
+cron.schedule("* * * * *", async () => {
+  console.log("Verificando gastos fijos...");
 
   try {
-
-    const gastos =
-      await gastosFijosService.obtenerGastosPorCobrar();
+    const gastos = await gastosFijosService.obtenerGastosPorCobrar();
 
     const hoy = new Date();
 
-    const fechaHoy =
-      hoy.toISOString().split('T')[0];
+    const fechaHoy = hoy.toISOString().split("T")[0];
 
-    const diaActual =
-      hoy.getDate();
+    const diaActual = hoy.getDate();
 
     for (const gasto of gastos) {
-
       // ─────────────────────────────────────
       // RECORDATORIO 1 DÍA ANTES
       // ─────────────────────────────────────
-      const manana =
-        gasto.dia_cobro - 1;
+      const manana = gasto.dia_cobro - 1;
 
       if (manana === diaActual) {
-
-        const mensajeRecordatorio =
-          gasto.tiene_cuotas
-            ? `⏰ Mañana se abonará automáticamente la cuota de "${gasto.nombre}" por Q${gasto.monto}`
-            : `⏰ Mañana se cobrará automáticamente "${gasto.nombre}" por Q${gasto.monto}`;
+        const mensajeRecordatorio = gasto.tiene_cuotas
+          ? `⏰ Mañana se abonará automáticamente la cuota de "${gasto.nombre}" por Q${gasto.monto}`
+          : `⏰ Mañana se cobrará automáticamente "${gasto.nombre}" por Q${gasto.monto}`;
 
         // evitar duplicados
-        const existeRecordatorio =
-          await db.query(
-            `
+        const existeRecordatorio = await db.query(
+          `
             SELECT id
             FROM notificaciones
             WHERE usuario_id = $1
@@ -56,19 +42,13 @@ cron.schedule('* * * * *', async () => {
               AND DATE(creado_en) = CURRENT_DATE
             LIMIT 1
             `,
-            [
-              gasto.usuario_id,
-              `%${gasto.nombre}%`,
-            ]
-          );
+          [gasto.usuario_id, `%${gasto.nombre}%`],
+        );
 
-        if (
-          existeRecordatorio.rows.length === 0
-        ) {
-
+        if (existeRecordatorio.rows.length === 0) {
           await notificacionesService.crearNotificacion(
             gasto.usuario_id,
-            mensajeRecordatorio
+            mensajeRecordatorio,
           );
 
           await db.query(
@@ -77,23 +57,17 @@ cron.schedule('* * * * *', async () => {
             SET ultima_notificacion = CURRENT_DATE
             WHERE id = $1
             `,
-            [gasto.id]
+            [gasto.id],
           );
 
-          console.log(
-            `Recordatorio enviado: ${gasto.nombre}`
-          );
-
+          console.log(`Recordatorio enviado: ${gasto.nombre}`);
         }
-
       }
 
       // ─────────────────────────────────────
       // SOLO PROCESAR SI ES EL DÍA DE COBRO
       // ─────────────────────────────────────
-      if (
-        gasto.dia_cobro !== diaActual
-      ) {
+      if (gasto.dia_cobro !== diaActual) {
         continue;
       }
 
@@ -102,14 +76,9 @@ cron.schedule('* * * * *', async () => {
       // ─────────────────────────────────────
       if (
         gasto.ultimo_cobro &&
-        gasto.ultimo_cobro
-          .toISOString()
-          .split('T')[0] ===
-        fechaHoy
+        gasto.ultimo_cobro.toISOString().split("T")[0] === fechaHoy
       ) {
-
         continue;
-
       }
 
       // ─────────────────────────────────────
@@ -132,7 +101,7 @@ cron.schedule('* * * * *', async () => {
           gasto.categoria_id,
           `Pago automático: ${gasto.nombre}`,
           gasto.monto,
-        ]
+        ],
       );
 
       // ─────────────────────────────────────
@@ -155,27 +124,17 @@ cron.schedule('* * * * *', async () => {
           gasto.usuario_id,
           gasto.monto,
 
-          gasto.tiene_cuotas
-            ? gasto.cuotas_pagadas + 1
-            : null,
-        ]
+          gasto.tiene_cuotas ? gasto.cuotas_pagadas + 1 : null,
+        ],
       );
 
       // ─────────────────────────────────────
       // ACTUALIZAR CUOTAS
       // ─────────────────────────────────────
-      if (
-        gasto.tiene_cuotas &&
-        gasto.cuotas_pagadas <
-        gasto.cuotas_total
-      ) {
+      if (gasto.tiene_cuotas && gasto.cuotas_pagadas < gasto.cuotas_total) {
+        const nuevasCuotas = gasto.cuotas_pagadas + 1;
 
-        const nuevasCuotas =
-          gasto.cuotas_pagadas + 1;
-
-        const terminado =
-          nuevasCuotas >=
-          gasto.cuotas_total;
+        const terminado = nuevasCuotas >= gasto.cuotas_total;
 
         await db.query(
           `
@@ -185,13 +144,8 @@ cron.schedule('* * * * *', async () => {
             activo = $2
           WHERE id = $3
           `,
-          [
-            nuevasCuotas,
-            !terminado,
-            gasto.id,
-          ]
+          [nuevasCuotas, !terminado, gasto.id],
         );
-
       }
 
       // ─────────────────────────────────────
@@ -203,23 +157,21 @@ cron.schedule('* * * * *', async () => {
         SET ultimo_cobro = CURRENT_DATE
         WHERE id = $1
         `,
-        [gasto.id]
+        [gasto.id],
       );
 
       // ─────────────────────────────────────
       // MENSAJE FINAL
       // ─────────────────────────────────────
-      const mensaje =
-        gasto.tiene_cuotas
-          ? `💳 Se abonó automáticamente la cuota de "${gasto.nombre}" por Q${gasto.monto}`
-          : `📌 Se registró automáticamente el gasto "${gasto.nombre}" por Q${gasto.monto}`;
+      const mensaje = gasto.tiene_cuotas
+        ? `💳 Se abonó automáticamente la cuota de "${gasto.nombre}" por Q${gasto.monto}`
+        : `📌 Se registró automáticamente el gasto "${gasto.nombre}" por Q${gasto.monto}`;
 
       // ─────────────────────────────────────
       // EVITAR DUPLICAR NOTIFICACIONES
       // ─────────────────────────────────────
-      const existe =
-        await db.query(
-          `
+      const existe = await db.query(
+        `
           SELECT id
           FROM notificaciones
           WHERE usuario_id = $1
@@ -227,138 +179,92 @@ cron.schedule('* * * * *', async () => {
             AND DATE(creado_en) = CURRENT_DATE
           LIMIT 1
           `,
-          [
-            gasto.usuario_id,
-            `%${gasto.nombre}%`,
-          ]
-        );
-
-      if (
-        existe.rows.length === 0
-      ) {
-
-        await notificacionesService.crearNotificacion(
-          gasto.usuario_id,
-          mensaje
-        );
-
-      }
-
-      console.log(
-        `Gasto procesado: ${gasto.nombre}`
+        [gasto.usuario_id, `%${gasto.nombre}%`],
       );
 
+      if (existe.rows.length === 0) {
+        await notificacionesService.crearNotificacion(
+          gasto.usuario_id,
+          mensaje,
+        );
+      }
+
+      console.log(`Gasto procesado: ${gasto.nombre}`);
     }
-
   } catch (error) {
-
-    console.error(
-      'Error en cron:',
-      error
-    );
-
+    console.error("Error en cron:", error);
   }
-
 });
 
 // ─────────────────────────────────────────────
 // INGRESOS FIJOS AUTOMÁTICOS
 // ─────────────────────────────────────────────
-cron.schedule('* * * * *', async () => {
-
-  console.log('Verificando ingresos fijos...');
+cron.schedule("* * * * *", async () => {
+  console.log("Verificando ingresos fijos...");
 
   try {
-
     const hoy = new Date();
 
     const diaActual = hoy.getDate();
 
-    const fechaHoy =
-      hoy.toISOString().split('T')[0];
+    const fechaHoy = hoy.toISOString().split("T")[0];
 
     // ─────────────────────────────────────
     // Obtener ingresos activos
     // ─────────────────────────────────────
     const { rows: ingresos } = await db.query(
       `
-      SELECT *
-      FROM ingresos_fijos
-      WHERE activo = true
-      `
+        SELECT *
+        FROM ingresos_fijos
+        WHERE activo = true
+        `,
     );
 
     for (const ingreso of ingresos) {
-
       let debePagarse = false;
 
       // ─────────────────────────────────
       // MENSUAL
       // ─────────────────────────────────
-      if (
-        ingreso.frecuencia === 'mensual'
-      ) {
-
-        if (
-          ingreso.dia_pago === diaActual
-        ) {
+      if (ingreso.frecuencia === "mensual") {
+        if (diaActual === Number(ingreso.dia_pago)) {
           debePagarse = true;
         }
-
       }
 
       // ─────────────────────────────────
       // QUINCENAL
       // ─────────────────────────────────
-      if (
-        ingreso.frecuencia === 'quincenal'
-      ) {
+      if (ingreso.frecuencia === "quincenal") {
+        const primerDia = Number(ingreso.dia_pago);
 
-        if (
-          diaActual === ingreso.dia_pago ||
-          diaActual === ingreso.dia_pago + 15
-        ) {
+        const segundoDia = Number(ingreso.dia_pago_secundario);
+
+        if (diaActual === primerDia || diaActual === segundoDia) {
           debePagarse = true;
         }
-
       }
 
       // ─────────────────────────────────
       // SEMANAL
       // ─────────────────────────────────
-      if (
-        ingreso.frecuencia === 'semanal'
-      ) {
+      if (ingreso.frecuencia === "semanal") {
+        const ultimoPago = ingreso.ultimo_pago
+          ? new Date(ingreso.ultimo_pago)
+          : null;
 
-        const ultimoPago =
-          ingreso.ultimo_pago
-            ? new Date(
-              ingreso.ultimo_pago
-            )
-            : null;
+        // Día de semana actual
+        const diaSemanaActual = hoy.getDay();
 
-        if (!ultimoPago) {
-
-          debePagarse = true;
-
-        } else {
-
-          const diferenciaDias =
-            Math.floor(
-              (
-                hoy - ultimoPago
-              ) /
-              (
-                1000 * 60 * 60 * 24
-              )
-            );
-
-          if (diferenciaDias >= 7) {
+        if (Number(ingreso.dia_pago) === diaSemanaActual) {
+          // Evitar repetir en el mismo día
+          if (
+            !ultimoPago ||
+            ultimoPago.toISOString().split("T")[0] !== fechaHoy
+          ) {
             debePagarse = true;
           }
-
         }
-
       }
 
       // ─────────────────────────────────
@@ -373,13 +279,9 @@ cron.schedule('* * * * *', async () => {
       // ─────────────────────────────────
       if (
         ingreso.ultimo_pago &&
-        ingreso.ultimo_pago
-          .toISOString()
-          .split('T')[0] === fechaHoy
+        ingreso.ultimo_pago.toISOString().split("T")[0] === fechaHoy
       ) {
-
         continue;
-
       }
 
       // ─────────────────────────────────
@@ -400,7 +302,7 @@ cron.schedule('* * * * *', async () => {
           ingreso.usuario_id,
           `Ingreso automático: ${ingreso.nombre}`,
           ingreso.monto,
-        ]
+        ],
       );
 
       // ─────────────────────────────────
@@ -417,15 +319,11 @@ cron.schedule('* * * * *', async () => {
         )
         VALUES ($1, $2, $3, NOW())
         `,
-        [
-          ingreso.id,
-          ingreso.usuario_id,
-          ingreso.monto,
-        ]
+        [ingreso.id, ingreso.usuario_id, ingreso.monto],
       );
 
       // ─────────────────────────────────
-      // Actualizar fecha pago
+      // Actualizar último pago
       // ─────────────────────────────────
       await db.query(
         `
@@ -433,7 +331,7 @@ cron.schedule('* * * * *', async () => {
         SET ultimo_pago = CURRENT_DATE
         WHERE id = $1
         `,
-        [ingreso.id]
+        [ingreso.id],
       );
 
       // ─────────────────────────────────
@@ -441,21 +339,12 @@ cron.schedule('* * * * *', async () => {
       // ─────────────────────────────────
       await notificacionesService.crearNotificacion(
         ingreso.usuario_id,
-        `💰 Se registró automáticamente el ingreso "${ingreso.nombre}" por Q${ingreso.monto}`
+        `💰 Se registró automáticamente el ingreso "${ingreso.nombre}" por Q${ingreso.monto}`,
       );
 
-      console.log(
-        `Ingreso procesado: ${ingreso.nombre}`
-      );
+      console.log(`Ingreso procesado: ${ingreso.nombre}`);
     }
-
   } catch (error) {
-
-    console.error(
-      'Error ingresos fijos:',
-      error
-    );
-
+    console.error("Error ingresos fijos:", error);
   }
-
 });
