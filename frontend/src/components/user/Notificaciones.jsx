@@ -27,7 +27,7 @@ const Notificaciones = () => {
   }, []);
 
   return (
-    <div className="position-relative">
+    <div>
       {/* Botón */}
       <button
         className={`
@@ -66,31 +66,32 @@ const Notificaciones = () => {
       {abierto && (
         <div
           className={`
-            position-absolute
-            end-0
-            mt-3
-            rounded-4
-            shadow-lg
-            border
-            overflow-hidden
-            ${
-              temaOscuro
-                ? "bg-dark text-light border-secondary"
-                : "bg-white text-dark"
-            }
-        `}
+      mt-3
+      rounded-4
+      shadow-lg
+      border
+      overflow-hidden
+      position-fixed
+      ${
+        temaOscuro
+          ? "bg-dark text-light border-secondary"
+          : "bg-white text-dark"
+      }
+    `}
           style={{
-            width: window.innerWidth < 576 ? "95vw" : "360px",
+            top: "85px",
+
+            right: window.innerWidth < 576 ? "10px" : "20px",
+
+            width: window.innerWidth < 576 ? "calc(100vw - 20px)" : "360px",
 
             maxWidth: "360px",
 
-            maxHeight: "500px",
+            maxHeight: "75vh",
 
             overflowY: "auto",
 
-            zIndex: 9999,
-
-            right: window.innerWidth < 576 ? "-10px" : "0",
+            zIndex: 99999,
           }}
         >
           {/* Header */}
