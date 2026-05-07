@@ -1,21 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../../services/api";
-import { Button, Form, InputGroup, FormSelect, Alert } from "react-bootstrap";
 import { Icon } from "@iconify/react";
 
-const fuentesIngreso = [
-  "Salario",
-  "Freelance",
-  "Inversiones",
-  "Regalos",
-  "Otros",
-];
+const fuentesIngreso = ["Salario", "Freelance", "Inversiones", "Regalos", "Otros"];
 
 const TransaccionesUsuario = () => {
   const [transactions, setTransactions] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [filter, setFilter] = useState("todos");
-  const [formVisible, setFormVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [modoOscuro, setModoOscuro] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [transaccionSeleccionada, setTransaccionSeleccionada] = useState(null);
@@ -32,19 +25,19 @@ const TransaccionesUsuario = () => {
   useEffect(() => {
     obtenerHistorial();
     obtenerCategorias();
-
-    const tema = document.body.getAttribute("data-theme");
-    setModoOscuro(tema === "dark");
-    const observer = new MutationObserver(() => {
-      const nuevoTema = document.body.getAttribute("data-theme");
-      setModoOscuro(nuevoTema === "dark");
-    });
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
+    setModoOscuro(document.body.getAttribute("data-theme") === "dark");
+    const observer = new MutationObserver(() =>
+      setModoOscuro(document.body.getAttribute("data-theme") === "dark")
+    );
+    observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
     return () => observer.disconnect();
   }, []);
+
+  // Bloquear scroll del body cuando modal abierto
+  useEffect(() => {
+    document.body.style.overflow = modalVisible ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [modalVisible]);
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
@@ -52,110 +45,82 @@ const TransaccionesUsuario = () => {
   };
 
   const obtenerCategorias = async () => {
-    try {
-      const res = await api.get("/finanzas/categorias");
-      setCategorias(res.data);
-    } catch (err) {
-      console.error("Error al obtener categorías:", err);
-    }
+    try { const res = await api.get("/finanzas/categorias"); setCategorias(res.data); }
+    catch (err) { console.error(err); }
   };
 
   const obtenerHistorial = async () => {
     try {
       const res = await api.get("/finanzas/historial");
-      const datos = res.data.map((t, index) => ({
+      setTransactions(res.data.map((t, i) => ({
         ...t,
-        id: t.id || index + 1,
+        id: t.id || i + 1,
         type: t.tipo.toLowerCase(),
-        description: t.descripcion || t.fuente,
-      }));
-      setTransactions(datos);
-    } catch (err) {
-      console.error("Error al obtener historial:", err);
-    }
+        description: t.tipo === "Ingreso"
+          ? (t.fuente || t.categoria || "")
+          : (t.categoria || ""),  // ← para gastos: solo la categoría
+      })));
+    } catch (err) { console.error(err); }
   };
 
   const handleAddTransaction = async () => {
     const { type, category, description, amount, date } = newTransaction;
-
     if (!category || !amount || !date) return;
 
     try {
       if (modoEdicion && transaccionSeleccionada) {
-        let payload = {
-          monto: parseFloat(amount),
-          fecha: date,
-        };
-
+        let payload = { monto: parseFloat(amount), fecha: date };
         if (type === "ingreso") {
           payload.fuente = category;
+          payload.descripcion = description || null;
         } else {
           payload.descripcion = description;
-
-          // Obtener o crear categoría
-          const categoriaRes = await api.post("/finanzas/categoria", { nombre: category });
-          payload.categoria_id = categoriaRes.data.id;
+          const catRes = await api.post("/finanzas/categoria", { nombre: category });
+          payload.categoria_id = catRes.data.id;
         }
-
-        await api.put(
-          `/finanzas/movimiento/${type}/${transaccionSeleccionada.id}`,
-          payload
-        );
-
+        await api.put(`/finanzas/movimiento/${type}/${transaccionSeleccionada.id}`, payload);
         mostrarAlerta("Movimiento actualizado correctamente");
       } else {
         if (type === "ingreso") {
-          await api.post(
-            "/finanzas/ingresos",
-            { monto: parseFloat(amount), fuente: category, fecha: date },
-            { withCredentials: true }
-          );
+          await api.post("/finanzas/ingresos", {
+            monto: parseFloat(amount),
+            fuente: category,
+            fecha: date,
+            descripcion: description || null,
+          });
         } else {
-          const categoriaRes = await api.post(
-            "/finanzas/categoria",
-            { nombre: category },
-            { withCredentials: true }
-          );
-
-          await api.post(
-            "/finanzas/gastos",
-            {
-              monto: parseFloat(amount),
-              descripcion: description,
-              fecha: date,
-              categoria_id: categoriaRes.data.id,
-            },
-            { withCredentials: true }
-          );
+          const catRes = await api.post("/finanzas/categoria", { nombre: category });
+          await api.post("/finanzas/gastos", {
+            monto: parseFloat(amount),
+            descripcion: description,
+            fecha: date,
+            categoria_id: catRes.data.id,
+          });
         }
-
         mostrarAlerta("Transacción guardada exitosamente");
       }
-
       await obtenerHistorial();
       resetFormulario();
     } catch (err) {
-      console.error("Error al guardar transacción:", err);
+      console.error(err);
       mostrarAlerta("Ocurrió un error al guardar", "danger");
     }
   };
 
   const eliminarTransaccion = async (tipo, id) => {
     try {
-      await api.delete(
-        `/finanzas/movimiento/${tipo}/${id}`
-      );
+      await api.delete(`/finanzas/movimiento/${tipo}/${id}`);
       mostrarAlerta("Movimiento eliminado correctamente");
       await obtenerHistorial();
-      resetFormulario(); // 🔁 Cierra el formulario de edición automáticamente
+      resetFormulario();
     } catch (err) {
-      console.error("Error al eliminar movimiento", err);
+      console.error(err);
       mostrarAlerta("Error al eliminar movimiento", "danger");
     }
   };
 
   const resetFormulario = () => {
-    setFormVisible(false);
+    setModalVisible(false);
     setModoEdicion(false);
     setTransaccionSeleccionada(null);
     setNewTransaction({
@@ -167,233 +132,297 @@ const TransaccionesUsuario = () => {
     });
   };
 
-  const handleEditarTransaccion = (transaccion) => {
-    setFormVisible(true);
+  const abrirModal = (tipo) => {
+    resetFormulario();
+    setNewTransaction(prev => ({ ...prev, type: tipo }));
+    setModalVisible(true);
+  };
+
+  const handleEditarTransaccion = (t) => {
+    setModalVisible(true);
     setModoEdicion(true);
-    setTransaccionSeleccionada(transaccion);
+    setTransaccionSeleccionada(t);
+
     setNewTransaction({
-      type: transaccion.type,
-      category: transaccion.category || transaccion.categoria,
-      description: transaccion.description,
-      amount: transaccion.amount || transaccion.monto,
-      date: transaccion.fecha,
+      type: t.type,
+      category: t.type === "ingreso"
+        ? (t.fuente || t.categoria || "")
+        : (t.categoria || ""),
+      description: t.descripcion || "",
+      amount: t.monto || "",
+      date: t.fecha ? t.fecha.split("T")[0] : new Date().toISOString().split("T")[0],
     });
   };
 
   const filtered = useMemo(() => {
     if (filter === "todos") return transactions;
-    return transactions.filter((t) => t.type === filter);
+    return transactions.filter(t => t.type === filter);
   }, [filter, transactions]);
 
-  const formatCurrency = (value) => `Q ${parseFloat(value).toFixed(2)}`;
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString("es-GT", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const formatCurrency = (v) => `Q ${parseFloat(v).toFixed(2)}`;
+  const formatDate = (d) => new Date(d).toLocaleDateString("es-GT", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
 
-  const tarjetaBase = modoOscuro
-    ? "bg-dark text-light border-secondary"
-    : "bg-white text-dark";
+  /* ── Clases ──────────────────────────────────────────── */
+  const card = `rounded-xl p-4 cursor-pointer transition-all duration-200
+    hover:scale-[1.02] active:scale-[0.98]
+    ${modoOscuro
+      ? "bg-[#1a1a1a] text-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
+      : "bg-white text-[#2e2828] shadow-[0_2px_8px_rgba(0,0,0,0.07)]"}`;
+
+  const inputCls = `w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors
+    ${modoOscuro
+      ? "bg-[#262626] text-gray-100 border border-white/15 focus:border-[#00c57a]"
+      : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"}`;
+
+  const muted = modoOscuro ? "text-gray-400" : "text-gray-500";
+
+  const modalBg = modoOscuro
+    ? "bg-[#1a1a1a] text-gray-100"
+    : "bg-white text-[#2e2828]";
+
+  const isIngreso = newTransaction.type === "ingreso";
 
   return (
-    <div className="container py-4 min-vh-100">
+    <div className="w-full pb-4">
+
+      {/* ── Alerta ───────────────────────────────────────── */}
       {alerta && (
-        <Alert variant={alerta.tipo} className="text-center">
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm text-center font-medium
+          ${alerta.tipo === "success"
+            ? "bg-[#00c57a]/10 text-[#00c57a] border border-[#00c57a]/20"
+            : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
           {alerta.mensaje}
-        </Alert>
+        </div>
       )}
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className={modoOscuro ? "text-light" : "text-dark"}>
-          Transacciones
-        </h4>
-
-        <Button
-          variant="primary"
-          onClick={() => resetFormulario() || setFormVisible(true)}
-        >
-          <Icon icon="lucide:plus" className="me-1" /> Nueva Transacción
-        </Button>
+      {/* ── Header ───────────────────────────────────────── */}
+      <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <h4 className="font-bold text-xl">Transacciones</h4>
+        <div className="flex gap-2">
+          <button
+            onClick={() => abrirModal("ingreso")}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold
+                       bg-[#00c57a] text-white hover:bg-[#00a865] transition-colors
+                       shadow-[0_2px_10px_rgba(0,197,122,0.3)]"
+          >
+            <Icon icon="lucide:plus" className="w-4 h-4" />
+            Ingreso
+          </button>
+          <button
+            onClick={() => abrirModal("gasto")}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold
+                       bg-red-500 text-white hover:bg-red-600 transition-colors
+                       shadow-[0_2px_10px_rgba(239,68,68,0.3)]"
+          >
+            <Icon icon="lucide:minus" className="w-4 h-4" />
+            Gasto
+          </button>
+        </div>
       </div>
 
-      {formVisible && (
-        <div className={`border rounded p-4 mb-4 ${tarjetaBase}`}>
-          <h5 className="mb-3">
-            {modoEdicion ? "Editar" : "Agregar"} Transacción
-          </h5>
-          <div className="row g-3">
-            <div className="col-md-6 d-flex gap-2">
-              <Button
-                variant={
-                  newTransaction.type === "ingreso"
-                    ? "success"
-                    : "outline-secondary"
-                }
-                onClick={() =>
-                  setNewTransaction({ ...newTransaction, type: "ingreso" })
-                }
+      {/* ── Filtros ───────────────────────────────────────── */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+        {[
+          { id: "todos", label: "Todos", color: "bg-[#00c57a] text-white shadow-[0_0_10px_rgba(0,197,122,0.3)]" },
+          { id: "ingreso", label: "Ingresos", color: "bg-[#00c57a] text-white shadow-[0_0_10px_rgba(0,197,122,0.3)]" },
+          { id: "gasto", label: "Gastos", color: "bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]" },
+        ].map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`px-5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+              transition-all duration-200 shrink-0
+              ${filter === f.id
+                ? f.color
+                : modoOscuro
+                  ? "text-gray-400 bg-white/5 hover:bg-white/10"
+                  : "text-gray-500 bg-black/5 hover:bg-black/10"
+              }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Lista ────────────────────────────────────────── */}
+      <div className="overflow-y-auto pr-1" style={{ maxHeight: "460px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map(t => (
+            <div
+              key={`${t.type}-${t.id}`}
+              className={card}
+              onClick={() => handleEditarTransaccion(t)}
+            >
+              <div className="flex justify-between items-start mb-1">
+                <span className="font-semibold text-sm truncate pr-2">
+                  {t.description}
+                </span>
+                <span className={`font-bold text-sm shrink-0
+    ${t.type === "ingreso" ? "text-[#00c57a]" : "text-red-400"}`}>
+                  {t.type === "ingreso" ? "+" : "-"}{formatCurrency(t.amount || t.monto)}
+                </span>
+              </div>
+
+              {/* Descripción solo si existe y es diferente al título */}
+              {t.descripcion && t.descripcion !== t.description && (
+                <p className={`text-xs mb-1 italic ${modoOscuro ? "text-gray-300" : "text-gray-500"}`}>
+                  {t.descripcion}
+                </p>
+              )}
+
+              <p className={`text-xs ${muted}`}>
+                • {formatDate(t.fecha)}
+              </p>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <p className={`text-sm ${muted}`}>No hay transacciones para mostrar.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Modal ────────────────────────────────────────── */}
+      {modalVisible && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) resetFormulario(); }}
+        >
+          <div className={`w-full max-w-md rounded-2xl p-6 shadow-2xl
+            transition-all duration-300 ${modalBg}`}
+          >
+            {/* Header modal */}
+            <div className="flex justify-between items-center mb-5">
+              <h5 className="font-bold text-lg">
+                {modoEdicion ? "Editar" : "Nueva"}{" "}
+                <span className={isIngreso ? "text-[#00c57a]" : "text-red-400"}>
+                  {isIngreso ? "Ingreso" : "Gasto"}
+                </span>
+              </h5>
+              <button
+                onClick={resetFormulario}
+                className={`w-8 h-8 rounded-full flex items-center justify-center
+                  transition-colors ${modoOscuro ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
+              >
+                <Icon icon="lucide:x" className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Toggle tipo */}
+            <div className={`flex rounded-xl p-1 mb-4
+              ${modoOscuro ? "bg-[#111]" : "bg-gray-100"}`}>
+              <button
+                onClick={() => setNewTransaction({ ...newTransaction, type: "ingreso", category: "" })}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
+                  ${newTransaction.type === "ingreso"
+                    ? "bg-[#00c57a] text-white shadow-sm"
+                    : modoOscuro ? "text-gray-400" : "text-gray-500"}`}
               >
                 Ingreso
-              </Button>
-              <Button
-                variant={
-                  newTransaction.type === "gasto"
-                    ? "danger"
-                    : "outline-secondary"
-                }
-                onClick={() =>
-                  setNewTransaction({ ...newTransaction, type: "gasto" })
-                }
+              </button>
+              <button
+                onClick={() => setNewTransaction({ ...newTransaction, type: "gasto", category: "" })}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
+                  ${newTransaction.type === "gasto"
+                    ? "bg-red-500 text-white shadow-sm"
+                    : modoOscuro ? "text-gray-400" : "text-gray-500"}`}
               >
                 Gasto
-              </Button>
+              </button>
             </div>
-            <div className="col-md-6">
-              <FormSelect
+
+            {/* Campos */}
+            <div className="flex flex-col gap-3">
+              {/* Categoría */}
+              <select
+                className={inputCls}
                 value={newTransaction.category}
-                onChange={(e) =>
-                  setNewTransaction({
-                    ...newTransaction,
-                    category: e.target.value,
-                  })
-                }
+                onChange={e => setNewTransaction({ ...newTransaction, category: e.target.value })}
               >
                 <option value="">Seleccione categoría</option>
-                {newTransaction.type === "ingreso"
-                  ? fuentesIngreso.map((cat, i) => (
-                      <option key={i} value={cat}>
-                        {cat}
-                      </option>
-                    ))
-                  : categorias.map((cat) => (
-                      <option key={cat.id} value={cat.nombre}>
-                        {cat.nombre}
-                      </option>
-                    ))}
-              </FormSelect>
-            </div>
-            <div className="col-md-4">
-              <Form.Control
-                placeholder="Descripción"
+                {isIngreso
+                  ? fuentesIngreso.map((c, i) => (
+                    <option key={i} value={c}>{c}</option>
+                  ))
+                  : categorias.map(c => (
+                    <option key={c.id} value={c.nombre}>{c.nombre}</option>
+                  ))
+                }
+              </select>
+
+              {/* Descripción */}
+              <input
+                type="text"
+                className={inputCls}
+                placeholder="Descripción (opcional)"
                 value={newTransaction.description}
-                onChange={(e) =>
-                  setNewTransaction({
-                    ...newTransaction,
-                    description: e.target.value,
-                  })
-                }
+                onChange={e => setNewTransaction({ ...newTransaction, description: e.target.value })}
               />
-            </div>
-            <div className="col-md-4">
-              <InputGroup>
-                <InputGroup.Text>Q</InputGroup.Text>
-                <Form.Control
+
+              {/* Monto */}
+              <div className="flex">
+                <span className={`px-3 py-2.5 rounded-l-lg text-sm border-y border-l font-medium
+                  ${modoOscuro
+                    ? "bg-[#333] border-white/15 text-gray-300"
+                    : "bg-gray-100 border-gray-200 text-gray-500"}`}>
+                  Q
+                </span>
+                <input
                   type="number"
-                  placeholder="Monto"
+                  className={`flex-1 px-3 py-2.5 rounded-r-lg text-sm outline-none border
+                    ${modoOscuro
+                      ? "bg-[#262626] text-gray-100 border-white/15 focus:border-[#00c57a]"
+                      : "bg-gray-50 text-[#2e2828] border-gray-200 focus:border-[#00c57a]"}`}
+                  placeholder="0.00"
                   value={newTransaction.amount}
-                  onChange={(e) =>
-                    setNewTransaction({
-                      ...newTransaction,
-                      amount: e.target.value,
-                    })
-                  }
+                  onChange={e => setNewTransaction({ ...newTransaction, amount: e.target.value })}
                 />
-              </InputGroup>
-            </div>
-            <div className="col-md-4">
-              <Form.Control
+              </div>
+
+              {/* Fecha */}
+              <input
                 type="date"
+                className={inputCls}
                 value={newTransaction.date}
-                onChange={(e) =>
-                  setNewTransaction({ ...newTransaction, date: e.target.value })
-                }
+                onChange={e => setNewTransaction({ ...newTransaction, date: e.target.value })}
               />
             </div>
-            <div className="col-12 text-end">
-              <Button
-                variant="secondary"
-                className="me-2"
+
+            {/* Botones modal */}
+            <div className="flex gap-2 mt-5">
+              <button
                 onClick={resetFormulario}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors
+                  ${modoOscuro
+                    ? "bg-white/5 text-gray-300 hover:bg-white/10"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >
                 Cancelar
-              </Button>
-              <Button variant="primary" onClick={handleAddTransaction}>
+              </button>
+              <button
+                onClick={handleAddTransaction}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white
+                  transition-colors ${isIngreso
+                    ? "bg-[#00c57a] hover:bg-[#00a865]"
+                    : "bg-red-500 hover:bg-red-600"}`}
+              >
                 {modoEdicion ? "Actualizar" : "Guardar"}
-              </Button>
+              </button>
               {modoEdicion && (
-                <Button
-                  variant="danger"
-                  className="ms-2"
-                  onClick={() =>
-                    eliminarTransaccion(
-                      transaccionSeleccionada.type,
-                      transaccionSeleccionada.id
-                    )
-                  }
+                <button
+                  onClick={() => eliminarTransaccion(transaccionSeleccionada.type, transaccionSeleccionada.id)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-500/10
+                             text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/20"
                 >
-                  Eliminar
-                </Button>
+                  <Icon icon="lucide:trash-2" className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>
         </div>
       )}
-
-      <div className="mb-3">
-        <Button
-          className="me-2"
-          variant={filter === "todos" ? "primary" : "outline-secondary"}
-          onClick={() => setFilter("todos")}
-        >
-          Todos
-        </Button>
-        <Button
-          className="me-2"
-          variant={filter === "ingreso" ? "success" : "outline-secondary"}
-          onClick={() => setFilter("ingreso")}
-        >
-          Ingresos
-        </Button>
-        <Button
-          variant={filter === "gasto" ? "danger" : "outline-secondary"}
-          onClick={() => setFilter("gasto")}
-        >
-          Gastos
-        </Button>
-      </div>
-
-      <div
-        style={{ maxHeight: "400px", overflowY: "auto", paddingRight: "10px" }}
-      >
-        <div className="row g-3">
-          {filtered.map((t) => (
-            <div key={`${t.type}-${t.id}`} className="col-md-6 col-lg-4">
-              <div
-                className={`border rounded p-3 h-100 shadow-sm ${tarjetaBase}`}
-                style={{ cursor: "pointer" }}
-                onClick={() => handleEditarTransaccion(t)}
-              >
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <div className="fw-bold">{t.description}</div>
-                  <div
-                    className={`fw-bold ${
-                      t.type === "ingreso" ? "text-success" : "text-danger"
-                    }`}
-                  >
-                    {t.type === "ingreso" ? "+" : "-"}
-                    {formatCurrency(t.amount || t.monto)}
-                  </div>
-                </div>
-                <div className="text-muted small">
-                  {t.category || t.categoria} • {formatDate(t.fecha)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

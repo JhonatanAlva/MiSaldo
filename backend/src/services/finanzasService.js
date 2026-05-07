@@ -1,10 +1,10 @@
 const db = require('../config/db');
 
 // ── Agregar ingreso ───────────────────────────────────────────
-const agregarIngreso = async (usuarioId, { monto, fuente, fecha }) => {
+const agregarIngreso = async (usuarioId, { monto, fuente, fecha, descripcion }) => {
     await db.query(
-        'INSERT INTO ingresos (usuario_id, monto, fuente, fecha) VALUES ($1, $2, $3, $4)',
-        [usuarioId, monto, fuente, fecha]
+        'INSERT INTO ingresos (usuario_id, monto, fuente, fecha, descripcion) VALUES ($1, $2, $3, $4, $5)',
+        [usuarioId, monto, fuente, fecha, descripcion || null]
     );
 };
 
@@ -192,16 +192,30 @@ const getBalance = async (usuarioId, { tipo = 'mensual', inicio, fin }) => {
 const getHistorial = async (usuarioId, { fechaInicio, fechaFin }) => {
     const conFecha = fechaInicio && fechaFin;
     const filtro = conFecha ? 'AND fecha BETWEEN $2 AND $3' : '';
-    const params = conFecha
-        ? [usuarioId, fechaInicio, fechaFin]
-        : [usuarioId];
+    const params = conFecha ? [usuarioId, fechaInicio, fechaFin] : [usuarioId];
 
     const result = await db.query(`
-    SELECT id, 'Ingreso' AS tipo, fuente AS descripcion, monto, fecha
+    SELECT 
+      id, 
+      'Ingreso'   AS tipo, 
+      fuente      AS categoria,
+      descripcion AS descripcion,
+      fuente      AS fuente,
+      monto, 
+      fecha
     FROM ingresos WHERE usuario_id = $1 ${filtro}
-    UNION
-    SELECT id, 'Gasto' AS tipo, descripcion, monto, fecha
-    FROM gastos WHERE usuario_id = $1 ${filtro}
+    UNION ALL
+    SELECT 
+      g.id, 
+      'Gasto'     AS tipo,
+      c.nombre    AS categoria,
+      g.descripcion AS descripcion,
+      NULL        AS fuente,
+      g.monto, 
+      g.fecha
+    FROM gastos g
+    LEFT JOIN categorias c ON g.categoria_id = c.id
+    WHERE g.usuario_id = $1 ${filtro}
     ORDER BY fecha DESC
   `, params);
 
@@ -218,30 +232,29 @@ const eliminarMovimiento = async (tipo, id) => {
     return { ok: true };
 };
 
-// ── Editar movimiento ─────────────────────────────────────────
+// ── Editar movimiento —────────────────────────────────────── 
 const editarMovimiento = async (tipo, id, body) => {
-    const { monto, fuente, descripcion, fecha, categoria_id } = body;
-    const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
+  const { monto, fuente, descripcion, fecha, categoria_id } = body;
+  const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
 
-    let result;
-    if (tipo === 'ingreso') {
-        result = await db.query(
-            'UPDATE ingresos SET monto = $1, fuente = $2, fecha = $3 WHERE id = $4',
-            [monto, fuente, fechaFormateada, id]
-        );
-    } else if (tipo === 'gasto') {
-        result = await db.query(
-            'UPDATE gastos SET monto = $1, descripcion = $2, fecha = $3, categoria_id = $4 WHERE id = $5',
-            [monto, descripcion, fechaFormateada, categoria_id, id]
-        );
-    } else {
-        return { error: 400, mensaje: 'Tipo inválido' };
-    }
+  let result;
+  if (tipo === 'ingreso') {
+    result = await db.query(
+      'UPDATE ingresos SET monto = $1, fuente = $2, fecha = $3, descripcion = $4 WHERE id = $5',
+      [monto, fuente, fechaFormateada, descripcion || null, id]
+    );
+  } else if (tipo === 'gasto') {
+    result = await db.query(
+      'UPDATE gastos SET monto = $1, descripcion = $2, fecha = $3, categoria_id = $4 WHERE id = $5',
+      [monto, descripcion, fechaFormateada, categoria_id, id]
+    );
+  } else {
+    return { error: 400, mensaje: 'Tipo inválido' };
+  }
 
-    if (result.rowCount === 0) return { error: 404, mensaje: 'Movimiento no encontrado' };
-    return { ok: true };
+  if (result.rowCount === 0) return { error: 404, mensaje: 'Movimiento no encontrado' };
+  return { ok: true };
 };
-
 module.exports = {
     agregarIngreso,
     agregarGasto,

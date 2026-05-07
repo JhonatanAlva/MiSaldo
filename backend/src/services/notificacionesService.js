@@ -31,7 +31,6 @@ const getEstadoPresupuesto = async (userId) => {
     presupuesto = Number(cfg.presupuesto_mensual || 0);
   }
 
-  // MySQL: MONTH()/YEAR() → PostgreSQL: EXTRACT(MONTH/YEAR FROM fecha)
   const rG = await db.query(
     `SELECT COALESCE(SUM(monto), 0) AS gastado
      FROM gastos
@@ -81,4 +80,57 @@ const getTip = async (userId) => {
   return { enabled: true, tip };
 };
 
-module.exports = { getEstadoPresupuesto, getTip };
+// ── Notificaciones en app ─────────────────────────────────────
+// ✅ Estas son las funciones nuevas para gastos fijos
+
+const crearNotificacion = async (usuarioId, mensaje) => {
+  await db.query(
+    'INSERT INTO notificaciones (usuario_id, mensaje) VALUES ($1, $2)',
+    [usuarioId, mensaje]
+  );
+};
+
+const getNotificaciones = async (usuarioId) => {
+  const res = await db.query(
+    `SELECT * FROM notificaciones
+     WHERE usuario_id = $1
+     ORDER BY creado_en DESC
+     LIMIT 20`,
+    [usuarioId]
+  );
+  return res.rows;
+};
+
+const marcarLeida = async (id, usuarioId) => {
+  await db.query(
+    'UPDATE notificaciones SET leida=TRUE WHERE id=$1 AND usuario_id=$2',
+    [id, usuarioId]
+  );
+};
+
+const marcarTodasLeidas = async (usuarioId) => {
+  await db.query(
+    'UPDATE notificaciones SET leida=TRUE WHERE usuario_id=$1',
+    [usuarioId]
+  );
+};
+
+const contarNoLeidas = async (usuarioId) => {
+  const res = await db.query(
+    'SELECT COUNT(*) FROM notificaciones WHERE usuario_id=$1 AND leida=FALSE',
+    [usuarioId]
+  );
+  return parseInt(res.rows[0].count);
+};
+
+module.exports = {
+  // existentes
+  getEstadoPresupuesto,
+  getTip,
+  // nuevas
+  crearNotificacion,
+  getNotificaciones,
+  marcarLeida,
+  marcarTodasLeidas,
+  contarNoLeidas,
+};
