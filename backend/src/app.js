@@ -69,6 +69,7 @@ app.use("/admin",          require("./routes/admin"));
 app.use("/notificaciones", require("./routes/notificacionesRoutes"));
 app.use("/asistente",      require("./routes/asistente"));
 app.use("/categorias",     require("./routes/categorias"));
+app.use("/ingresos-fijos", require("./routes/ingresosFijos"));
 
 app.use("/gastos-fijos",   require("./routes/gastosFijos"));
 

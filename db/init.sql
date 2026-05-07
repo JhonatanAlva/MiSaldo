@@ -266,7 +266,6 @@ CREATE TABLE historial_gastos_fijos (
 -- ------------------------------------------------------------
 -- 13. ingresos_fijos
 -- ------------------------------------------------------------
-DROP TABLE IF EXISTS ingresos_fijos CASCADE;
 
 CREATE TABLE ingresos_fijos (
 
@@ -304,6 +303,36 @@ CREATE TABLE ingresos_fijos (
     ON DELETE CASCADE
 );
 
+-- ------------------------------------------------------------
+-- 14. historial_ingresos_fijos
+-- ------------------------------------------------------------
+
+CREATE TABLE historial_ingresos_fijos (
+
+    id SERIAL PRIMARY KEY,
+
+    ingreso_fijo_id INTEGER NOT NULL,
+
+    usuario_id INTEGER NOT NULL,
+
+    monto NUMERIC(10,2) NOT NULL,
+
+    fecha_pago TIMESTAMP NOT NULL
+    DEFAULT CURRENT_TIMESTAMP,
+
+    creado_en TIMESTAMP NOT NULL
+    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_historial_ingreso
+    FOREIGN KEY (ingreso_fijo_id)
+    REFERENCES ingresos_fijos(id)
+    ON DELETE CASCADE,
+
+    CONSTRAINT fk_historial_ingreso_usuario
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuarios(id)
+    ON DELETE CASCADE
+);
 
 -- ============================================================
 -- FIN DEL SCHEMA

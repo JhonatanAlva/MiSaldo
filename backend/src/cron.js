@@ -105,7 +105,7 @@ cron.schedule('* * * * *', async () => {
         gasto.ultimo_cobro
           .toISOString()
           .split('T')[0] ===
-          fechaHoy
+        fechaHoy
       ) {
 
         continue;
@@ -167,7 +167,7 @@ cron.schedule('* * * * *', async () => {
       if (
         gasto.tiene_cuotas &&
         gasto.cuotas_pagadas <
-          gasto.cuotas_total
+        gasto.cuotas_total
       ) {
 
         const nuevasCuotas =
@@ -254,6 +254,205 @@ cron.schedule('* * * * *', async () => {
 
     console.error(
       'Error en cron:',
+      error
+    );
+
+  }
+
+});
+
+// ─────────────────────────────────────────────
+// INGRESOS FIJOS AUTOMÁTICOS
+// ─────────────────────────────────────────────
+cron.schedule('* * * * *', async () => {
+
+  console.log('Verificando ingresos fijos...');
+
+  try {
+
+    const hoy = new Date();
+
+    const diaActual = hoy.getDate();
+
+    const fechaHoy =
+      hoy.toISOString().split('T')[0];
+
+    // ─────────────────────────────────────
+    // Obtener ingresos activos
+    // ─────────────────────────────────────
+    const { rows: ingresos } = await db.query(
+      `
+      SELECT *
+      FROM ingresos_fijos
+      WHERE activo = true
+      `
+    );
+
+    for (const ingreso of ingresos) {
+
+      let debePagarse = false;
+
+      // ─────────────────────────────────
+      // MENSUAL
+      // ─────────────────────────────────
+      if (
+        ingreso.frecuencia === 'mensual'
+      ) {
+
+        if (
+          ingreso.dia_pago === diaActual
+        ) {
+          debePagarse = true;
+        }
+
+      }
+
+      // ─────────────────────────────────
+      // QUINCENAL
+      // ─────────────────────────────────
+      if (
+        ingreso.frecuencia === 'quincenal'
+      ) {
+
+        if (
+          diaActual === ingreso.dia_pago ||
+          diaActual === ingreso.dia_pago + 15
+        ) {
+          debePagarse = true;
+        }
+
+      }
+
+      // ─────────────────────────────────
+      // SEMANAL
+      // ─────────────────────────────────
+      if (
+        ingreso.frecuencia === 'semanal'
+      ) {
+
+        const ultimoPago =
+          ingreso.ultimo_pago
+            ? new Date(
+              ingreso.ultimo_pago
+            )
+            : null;
+
+        if (!ultimoPago) {
+
+          debePagarse = true;
+
+        } else {
+
+          const diferenciaDias =
+            Math.floor(
+              (
+                hoy - ultimoPago
+              ) /
+              (
+                1000 * 60 * 60 * 24
+              )
+            );
+
+          if (diferenciaDias >= 7) {
+            debePagarse = true;
+          }
+
+        }
+
+      }
+
+      // ─────────────────────────────────
+      // Si no toca hoy
+      // ─────────────────────────────────
+      if (!debePagarse) {
+        continue;
+      }
+
+      // ─────────────────────────────────
+      // Evitar duplicados
+      // ─────────────────────────────────
+      if (
+        ingreso.ultimo_pago &&
+        ingreso.ultimo_pago
+          .toISOString()
+          .split('T')[0] === fechaHoy
+      ) {
+
+        continue;
+
+      }
+
+      // ─────────────────────────────────
+      // Crear ingreso automático
+      // ─────────────────────────────────
+      await db.query(
+        `
+        INSERT INTO ingresos
+        (
+          usuario_id,
+          descripcion,
+          monto,
+          fecha
+        )
+        VALUES ($1, $2, $3, NOW())
+        `,
+        [
+          ingreso.usuario_id,
+          `Ingreso automático: ${ingreso.nombre}`,
+          ingreso.monto,
+        ]
+      );
+
+      // ─────────────────────────────────
+      // Guardar historial
+      // ─────────────────────────────────
+      await db.query(
+        `
+        INSERT INTO historial_ingresos_fijos
+        (
+          ingreso_fijo_id,
+          usuario_id,
+          monto,
+          fecha_pago
+        )
+        VALUES ($1, $2, $3, NOW())
+        `,
+        [
+          ingreso.id,
+          ingreso.usuario_id,
+          ingreso.monto,
+        ]
+      );
+
+      // ─────────────────────────────────
+      // Actualizar fecha pago
+      // ─────────────────────────────────
+      await db.query(
+        `
+        UPDATE ingresos_fijos
+        SET ultimo_pago = CURRENT_DATE
+        WHERE id = $1
+        `,
+        [ingreso.id]
+      );
+
+      // ─────────────────────────────────
+      // Crear notificación
+      // ─────────────────────────────────
+      await notificacionesService.crearNotificacion(
+        ingreso.usuario_id,
+        `💰 Se registró automáticamente el ingreso "${ingreso.nombre}" por Q${ingreso.monto}`
+      );
+
+      console.log(
+        `Ingreso procesado: ${ingreso.nombre}`
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      'Error ingresos fijos:',
       error
     );
 

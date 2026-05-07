@@ -10,6 +10,7 @@ import ConfiguracionUsuario from "../components/user/ConfiguracionUsuario";
 import GastosFijos from "../components/user/GastosFijos";
 import Notificaciones from "../components/user/Notificaciones";
 import CalendarioFinanciero from "../components/user/CalendarioFinanciero";
+import IngresosFijos from "../components/user/ingresosFijos";
 import "../assets/usuario.css";
 
 const PanelUsuario = () => {
@@ -71,6 +72,7 @@ const PanelUsuario = () => {
           { id: "resumen", label: "Resumen" },
           { id: "transacciones", label: "Transacciones" },
           { id: "gastos-fijos", label: "Gastos Fijos" },
+          { id: "ingresos-fijos", label: "Ingresos Fijos" },
           {
             id: "calendario",
             label: "Calendario",
@@ -96,6 +98,7 @@ const PanelUsuario = () => {
         {vista === "resumen" && <ResumenDashboard setVista={setVista} />}
         {vista === "transacciones" && <TransaccionesUsuario />}
         {vista === "gastos-fijos" && <GastosFijos />}
+        {vista === "ingresos-fijos" && <IngresosFijos />}
         {vista === "calendario" && <CalendarioFinanciero />}
         {vista === "ia" && <AsistenteIA nombreUsuario={usuario?.nombres} />}
         {vista === "ahorro" && <SeccionAhorro />}

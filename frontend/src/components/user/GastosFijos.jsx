@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import Swal from "sweetalert2";
 
 const GastosFijos = () => {
     const [gastos, setGastos] = useState([]);
@@ -17,8 +18,6 @@ const GastosFijos = () => {
 
     const [editandoId, setEditandoId] =
         useState(null);
-
-    const [mensaje, setMensaje] = useState("");
 
     const [mostrarModalEliminar, setMostrarModalEliminar] =
         useState(false);
@@ -98,7 +97,71 @@ const GastosFijos = () => {
     // Guardar / Editar
     // ─────────────────────────────────────────────
     const guardarGastoFijo = async () => {
+
+        // VALIDACIONES
+        if (!formData.nombre.trim()) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Nombre requerido",
+                text: "Debes ingresar un nombre para el gasto fijo.",
+                confirmButtonColor: "#10b981",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+        }
+
+        if (!formData.monto || Number(formData.monto) <= 0) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Monto inválido",
+                text: "Ingresa un monto válido.",
+                confirmButtonColor: "#10b981",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+        }
+
+        if (!formData.dia_cobro) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Día requerido",
+                text: "Selecciona un día de cobro.",
+                confirmButtonColor: "#10b981",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+        }
+
+        if (!formData.categoria_id) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Categoría requerida",
+                text: "Debes seleccionar una categoría.",
+                confirmButtonColor: "#10b981",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+        }
+
+        if (
+            formData.tiene_cuotas &&
+            (
+                !formData.cuotas_total ||
+                Number(formData.cuotas_total) <= 0
+            )
+        ) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Cuotas inválidas",
+                text: "Ingresa el total de cuotas.",
+                confirmButtonColor: "#10b981",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+        }
+
         try {
+
             const payload = {
                 ...formData,
 
@@ -106,9 +169,7 @@ const GastosFijos = () => {
 
                 dia_cobro: Number(formData.dia_cobro),
 
-                categoria_id: formData.categoria_id
-                    ? Number(formData.categoria_id)
-                    : null,
+                categoria_id: Number(formData.categoria_id),
 
                 cuotas_total: formData.tiene_cuotas
                     ? Number(formData.cuotas_total)
@@ -118,23 +179,39 @@ const GastosFijos = () => {
             };
 
             if (editandoId) {
+
                 await api.put(
                     `/gastos-fijos/${editandoId}`,
                     payload
                 );
 
-                setMensaje(
-                    "✅ Gasto fijo actualizado correctamente"
-                );
+                Swal.fire({
+                    icon: "success",
+                    title: "Gasto actualizado",
+                    text: "El gasto fijo fue actualizado correctamente.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: "#1e1e1e",
+                    color: "#fff",
+                });
+
             } else {
+
                 await api.post(
                     "/gastos-fijos",
                     payload
                 );
 
-                setMensaje(
-                    "✅ Gasto fijo creado correctamente"
-                );
+                Swal.fire({
+                    icon: "success",
+                    title: "Gasto creado",
+                    text: "El gasto fijo fue registrado correctamente.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: "#1e1e1e",
+                    color: "#fff",
+                });
+
             }
 
             setFormData({
@@ -154,16 +231,19 @@ const GastosFijos = () => {
 
             obtenerGastos();
 
-            setTimeout(() => {
-                setMensaje("");
-            }, 3000);
-
         } catch (error) {
+
             console.error(error);
 
-            setMensaje(
-                "❌ Error al guardar gasto fijo"
-            );
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo guardar el gasto fijo.",
+                confirmButtonColor: "#ef4444",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+
         }
     };
 
@@ -202,34 +282,54 @@ const GastosFijos = () => {
     // ─────────────────────────────────────────────
     // Eliminar
     // ─────────────────────────────────────────────
-    const eliminarGasto = async () => {
-        if (!gastoEliminar) return;
+    const eliminarGasto = async (gasto) => {
+
+        const result = await Swal.fire({
+            title: "¿Eliminar gasto fijo?",
+            text: `Se eliminará "${gasto.nombre}"`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+            background: "#1e1e1e",
+            color: "#fff",
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
+
             await api.delete(
-                `/gastos-fijos/${gastoEliminar.id}`
+                `/gastos-fijos/${gasto.id}`
             );
 
-            setMensaje(
-                "🗑️ Gasto fijo eliminado"
-            );
-
-            setMostrarModalEliminar(false);
-
-            setGastoEliminar(null);
+            Swal.fire({
+                icon: "success",
+                title: "Eliminado",
+                text: "El gasto fijo fue eliminado.",
+                timer: 1800,
+                showConfirmButton: false,
+                background: "#1e1e1e",
+                color: "#fff",
+            });
 
             obtenerGastos();
 
-            setTimeout(() => {
-                setMensaje("");
-            }, 3000);
-
         } catch (error) {
+
             console.error(error);
 
-            setMensaje(
-                "❌ Error al eliminar"
-            );
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo eliminar el gasto.",
+                confirmButtonColor: "#ef4444",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
+
         }
     };
 
@@ -276,30 +376,99 @@ const GastosFijos = () => {
                 </button>
             </div>
 
-            {/* Alertas */}
-            {mensaje && (
-                <div className="alert alert-info shadow-sm border-0 rounded-4">
-                    {mensaje}
-                </div>
-            )}
-
-            {/* Formulario */}
+            {/* Modal formulario */}
+            {/* Modal */}
             {mostrarFormulario && (
-                <div className="card border-0 shadow-lg rounded-4 mb-4">
 
-                    <div className="card-body p-4">
+                <div
+                    className="
+            position-fixed
+            top-0
+            start-0
+            w-100
+            h-100
+            d-flex
+            justify-content-center
+            align-items-center
+        "
+                    style={{
+                        background: "rgba(0,0,0,0.70)",
+                        zIndex: 9999,
+                        backdropFilter: "blur(5px)",
+                        padding: "1rem",
+                    }}
+                    onClick={() => {
+                        setMostrarFormulario(false);
+                        setEditandoId(null);
+                    }}
+                >
 
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="
+                bg-dark
+                text-white
+                rounded-4
+                shadow-lg
+                p-4
+                position-relative
+            "
+                        style={{
+                            width: "100%",
+                            maxWidth: "650px",
+                            maxHeight: "90vh",
+                            overflowY: "auto",
+                        }}
+                    >
+
+                        {/* Header */}
+                        <div
+                            className="
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    mb-4
+                "
+                        >
+
+                            <h3 className="fw-bold">
+
+                                {editandoId
+                                    ? "✏️ Editar gasto fijo"
+                                    : "📌 Nuevo gasto fijo"}
+
+                            </h3>
+
+                            <button
+                                className="
+                        btn-close
+                        btn-close-white
+                    "
+                                onClick={() => {
+                                    setMostrarFormulario(false);
+                                    setEditandoId(null);
+                                }}
+                            />
+
+                        </div>
+
+                        {/* Formulario */}
                         <div className="row g-3">
 
                             {/* Nombre */}
-                            <div className="col-12 col-md-6">
-                                <label className="form-label fw-semibold">
+                            <div className="col-md-6">
+
+                                <label className="form-label">
                                     Nombre
                                 </label>
 
                                 <input
                                     type="text"
-                                    className="form-control rounded-3"
+                                    className="
+                            form-control
+                            bg-dark
+                            text-white
+                        "
                                     placeholder="Netflix"
                                     value={formData.nombre}
                                     onChange={(e) =>
@@ -309,17 +478,23 @@ const GastosFijos = () => {
                                         })
                                     }
                                 />
+
                             </div>
 
                             {/* Monto */}
-                            <div className="col-12 col-md-6">
-                                <label className="form-label fw-semibold">
-                                    Monto mensual
+                            <div className="col-md-6">
+
+                                <label className="form-label">
+                                    Monto
                                 </label>
 
                                 <input
                                     type="number"
-                                    className="form-control rounded-3"
+                                    className="
+                            form-control
+                            bg-dark
+                            text-white
+                        "
                                     placeholder="50"
                                     value={formData.monto}
                                     onChange={(e) =>
@@ -329,16 +504,22 @@ const GastosFijos = () => {
                                         })
                                     }
                                 />
+
                             </div>
 
                             {/* Día */}
-                            <div className="col-12 col-md-6">
-                                <label className="form-label fw-semibold">
+                            <div className="col-md-6">
+
+                                <label className="form-label">
                                     Día de cobro
                                 </label>
 
                                 <select
-                                    className="form-select rounded-3"
+                                    className="
+                            form-select
+                            bg-dark
+                            text-white
+                        "
                                     value={formData.dia_cobro}
                                     onChange={(e) =>
                                         setFormData({
@@ -348,6 +529,7 @@ const GastosFijos = () => {
                                         })
                                     }
                                 >
+
                                     <option value="">
                                         Selecciona un día
                                     </option>
@@ -363,17 +545,24 @@ const GastosFijos = () => {
                                             </option>
                                         )
                                     )}
+
                                 </select>
+
                             </div>
 
                             {/* Categoría */}
-                            <div className="col-12 col-md-6">
-                                <label className="form-label fw-semibold">
+                            <div className="col-md-6">
+
+                                <label className="form-label">
                                     Categoría
                                 </label>
 
                                 <select
-                                    className="form-select rounded-3"
+                                    className="
+                            form-select
+                            bg-dark
+                            text-white
+                        "
                                     value={formData.categoria_id}
                                     onChange={(e) =>
                                         setFormData({
@@ -383,6 +572,7 @@ const GastosFijos = () => {
                                         })
                                     }
                                 >
+
                                     <option value="">
                                         Selecciona categoría
                                     </option>
@@ -395,11 +585,14 @@ const GastosFijos = () => {
                                             {cat.nombre}
                                         </option>
                                     ))}
+
                                 </select>
+
                             </div>
 
-                            {/* Tiene cuotas */}
+                            {/* Cuotas */}
                             <div className="col-12">
+
                                 <div className="form-check form-switch">
 
                                     <input
@@ -417,24 +610,29 @@ const GastosFijos = () => {
                                         }
                                     />
 
-                                    <label className="form-check-label fw-semibold">
+                                    <label className="form-check-label">
                                         Tiene cuotas
                                     </label>
+
                                 </div>
+
                             </div>
 
-                            {/* Total cuotas */}
                             {formData.tiene_cuotas && (
-                                <div className="col-12 col-md-6">
 
-                                    <label className="form-label fw-semibold">
-                                        Total de cuotas
+                                <div className="col-md-6">
+
+                                    <label className="form-label">
+                                        Total cuotas
                                     </label>
 
                                     <input
                                         type="number"
-                                        className="form-control rounded-3"
-                                        placeholder="12"
+                                        className="
+                                form-control
+                                bg-dark
+                                text-white
+                            "
                                         value={
                                             formData.cuotas_total
                                         }
@@ -446,11 +644,14 @@ const GastosFijos = () => {
                                             })
                                         }
                                     />
+
                                 </div>
+
                             )}
 
                             {/* Activo */}
                             <div className="col-12">
+
                                 <div className="form-check form-switch">
 
                                     <input
@@ -466,58 +667,58 @@ const GastosFijos = () => {
                                         }
                                     />
 
-                                    <label className="form-check-label fw-semibold">
+                                    <label className="form-check-label">
                                         Gasto activo
                                     </label>
+
                                 </div>
+
                             </div>
 
                             {/* Botones */}
                             <div className="col-12">
-                                <div className="d-flex gap-2">
 
-                                    {/* Guardar / Actualizar */}
-                                    <button
-                                        className={`btn flex-fill rounded-3 py-2 fw-semibold shadow-sm ${editandoId
-                                            ? "btn-warning"
-                                            : "btn-success"
-                                            }`}
-                                        onClick={guardarGastoFijo}
-                                    >
-                                        {editandoId
-                                            ? "Actualizar gasto fijo"
-                                            : "Guardar gasto fijo"}
-                                    </button>
+                                <div className="d-flex gap-3 mt-3">
 
-                                    {/* Cancelar */}
                                     <button
-                                        className="btn btn-outline-secondary rounded-3 px-4 fw-semibold"
+                                        className="
+                                btn
+                                btn-secondary
+                                flex-fill
+                            "
                                         onClick={() => {
-
                                             setMostrarFormulario(false);
-
                                             setEditandoId(null);
-
-                                            setFormData({
-                                                nombre: "",
-                                                monto: "",
-                                                dia_cobro: "",
-                                                categoria_id: "",
-                                                tiene_cuotas: false,
-                                                cuotas_total: "",
-                                                cuotas_pagadas: "",
-                                                activo: true,
-                                            });
                                         }}
                                     >
                                         Cancelar
                                     </button>
 
+                                    <button
+                                        className={`
+                                btn
+                                flex-fill
+                                ${editandoId
+                                                ? "btn-warning"
+                                                : "btn-success"}
+                            `}
+                                        onClick={guardarGastoFijo}
+                                    >
+
+                                        {editandoId
+                                            ? "Actualizar"
+                                            : "Guardar"}
+
+                                    </button>
+
                                 </div>
+
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
             )}
 
@@ -650,11 +851,7 @@ const GastosFijos = () => {
 
                                         <button
                                             className="btn btn-outline-danger rounded-pill flex-fill"
-                                            onClick={() => {
-                                                setGastoEliminar(gasto);
-
-                                                setMostrarModalEliminar(true);
-                                            }}
+                                            onClick={() => eliminarGasto(gasto)}
                                         >
                                             🗑️ Eliminar
                                         </button>
@@ -747,93 +944,6 @@ const GastosFijos = () => {
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Modal eliminar */}
-            {mostrarModalEliminar && (
-                <div
-                    className="modal fade show d-block"
-                    tabIndex="-1"
-                    style={{
-                        backgroundColor:
-                            "rgba(0,0,0,0.6)",
-
-                        backdropFilter:
-                            "blur(4px)",
-                    }}
-                >
-                    <div className="modal-dialog modal-dialog-centered">
-
-                        <div className="modal-content border-0 shadow-lg rounded-4">
-
-                            <div className="modal-header border-0">
-
-                                <h5 className="modal-title fw-bold">
-                                    🗑️ Eliminar gasto fijo
-                                </h5>
-
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => {
-                                        setMostrarModalEliminar(
-                                            false
-                                        );
-
-                                        setGastoEliminar(
-                                            null
-                                        );
-                                    }}
-                                ></button>
-                            </div>
-
-                            <div className="modal-body">
-
-                                <p className="mb-1 text-muted">
-                                    Vas a eliminar:
-                                </p>
-
-                                <h5 className="fw-bold">
-                                    {
-                                        gastoEliminar?.nombre
-                                    }
-                                </h5>
-
-                                <p className="text-danger small mb-0">
-                                    Esta acción no se puede deshacer.
-                                </p>
-                            </div>
-
-                            <div className="modal-footer border-0">
-
-                                <button
-                                    className="btn btn-light rounded-pill px-4"
-                                    onClick={() => {
-                                        setMostrarModalEliminar(
-                                            false
-                                        );
-
-                                        setGastoEliminar(
-                                            null
-                                        );
-                                    }}
-                                >
-                                    Cancelar
-                                </button>
-
-                                <button
-                                    className="btn btn-danger rounded-pill px-4"
-                                    onClick={
-                                        eliminarGasto
-                                    }
-                                >
-                                    Eliminar
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
                 </div>
             )}
 
