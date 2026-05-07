@@ -282,20 +282,6 @@ const TransaccionesUsuario = () => {
 
   return (
     <div className="w-full pb-4">
-      {/* ── Alerta ───────────────────────────────────────── */}
-      {alerta && (
-        <div
-          className={`mb-4 px-4 py-3 rounded-xl text-sm text-center font-medium
-          ${
-            alerta.tipo === "success"
-              ? "bg-[#00c57a]/10 text-[#00c57a] border border-[#00c57a]/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20"
-          }`}
-        >
-          {alerta.mensaje}
-        </div>
-      )}
-
       {/* ── Header ───────────────────────────────────────── */}
       <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
         <h4 className="font-bold text-xl">Transacciones</h4>
@@ -419,6 +405,29 @@ const TransaccionesUsuario = () => {
             className={`w-full max-w-md rounded-2xl p-6 shadow-2xl
             transition-all duration-300 ${modalBg}`}
           >
+            {/* ── ALERTA MODAL ───────────────────────── */}
+            {alerta && (
+              <div
+                className={`
+      mb-4
+      px-4
+      py-3
+      rounded-xl
+      text-sm
+      font-medium
+      text-center
+      border
+      animate-pulse
+      ${
+        alerta.tipo === "success"
+          ? "bg-[#00c57a]/10 text-[#00c57a] border-[#00c57a]/20"
+          : "bg-red-500/10 text-red-400 border-red-500/20"
+      }
+    `}
+              >
+                {alerta.mensaje}
+              </div>
+            )}
             {/* Header modal */}
             <div className="flex justify-between items-center mb-5">
               <h5 className="font-bold text-lg">
