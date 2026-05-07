@@ -10,7 +10,7 @@ import ConfiguracionUsuario from "../components/user/ConfiguracionUsuario";
 import GastosFijos from "../components/user/GastosFijos";
 import Notificaciones from "../components/user/Notificaciones";
 import CalendarioFinanciero from "../components/user/CalendarioFinanciero";
-import IngresosFijos from "../components/user/ingresosFijos";
+import IngresosFijos from "../components/user/IngresosFijos";
 import "../assets/usuario.css";
 
 const PanelUsuario = () => {
