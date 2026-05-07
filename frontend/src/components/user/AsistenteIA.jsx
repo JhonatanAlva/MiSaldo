@@ -1,184 +1,538 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+
 import api from "../../services/api";
 
-const AsistenteIA = ({ nombreUsuario = "Usuario" }) => {
-  const [mensaje, setMensaje]     = useState("");
-  const [respuestas, setRespuestas] = useState([]);
-  const [cargando, setCargando]   = useState(false);
-  const [modoOscuro, setModoOscuro] = useState(false);
+const AsistenteIA = ({
+  nombreUsuario = "Usuario",
+}) => {
+
+  const [mensaje, setMensaje] =
+    useState("");
+
+  const [respuestas, setRespuestas] =
+    useState([]);
+
+  const [cargando, setCargando] =
+    useState(false);
+
+  const [modoOscuro, setModoOscuro] =
+    useState(false);
+
   const bottomRef = useRef(null);
 
+  // ─────────────────────────────────────
+  // Detectar tema
+  // ─────────────────────────────────────
   useEffect(() => {
-    setModoOscuro(document.body.getAttribute("data-theme") === "dark");
-    const observer = new MutationObserver(() =>
-      setModoOscuro(document.body.getAttribute("data-theme") === "dark")
-    );
-    observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
 
-    setRespuestas([{
-      rol: "asistente",
-      texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?`,
-    }]);
+    setModoOscuro(
+      document.body.getAttribute(
+        "data-theme"
+      ) === "dark"
+    );
+
+    const observer =
+      new MutationObserver(() =>
+        setModoOscuro(
+          document.body.getAttribute(
+            "data-theme"
+          ) === "dark"
+        )
+      );
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    setRespuestas([
+      {
+        rol: "asistente",
+        texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?`,
+      },
+    ]);
 
     return () => observer.disconnect();
+
   }, [nombreUsuario]);
 
-  // Auto-scroll al último mensaje
+  // ─────────────────────────────────────
+  // Auto scroll
+  // ─────────────────────────────────────
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+
   }, [respuestas]);
 
+  // ─────────────────────────────────────
+  // Enviar mensaje
+  // ─────────────────────────────────────
   const manejarEnvio = async (e) => {
+
     e.preventDefault();
-    if (!mensaje.trim() || cargando) return;
+
+    if (
+      !mensaje.trim() ||
+      cargando
+    ) return;
 
     const pregunta = mensaje.trim();
-    setRespuestas(prev => [...prev, { rol: "usuario", texto: pregunta }]);
+
+    setRespuestas((prev) => [
+      ...prev,
+      {
+        rol: "usuario",
+        texto: pregunta,
+      },
+    ]);
+
     setMensaje("");
+
     setCargando(true);
 
     try {
-      //  Axios: solo pasar el body directamente
-      const res = await api.post("/asistente", {
-        mensaje: pregunta,
-        nombre: nombreUsuario,
-      });
-      setRespuestas(prev => [...prev, { rol: "asistente", texto: res.data.respuesta }]);
+
+      const res = await api.post(
+        "/asistente",
+        {
+          mensaje: pregunta,
+          nombre: nombreUsuario,
+        }
+      );
+
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto:
+            res.data.respuesta,
+        },
+      ]);
+
     } catch {
-      setRespuestas(prev => [...prev, {
-        rol: "asistente",
-        texto: "❌ Hubo un error al conectarse con el asistente IA.",
-      }]);
+
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto:
+            "❌ Hubo un error al conectarse con el asistente IA.",
+        },
+      ]);
+
     } finally {
+
       setCargando(false);
+
     }
   };
 
-  const manejarAnalisis = async (tipo) => {
-    setRespuestas(prev => [...prev, {
-      rol: "asistente",
-      texto: `Analizando tus ${tipo}... 🔍`,
-    }]);
+  // ─────────────────────────────────────
+  // Análisis IA
+  // ─────────────────────────────────────
+  const manejarAnalisis = async (
+    tipo
+  ) => {
+
+    setRespuestas((prev) => [
+      ...prev,
+      {
+        rol: "asistente",
+        texto: `Analizando tus ${tipo}... 🔍`,
+      },
+    ]);
+
     setCargando(true);
 
     const urls = {
-      gastos:   "/finanzas/gastos",
-      ingresos: "/finanzas/ingresos",
-      balance:  "/finanzas/resumen?tipo=mensual",
+      gastos:
+        "/finanzas/gastos",
+
+      ingresos:
+        "/finanzas/ingresos",
+
+      balance:
+        "/finanzas/resumen?tipo=mensual",
+
+      gastosfijos:
+        "/gastos-fijos",
     };
 
     try {
-      // Axios: res.data, sin .json()
-      const res    = await api.get(urls[tipo]);
-      const aiRes  = await api.post("/asistente/analisis", {
+
+      const res =
+        await api.get(
+          urls[tipo]
+        );
+
+      const endpoint =
+        tipo === "gastosfijos"
+          ? "/asistente/analisis-gastos-fijos"
+          : "/asistente/analisis";
+
+      let payload = {
         tipo,
         datos: res.data,
         nombre: nombreUsuario,
-      });
-      setRespuestas(prev => [...prev, {
-        rol: "asistente",
-        texto: aiRes.data.resumen || "Análisis completado ✅",
-      }]);
+      };
+
+      // ─────────────────────────────
+      // IA gastos fijos
+      // ─────────────────────────────
+      if (tipo === "gastosfijos") {
+
+        const ingresosRes =
+          await api.get(
+            "/finanzas/ingresos"
+          );
+
+        payload = {
+          gastosFijos: res.data,
+          ingresos: ingresosRes.data,
+          nombre: nombreUsuario,
+        };
+      }
+
+      const aiRes =
+        await api.post(
+          endpoint,
+          payload
+        );
+
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto:
+            aiRes.data
+              .resumen ||
+            "Análisis completado ✅",
+        },
+      ]);
+
     } catch (err) {
-      console.error("Error al analizar:", err);
-      setRespuestas(prev => [...prev, {
-        rol: "asistente",
-        texto: "❌ No se pudieron analizar tus datos. Intenta más tarde.",
-      }]);
+
+      console.error(
+        "Error al analizar:",
+        err
+      );
+
+      setRespuestas((prev) => [
+        ...prev,
+        {
+          rol: "asistente",
+          texto:
+            "❌ No se pudieron analizar tus datos.",
+        },
+      ]);
+
     } finally {
+
       setCargando(false);
+
     }
   };
 
-  /* ── Clases ──────────────────────────────────────────── */
-  const card = `rounded-xl p-5 transition-colors duration-300
+  // ─────────────────────────────────────
+  // Estilos
+  // ─────────────────────────────────────
+  const card = `
+    rounded-4
+    p-3
+    p-sm-4
+    transition-all
+    duration-300
     ${modoOscuro
-      ? "bg-[#1a1a1a] text-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
-      : "bg-white text-[#2e2828] shadow-[0_2px_8px_rgba(0,0,0,0.07)]"}`;
+      ? "bg-dark text-light shadow-lg"
+      : "bg-white text-dark shadow-sm"
+    }
+  `;
 
-  const chatBg = modoOscuro ? "bg-[#111]" : "bg-gray-50";
+  const chatBg = modoOscuro
+    ? "bg-black"
+    : "bg-light";
 
-  const burbuja = (rol) =>
-    rol === "usuario"
-      ? "bg-[#00c57a] text-white self-end rounded-2xl rounded-br-sm"
-      : modoOscuro
-        ? "bg-[#2a2a2a] text-gray-100 self-start rounded-2xl rounded-bl-sm"
-        : "bg-gray-200 text-[#2e2828] self-start rounded-2xl rounded-bl-sm";
+  const burbuja = (rol) => {
 
-  const btnAnalisis = (color) => `px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
+    if (rol === "usuario") {
+      return `
+        bg-success
+        text-white
+        ms-auto
+      `;
+    }
+
+    return modoOscuro
+      ? "bg-secondary text-light"
+      : "bg-light text-dark";
+  };
+
+  const inputCls = `
+    form-control
+    rounded-pill
+    py-3
+    px-4
     ${modoOscuro
-      ? `border border-${color}-400/40 text-${color}-400 hover:bg-${color}-400/15`
-      : `border border-${color}-500/40 text-${color}-600 hover:bg-${color}-50`}`;
-
-  const inputCls = `flex-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors
-    ${modoOscuro
-      ? "bg-[#262626] text-gray-100 border border-white/15 focus:border-[#00c57a] placeholder-gray-500"
-      : "bg-gray-100 text-[#2e2828] border border-gray-200 focus:border-[#00c57a] placeholder-gray-400"}`;
+      ? "bg-dark text-light border-secondary"
+      : ""
+    }
+  `;
 
   return (
-    <div className="w-full">
+    <div className="w-100">
+
       <div className={card}>
-        <h4 className="font-bold text-lg mb-4">Asistente Inteligente</h4>
 
-        {/* ── Chat ─────────────────────────────────────── */}
-        <div className={`${chatBg} rounded-xl p-4 mb-4 flex flex-col gap-3 overflow-y-auto`}
-          style={{ height: "min(50vh, 500px)" }}>
-          {respuestas.map((r, i) => (
-            <div key={i} className={`flex ${r.rol === "usuario" ? "justify-end" : "justify-start"}`}>
-              <span className={`px-4 py-2.5 text-sm max-w-[80%] leading-relaxed ${burbuja(r.rol)}`}>
-                {r.texto}
-              </span>
-            </div>
-          ))}
-          {cargando && (
-            <div className="flex justify-start">
-              <span className={`px-4 py-2.5 text-sm rounded-2xl rounded-bl-sm ${modoOscuro ? "bg-[#2a2a2a] text-gray-400" : "bg-gray-200 text-gray-500"}`}>
-                Escribiendo...
-              </span>
-            </div>
-          )}
-          <div ref={bottomRef} />
+        {/* Header */}
+        <div className="d-flex align-items-center gap-2 mb-4">
+
+          <div
+            className="
+              rounded-circle
+              bg-success
+              d-flex
+              align-items-center
+              justify-content-center
+            "
+            style={{
+              width: "45px",
+              height: "45px",
+              fontSize: "20px",
+            }}
+          >
+            🤖
+          </div>
+
+          <div>
+            <h4 className="fw-bold m-0">
+              Asistente IA
+            </h4>
+
+            <small
+              className={
+                modoOscuro
+                  ? "text-light opacity-75"
+                  : "text-muted"
+              }
+            >
+              Finanzas inteligentes
+            </small>
+          </div>
+
         </div>
 
-        {/* ── Botones de análisis ───────────────────── */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button onClick={() => manejarAnalisis("gastos")}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-cyan-400/40 text-cyan-500
-                       hover:bg-cyan-400/10 transition-all duration-200">
-            🧾 Analizar mis gastos
-          </button>
-          <button onClick={() => manejarAnalisis("ingresos")}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-[#00c57a]/40 text-[#00c57a]
-                       hover:bg-[#00c57a]/10 transition-all duration-200">
-            💰 Analizar mis ingresos
-          </button>
-          <button onClick={() => manejarAnalisis("balance")}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-yellow-400/40 text-yellow-500
-                       hover:bg-yellow-400/10 transition-all duration-200">
-            📊 Analizar mi balance
-          </button>
+        {/* Chat */}
+        <div
+          className={`
+            ${chatBg}
+            rounded-4
+            p-3
+            mb-4
+            overflow-auto
+          `}
+          style={{
+            height:
+              window.innerWidth <
+                640
+                ? "350px"
+                : "500px",
+          }}
+        >
+
+          <div className="d-flex flex-column gap-3">
+
+            {respuestas.map(
+              (r, i) => (
+
+                <div
+                  key={i}
+                  className={`
+                    p-3
+                    rounded-4
+                    shadow-sm
+                    ${burbuja(
+                    r.rol
+                  )}
+                  `}
+                  style={{
+                    maxWidth:
+                      window.innerWidth <
+                        640
+                        ? "95%"
+                        : "75%",
+                    width:
+                      "fit-content",
+                  }}
+                >
+
+                  {r.texto}
+
+                </div>
+
+              )
+            )}
+
+            {cargando && (
+
+              <div
+                className={`
+                  p-3
+                  rounded-4
+                  shadow-sm
+                  ${modoOscuro
+                    ? "bg-secondary text-light"
+                    : "bg-light"
+                  }
+                `}
+                style={{
+                  width:
+                    "fit-content",
+                }}
+              >
+                ✍️ Escribiendo...
+              </div>
+
+            )}
+
+            <div ref={bottomRef} />
+
+          </div>
+
         </div>
 
-        {/* ── Input ────────────────────────────────── */}
-        <form onSubmit={manejarEnvio} className="flex gap-2">
+        {/* Botones IA */}
+        <div
+          className="
+            d-flex
+            flex-wrap
+            gap-2
+            mb-4
+          "
+        >
+
+          <button
+            onClick={() =>
+              manejarAnalisis(
+                "gastos"
+              )
+            }
+            className="
+              btn
+              btn-outline-info
+              rounded-pill
+              flex-grow-1
+            "
+          >
+            🧾 Gastos
+          </button>
+
+          <button
+            onClick={() =>
+              manejarAnalisis(
+                "ingresos"
+              )
+            }
+            className="
+              btn
+              btn-outline-success
+              rounded-pill
+              flex-grow-1
+            "
+          >
+            💰 Ingresos
+          </button>
+
+          <button
+            onClick={() =>
+              manejarAnalisis(
+                "balance"
+              )
+            }
+            className="
+              btn
+              btn-outline-warning
+              rounded-pill
+              flex-grow-1
+            "
+          >
+            📊 Balance
+          </button>
+
+          <button
+            onClick={() =>
+              manejarAnalisis(
+                "gastosfijos"
+              )
+            }
+            className="
+              btn
+              btn-outline-danger
+              rounded-pill
+              flex-grow-1
+            "
+          >
+            🧠 Gastos fijos
+          </button>
+
+        </div>
+
+        {/* Input */}
+        <form
+          onSubmit={
+            manejarEnvio
+          }
+          className="
+            d-flex
+            flex-column
+            flex-sm-row
+            gap-2
+          "
+        >
+
           <input
             type="text"
             className={inputCls}
             placeholder="Escribe tu mensaje..."
             value={mensaje}
-            onChange={(e) => setMensaje(e.target.value)}
+            onChange={(e) =>
+              setMensaje(
+                e.target.value
+              )
+            }
             disabled={cargando}
           />
+
           <button
             type="submit"
-            disabled={cargando || !mensaje.trim()}
-            className="px-5 py-2.5 rounded-xl bg-[#00c57a] text-white text-sm font-semibold
-                       hover:bg-[#00a865] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              cargando ||
+              !mensaje.trim()
+            }
+            className="
+              btn
+              btn-success
+              rounded-pill
+              px-4
+              py-3
+              fw-semibold
+              w-100
+              w-sm-auto
+            "
           >
             Enviar
           </button>
+
         </form>
+
       </div>
+
     </div>
   );
 };

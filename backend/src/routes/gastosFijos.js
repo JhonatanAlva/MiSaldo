@@ -5,7 +5,18 @@ const gastosFijosController = require('../controllers/gastosFijosController');
 
 router.get('/', verificarToken, gastosFijosController.getGastosFijos);
 router.post('/', verificarToken, gastosFijosController.crearGastoFijo);
+router.get(
+    '/calendario',
+    verificarToken,
+    gastosFijosController.obtenerCalendario
+);
+router.get(
+    '/:id/historial',
+    verificarToken,
+    gastosFijosController.obtenerHistorial
+);
 router.put('/:id', verificarToken, gastosFijosController.editarGastoFijo);
 router.delete('/:id', verificarToken, gastosFijosController.eliminarGastoFijo);
+
 
 module.exports = router;

@@ -1,31 +1,102 @@
 const asistenteService = require('../services/asistenteService');
 
-// ── Chat del asistente ────────────────────────────────────────
 const manejarAsistente = async (req, res) => {
   const { mensaje } = req.body;
 
   if (!mensaje || mensaje.trim() === '') {
-    return res.status(400).json({ error: 'Mensaje vacío' });
+    return res.status(400).json({
+      error: 'Mensaje vacío',
+    });
   }
 
   try {
-    const respuesta = await asistenteService.manejarMensaje(mensaje);
+
+    const respuesta =
+      await asistenteService.manejarMensaje(
+        mensaje
+      );
+
     res.json({ respuesta });
+
   } catch (err) {
-    console.error('Error al generar respuesta IA:', err);
-    res.status(500).json({ error: 'Error al generar respuesta de IA' });
+
+    console.error(
+      'Error al generar respuesta IA:',
+      err
+    );
+
+    res.status(500).json({
+      error:
+        'Error al generar respuesta de IA',
+    });
+
   }
 };
 
-// ── Análisis de finanzas ──────────────────────────────────────
-const analizarFinanzas = async (req, res) => {
+// ─────────────────────────────────────
+// Análisis normal
+// ─────────────────────────────────────
+const analizarFinanzas = async (
+  req,
+  res
+) => {
+
   try {
-    const data = await asistenteService.analizarDatos(req.body);
+
+    const data =
+      await asistenteService.analizarDatos(
+        req.body
+      );
+
     res.json(data);
+
   } catch (err) {
-    console.error('Error al generar análisis con IA:', err.message);
-    res.status(500).json({ resumen: 'Error al generar análisis con IA.' });
+
+    console.error(
+      'Error al generar análisis IA:',
+      err.message
+    );
+
+    res.status(500).json({
+      resumen:
+        'Error al generar análisis.',
+    });
+
   }
 };
 
-module.exports = { manejarAsistente, analizarFinanzas };
+// ─────────────────────────────────────
+// NUEVO → Gastos fijos
+// ─────────────────────────────────────
+const analizarGastosFijos =
+  async (req, res) => {
+
+    try {
+
+      const data =
+        await asistenteService.analizarGastosFijos(
+          req.body
+        );
+
+      res.json(data);
+
+    } catch (err) {
+
+      console.error(
+        'Error IA gastos fijos:',
+        err
+      );
+
+      res.status(500).json({
+        resumen:
+          'Error al analizar gastos fijos.',
+      });
+
+    }
+  };
+
+module.exports = {
+  manejarAsistente,
+  analizarFinanzas,
+  analizarGastosFijos,
+};

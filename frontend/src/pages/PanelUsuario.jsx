@@ -7,6 +7,9 @@ import CambioTema from "../components/user/CambioTema";
 import TransaccionesUsuario from "../components/user/TransaccionesUsuario";
 import AnalisisFinanciero from "../components/user/AnalisisFinanciero";
 import ConfiguracionUsuario from "../components/user/ConfiguracionUsuario";
+import GastosFijos from "../components/user/GastosFijos";
+import Notificaciones from "../components/user/Notificaciones";
+import CalendarioFinanciero from "../components/user/CalendarioFinanciero";
 import "../assets/usuario.css";
 
 const PanelUsuario = () => {
@@ -46,11 +49,19 @@ const PanelUsuario = () => {
           </div>
         )}
 
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 align-items-center">
+
+          <Notificaciones />
+
           <CambioTema />
-          <button className="btn btn-outline-danger" onClick={cerrarSesion}>
+
+          <button
+            className="btn btn-outline-danger"
+            onClick={cerrarSesion}
+          >
             Cerrar sesión
           </button>
+
         </div>
       </div>
 
@@ -59,6 +70,11 @@ const PanelUsuario = () => {
         {[
           { id: "resumen", label: "Resumen" },
           { id: "transacciones", label: "Transacciones" },
+          { id: "gastos-fijos", label: "Gastos Fijos" },
+          {
+            id: "calendario",
+            label: "Calendario",
+          },
           { id: "ia", label: "Asitente" },
           { id: "ahorro", label: "Ahorro" },
           { id: "analisis", label: "Análisis" },
@@ -66,9 +82,8 @@ const PanelUsuario = () => {
         ].map((opcion) => (
           <button
             key={opcion.id}
-            className={`btn ${
-              vista === opcion.id ? "btn-primary" : "btn-outline-primary"
-            }`}
+            className={`btn ${vista === opcion.id ? "btn-primary" : "btn-outline-primary"
+              }`}
             onClick={() => setVista(opcion.id)}
           >
             {opcion.label}
@@ -80,6 +95,8 @@ const PanelUsuario = () => {
       <div className="vista-contenido">
         {vista === "resumen" && <ResumenDashboard setVista={setVista} />}
         {vista === "transacciones" && <TransaccionesUsuario />}
+        {vista === "gastos-fijos" && <GastosFijos />}
+        {vista === "calendario" && <CalendarioFinanciero />}
         {vista === "ia" && <AsistenteIA nombreUsuario={usuario?.nombres} />}
         {vista === "ahorro" && <SeccionAhorro />}
         {vista === "analisis" && <AnalisisFinanciero />}

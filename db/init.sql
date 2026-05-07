@@ -79,7 +79,12 @@ VALUES (
         TRUE
     );
 
-SELECT setval ( 'usuarios_id_seq', ( SELECT MAX(id) FROM usuarios ) );
+SELECT setval (
+        'usuarios_id_seq', (
+            SELECT MAX(id)
+            FROM usuarios
+        )
+    );
 
 -- ------------------------------------------------------------
 -- 3. categorias
@@ -224,6 +229,8 @@ CREATE TABLE gastos_fijos (
     cuotas_total INTEGER DEFAULT NULL,
     cuotas_pagadas INTEGER NOT NULL DEFAULT 0,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    ultima_notificacion DATE DEFAULT NULL,
+    ultimo_cobro DATE DEFAULT NULL,
     creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_gastos_fijos_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
     CONSTRAINT fk_gastos_fijos_categoria FOREIGN KEY (categoria_id) REFERENCES categorias (id) ON DELETE SET NULL
@@ -241,6 +248,18 @@ CREATE TABLE notificaciones (
     leida BOOLEAN NOT NULL DEFAULT FALSE,
     creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_notificaciones_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- 12. historial_gastos_fijos
+
+CREATE TABLE historial_gastos_fijos (
+    id SERIAL PRIMARY KEY,
+    gasto_fijo_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    monto NUMERIC(10,2) NOT NULL,
+    cuota_numero INTEGER DEFAULT NULL,
+    fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================

@@ -1,32 +1,43 @@
-const OpenAI = require('openai');
-const { generarRespuestaIA } = require('../utils/openaiService');
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const { generarRespuestaIA } = require("../utils/openaiService");
 
 // ── Chat del asistente ────────────────────────────────────────
 const manejarMensaje = async (mensaje) => {
-  const prompt = `Actúa como un asistente de finanzas personales. El usuario escribe: "${mensaje}". Responde de forma clara y útil.`;
+  const prompt = `
+El usuario escribió:
+"${mensaje}"
+
+Responde de forma breve, clara y útil.
+Máximo 60 palabras.
+`;
+
   return generarRespuestaIA(prompt);
 };
 
 // ── Análisis de gráficas (admin) ──────────────────────────────
-const analizarGraficas = async ({ usuariosPorDatos, datosOperaciones, datosEvolucion }) => {
+const analizarGraficas = async ({
+  usuariosPorDatos,
+  datosOperaciones,
+  datosEvolucion,
+}) => {
   const prompt = `
-Eres un asistente financiero. Analiza los siguientes datos de estadísticas de un sistema de finanzas personales y genera un resumen con observaciones y recomendaciones breves.
+Analiza estas estadísticas financieras.
 
-Usuarios con más datos registrados:
-${JSON.stringify(usuariosPorDatos, null, 2)}
+Genera:
+- máximo 3 observaciones
+- máximo 2 recomendaciones
+- respuesta corta
+- sin markdown
+- máximo 100 palabras
 
-Tipos de operaciones más comunes:
-${JSON.stringify(datosOperaciones, null, 2)}
+Usuarios con más datos:
+${JSON.stringify(usuariosPorDatos)}
 
-Evolución mensual de registros:
-${JSON.stringify(datosEvolucion, null, 2)}
+Operaciones más comunes:
+${JSON.stringify(datosOperaciones)}
 
-Proporciona el análisis de forma clara y en español.
-  `;
+Evolución mensual:
+${JSON.stringify(datosEvolucion)}
+`;
 
   return generarRespuestaIA(prompt);
 };
@@ -34,26 +45,113 @@ Proporciona el análisis de forma clara y en español.
 // ── Análisis financiero personal ──────────────────────────────
 const analizarDatos = async ({ tipo, datos, nombre }) => {
   if (!datos || datos.length === 0) {
-    return { resumen: `No se encontraron ${tipo} registrados para analizar.` };
+    return {
+      resumen: `No se encontraron ${tipo} registrados para analizar.`,
+    };
   }
 
   const prompt = `
-  Analiza los siguientes datos financieros del usuario ${nombre}.
-  Tipo: ${tipo.toUpperCase()}
-  Datos JSON: ${JSON.stringify(datos, null, 2)}
+Analiza los datos financieros del usuario ${nombre}.
 
-  Por favor, entrega un resumen claro y estructurado con:
-  1. Observaciones principales
-  2. Patrones o anomalías detectadas
-  3. Recomendaciones prácticas de mejora financiera
-  `;
+Tipo:
+${tipo}
 
-  const respuesta = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-  });
+Reglas:
+- máximo 3 observaciones
+- máximo 2 recomendaciones
+- respuesta breve
+- sin markdown
+- máximo 120 palabras
 
-  return { resumen: respuesta.choices[0].message.content };
+Datos:
+${JSON.stringify(datos)}
+`;
+
+  const resumen = await generarRespuestaIA(prompt);
+
+  return { resumen };
 };
 
-module.exports = { manejarMensaje, analizarGraficas, analizarDatos };
+// ── IA de gastos fijos ──────────────────────────────
+const analizarGastosFijos = async ({
+  gastosFijos,
+  ingresos,
+  nombre,
+}) => {
+
+  if (!gastosFijos || gastosFijos.length === 0) {
+    return {
+      resumen:
+        "No tienes gastos fijos registrados actualmente.",
+    };
+  }
+
+  const totalGastosFijos =
+    gastosFijos.reduce(
+      (acc, g) => acc + Number(g.monto),
+      0
+    );
+
+  const totalIngresos =
+    ingresos.reduce(
+      (acc, i) => acc + Number(i.monto),
+      0
+    );
+
+  const porcentaje =
+    totalIngresos > 0
+      ? (
+        (totalGastosFijos /
+          totalIngresos) *
+        100
+      ).toFixed(1)
+      : 0;
+
+  const prompt = `
+Analiza la salud financiera del usuario ${nombre}.
+
+Información:
+
+Total gastos fijos:
+Q${totalGastosFijos}
+
+Total ingresos:
+Q${totalIngresos}
+
+Porcentaje comprometido:
+${porcentaje}%
+
+Gastos fijos:
+${JSON.stringify(gastosFijos)}
+
+Reglas:
+- máximo 4 observaciones
+- máximo 3 recomendaciones
+- respuesta corta
+- tono profesional
+- sin markdown
+- máximo 150 palabras
+
+Debes mencionar:
+- si el porcentaje es saludable
+- posibles riesgos
+- recomendaciones financieras
+`;
+
+  const resumen =
+    await generarRespuestaIA(prompt);
+
+  return {
+    resumen,
+    porcentaje,
+    totalGastosFijos,
+    totalIngresos,
+  };
+};
+
+module.exports = {
+  manejarMensaje,
+  analizarGraficas,
+  analizarDatos,
+  analizarGastosFijos,
+};
