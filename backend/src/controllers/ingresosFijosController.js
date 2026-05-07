@@ -1,5 +1,7 @@
 const ingresosFijosService = require("../services/ingresosFijosService");
 
+const notificacionesService = require("../services/notificacionesService");
+
 // ─────────────────────────────────────
 const getIngresosFijos = async (req, res) => {
   try {
@@ -23,6 +25,7 @@ const crearIngresoFijo = async (req, res) => {
       req.body,
     );
 
+    // 🔔 Notificación
     await notificacionesService.crearNotificacion(
       req.usuario.id,
       `💰 Nuevo ingreso fijo "${data.nombre}" agregado correctamente`,
@@ -53,6 +56,11 @@ const editarIngresoFijo = async (req, res) => {
       });
     }
 
+    await notificacionesService.crearNotificacion(
+      req.usuario.id,
+      `✏️ Se actualizó el ingreso fijo "${data.nombre}"`,
+    );
+
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -76,6 +84,11 @@ const eliminarIngresoFijo = async (req, res) => {
         mensaje: "Ingreso fijo no encontrado",
       });
     }
+
+    await notificacionesService.crearNotificacion(
+      req.usuario.id,
+      "🗑️ Se eliminó un ingreso fijo",
+    );
 
     res.json({
       mensaje: "Ingreso fijo eliminado",
