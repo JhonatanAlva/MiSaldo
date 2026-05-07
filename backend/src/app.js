@@ -3,6 +3,10 @@ const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
+
 const { FRONTEND_URL } = require("./utils/urls");
 
 require("./config/db");
@@ -14,15 +18,63 @@ const app = express();
 
 const isProduction = process.env.NODE_ENV === "production";
 
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
-// ── Middleware ────────────────────────────────────────────────
+app.disable("x-powered-by");
+
+// ─────────────────────────────────────
+// Rate limit AUTH
+// ─────────────────────────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+
+  max: 10,
+
+  standardHeaders: true,
+
+  legacyHeaders: false,
+
+  message: {
+    mensaje: "Demasiados intentos. Intenta nuevamente más tarde.",
+  },
+});
+
+// ─────────────────────────────────────
+// Rate limit IA
+// ─────────────────────────────────────
+const iaLimiter = rateLimit({
+  windowMs: 60 * 1000,
+
+  max: 20,
+
+  standardHeaders: true,
+
+  legacyHeaders: false,
+
+  message: {
+    mensaje: "Demasiadas solicitudes al asistente.",
+  },
+});
+
+// ─────────────────────────────────────
+// Middleware
+// ─────────────────────────────────────
 app.use(cookieParser());
 
+app.use(morgan("combined"));
+
+app.use(helmet());
+
+// ─────────────────────────────────────
+// CORS
+// ─────────────────────────────────────
 const allowedOrigins = [
   FRONTEND_URL,
+
   process.env.CLIENT_URL,
+
   "https://misaldo.lat",
+
   "https://www.misaldo.lat",
 ].filter(Boolean);
 
@@ -30,47 +82,77 @@ app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
+
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        return callback(new Error("No permitido por CORS"));
       }
+
+      return callback(new Error("No permitido por CORS"));
     },
+
     credentials: true,
+
     methods: ["GET", "POST", "PUT", "DELETE"],
+
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
-app.use(express.json());
+// ─────────────────────────────────────
+// Limitar JSON
+// ─────────────────────────────────────
+app.use(
+  express.json({
+    limit: "2mb",
+  }),
+);
 
+// ─────────────────────────────────────
+// Session
+// ─────────────────────────────────────
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "clave_secreta",
+    secret: process.env.SESSION_SECRET,
+
     resave: false,
+
     saveUninitialized: false,
+
     cookie: {
       httpOnly: true,
+
       secure: isProduction,
+
       sameSite: isProduction ? "none" : "lax",
     },
-  })
+  }),
 );
 
 app.use(passport.initialize());
+
 app.use(passport.session());
 
-// ── Rutas ─────────────────────────────────────────────────────
-app.use("/auth",           require("./routes/auth"));
-app.use("/finanzas",       require("./routes/finanzas"));
-app.use("/configuraciones",require("./routes/configuracionesRoutes"));
-app.use("/ahorro",         require("./routes/ahorro"));
-app.use("/admin",          require("./routes/admin"));
+// ─────────────────────────────────────
+// Rutas
+// ─────────────────────────────────────
+app.use("/auth", authLimiter, require("./routes/auth"));
+
+app.use("/asistente", iaLimiter, require("./routes/asistente"));
+
+app.use("/finanzas", require("./routes/finanzas"));
+
+app.use("/configuraciones", require("./routes/configuracionesRoutes"));
+
+app.use("/ahorro", require("./routes/ahorro"));
+
+app.use("/admin", require("./routes/admin"));
+
 app.use("/notificaciones", require("./routes/notificacionesRoutes"));
-app.use("/asistente",      require("./routes/asistente"));
-app.use("/categorias",     require("./routes/categorias"));
+
+app.use("/categorias", require("./routes/categorias"));
+
 app.use("/ingresos-fijos", require("./routes/ingresosFijos"));
 
-app.use("/gastos-fijos",   require("./routes/gastosFijos"));
+app.use("/gastos-fijos", require("./routes/gastosFijos"));
 
 module.exports = app;
