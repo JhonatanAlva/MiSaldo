@@ -31,70 +31,111 @@ const analizarImagenOpenAI = async (rutaImagen) => {
         model: "gpt-4o",
 
         messages: [
+
+          // ───────────────────────────
+          // SYSTEM
+          // ───────────────────────────
           {
             role: "system",
 
             content: `
 Eres una IA especializada en análisis financiero visual.
 
-Tu tarea es analizar imágenes financieras como:
+Analiza imágenes como:
+- facturas
+- tickets
 - estados de cuenta
 - financiamientos
-- tickets
 - capturas bancarias
 - compras a cuotas
 
-Debes extraer ÚNICAMENTE movimientos financieros relevantes.
+OBJETIVO:
+Extraer movimientos financieros correctamente según el tipo de documento.
 
-Ignora completamente:
-- saldos disponibles
+REGLAS IMPORTANTES:
+
+1. Si la imagen es una FACTURA o TICKET:
+- NO dividas cada producto como movimiento separado.
+- Debes devolver UN SOLO movimiento financiero.
+- Usa el TOTAL FINAL del ticket o factura.
+- Detecta el nombre del comercio o empresa.
+- Resume los productos comprados en una descripción breve.
+- Guarda también la lista de productos detectados.
+
+2. Si la imagen es un ESTADO DE CUENTA:
+- sí puedes devolver múltiples movimientos.
+
+3. Si detectas cuotas:
+- agrega el campo "cuotas"
+
+4. Ignora completamente:
+- saldo disponible
 - saldo actual
-- encabezados
 - banners
+- navegación
 - botones
-- navegación de apps
-- logos
-- elementos visuales del banco
-- textos repetidos
 - publicidad
+- logos decorativos
+- encabezados irrelevantes
 
-Extrae solamente:
-- descripcion
-- monto
-- cuotas (si existen)
+5. Si detectas un financiamiento:
+- usa tipo "gasto-fijo"
 
-Reglas:
-- responde únicamente JSON válido
-- no expliques nada
-- no uses markdown
-- no agregues texto adicional
-- devuelve únicamente un array JSON
+6. Si es una compra normal:
+- usa tipo "gasto-normal"
+
+RESPONDE ÚNICAMENTE JSON VÁLIDO.
+
+NO uses markdown.
+NO uses \`\`\`.
+NO expliques nada.
 
 Formato esperado:
 
 [
   {
-    "descripcion": "Crocs Oakland Place Guatemala",
-    "monto": 249.96,
-    "cuotas": "3/6"
+    "descripcion": "Compra en CELASA: lámparas, cables y bombillas",
+    "empresa": "CELASA",
+    "monto": 1212.08,
+    "tipo": "gasto-normal",
+    "productos": [
+      "Lámpara ojo de buey",
+      "Bombilla LED",
+      "Cable THHN"
+    ],
+    "cuotas": null
   }
 ]
 
-Si no encuentras movimientos válidos:
+Si no detectas movimientos:
 []
 `,
           },
 
+          // ───────────────────────────
+          // USER
+          // ───────────────────────────
           {
             role: "user",
 
             content: [
+
               {
                 type: "text",
 
                 text: `
-Extrae únicamente los movimientos financieros visibles en la imagen.
-Ignora saldos generales y datos de interfaz.
+Analiza el documento financiero.
+
+Si es una factura o ticket:
+- devuelve un solo gasto
+- usa el total final
+- detecta la empresa
+- resume los productos
+
+Si es un estado de cuenta:
+- devuelve múltiples movimientos.
+
+Devuelve únicamente JSON válido.
 `,
               },
 
@@ -105,13 +146,15 @@ Ignora saldos generales y datos de interfaz.
                   url: `data:image/jpeg;base64,${base64Image}`,
                 },
               },
+
             ],
           },
+
         ],
 
         temperature: 0.1,
 
-        max_tokens: 700,
+        max_tokens: 1200,
       });
 
     // ─────────────────────────────────
