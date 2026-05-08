@@ -163,6 +163,9 @@ const AsistenteIA = ({
 
       gastosfijos:
         "/gastos-fijos",
+
+      ingresosfijos:
+        "/ingresos-fijos",
     };
 
     try {
@@ -172,10 +175,26 @@ const AsistenteIA = ({
           urls[tipo]
         );
 
-      const endpoint =
+      let endpoint =
+        "/asistente/analisis";
+
+      if (
         tipo === "gastosfijos"
-          ? "/asistente/analisis-gastos-fijos"
-          : "/asistente/analisis";
+      ) {
+
+        endpoint =
+          "/asistente/analisis-gastos-fijos";
+
+      }
+
+      if (
+        tipo === "ingresosfijos"
+      ) {
+
+        endpoint =
+          "/asistente/analisis-ingresos-fijos";
+
+      }
 
       let payload = {
         tipo,
@@ -186,7 +205,9 @@ const AsistenteIA = ({
       // ─────────────────────────────
       // IA gastos fijos
       // ─────────────────────────────
-      if (tipo === "gastosfijos") {
+      if (
+        tipo === "gastosfijos"
+      ) {
 
         const ingresosRes =
           await api.get(
@@ -194,10 +215,43 @@ const AsistenteIA = ({
           );
 
         payload = {
-          gastosFijos: res.data,
-          ingresos: ingresosRes.data,
-          nombre: nombreUsuario,
+          gastosFijos:
+            res.data,
+
+          ingresos:
+            ingresosRes.data,
+
+          nombre:
+            nombreUsuario,
         };
+
+      }
+
+      // ─────────────────────────────
+      // IA ingresos fijos
+      // ─────────────────────────────
+      if (
+        tipo === "ingresosfijos"
+      ) {
+
+        const gastosRes =
+          await api.get(
+            "/gastos-fijos"
+          );
+
+        payload = {
+
+          ingresosFijos:
+            res.data,
+
+          gastosFijos:
+            gastosRes.data,
+
+          nombre:
+            nombreUsuario,
+
+        };
+
       }
 
       const aiRes =
@@ -479,6 +533,21 @@ const AsistenteIA = ({
             "
           >
             🧠 Gastos fijos
+          </button>
+          <button
+            onClick={() =>
+              manejarAnalisis(
+                "ingresosfijos"
+              )
+            }
+            className="
+    btn
+    btn-outline-primary
+    rounded-pill
+    flex-grow-1
+  "
+          >
+            💵 Ingresos fijos
           </button>
 
         </div>

@@ -6,14 +6,16 @@ const {
     manejarAsistente,
     analizarFinanzas,
     analizarGastosFijos,
+    analizarIngresosFijos,
 } = require('../controllers/asistenteController');
 
 const {
     analizarGraficasIA,
 } = require('../controllers/asistenteControlleradmin');
 
-const { verificarToken } =
-    require('../utils/jwt');
+const {
+    verificarToken,
+} = require('../utils/jwt');
 
 // ─────────────────────────────────────
 // Chat IA
@@ -43,12 +45,21 @@ router.post(
 );
 
 // ─────────────────────────────────────
-// NUEVO → gastos fijos
+// IA → gastos fijos
 // ─────────────────────────────────────
 router.post(
     '/analisis-gastos-fijos',
     verificarToken,
     analizarGastosFijos
+);
+
+// ─────────────────────────────────────
+// IA → ingresos + gastos fijos
+// ─────────────────────────────────────
+router.post(
+    '/analisis-ingresos-fijos',
+    verificarToken,
+    analizarIngresosFijos
 );
 
 module.exports = router;

@@ -23,7 +23,7 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 
   message: {
-    mensaje: "Demasiados intentos de login.",
+    mensaje: "Demasiados intentos de login. Intenta más tarde.",
   },
 });
 
