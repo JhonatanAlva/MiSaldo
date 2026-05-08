@@ -45,30 +45,85 @@ Analiza imágenes como:
 - facturas
 - tickets
 - estados de cuenta
+- transferencias bancarias
 - financiamientos
 - capturas bancarias
 - compras a cuotas
+- comprobantes de pago
 
 OBJETIVO:
 Extraer movimientos financieros correctamente según el tipo de documento.
 
 REGLAS IMPORTANTES:
 
-1. Si la imagen es una FACTURA o TICKET:
+━━━━━━━━━━━━━━━━━━━━━━
+1. FACTURAS O TICKETS
+━━━━━━━━━━━━━━━━━━━━━━
+
+Si la imagen es una factura o ticket:
+
 - NO dividas cada producto como movimiento separado.
 - Debes devolver UN SOLO movimiento financiero.
-- Usa el TOTAL FINAL del ticket o factura.
+- Usa el TOTAL FINAL del ticket.
 - Detecta el nombre del comercio o empresa.
-- Resume los productos comprados en una descripción breve.
+- Resume brevemente los productos.
 - Guarda también la lista de productos detectados.
 
-2. Si la imagen es un ESTADO DE CUENTA:
+Ejemplo:
+Compra en CELASA: lámparas, cables y bombillas
+
+━━━━━━━━━━━━━━━━━━━━━━
+2. ESTADOS DE CUENTA
+━━━━━━━━━━━━━━━━━━━━━━
+
+Si es un estado de cuenta:
 - sí puedes devolver múltiples movimientos.
 
-3. Si detectas cuotas:
-- agrega el campo "cuotas"
+━━━━━━━━━━━━━━━━━━━━━━
+3. TRANSFERENCIAS BANCARIAS
+━━━━━━━━━━━━━━━━━━━━━━
 
-4. Ignora completamente:
+Si detectas una transferencia bancaria:
+
+- extrae:
+  - banco
+  - monto
+  - destinatario
+  - comentario
+  - fecha si existe
+
+- usa tipo:
+  "transferencia"
+
+Ejemplo:
+
+{
+  "descripcion": "Transferencia a Distribuidora de Material",
+  "empresa": "Banco Industrial",
+  "monto": 1120.00,
+  "tipo": "transferencia"
+}
+
+━━━━━━━━━━━━━━━━━━━━━━
+4. FINANCIAMIENTOS
+━━━━━━━━━━━━━━━━━━━━━━
+
+Si detectas cuotas o financiamiento:
+- usa tipo "gasto-fijo"
+- agrega campo "cuotas"
+
+━━━━━━━━━━━━━━━━━━━━━━
+5. COMPRAS NORMALES
+━━━━━━━━━━━━━━━━━━━━━━
+
+Si es una compra normal:
+- usa tipo "gasto-normal"
+
+━━━━━━━━━━━━━━━━━━━━━━
+6. IGNORAR
+━━━━━━━━━━━━━━━━━━━━━━
+
+Ignora completamente:
 - saldo disponible
 - saldo actual
 - banners
@@ -77,24 +132,24 @@ REGLAS IMPORTANTES:
 - publicidad
 - logos decorativos
 - encabezados irrelevantes
+- interfaz visual del banco
 
-5. Si detectas un financiamiento:
-- usa tipo "gasto-fijo"
-
-6. Si es una compra normal:
-- usa tipo "gasto-normal"
+━━━━━━━━━━━━━━━━━━━━━━
+7. RESPUESTA
+━━━━━━━━━━━━━━━━━━━━━━
 
 RESPONDE ÚNICAMENTE JSON VÁLIDO.
 
 NO uses markdown.
 NO uses \`\`\`.
 NO expliques nada.
+NO agregues texto fuera del JSON.
 
 Formato esperado:
 
 [
   {
-    "descripcion": "Compra en CELASA: lámparas, cables y bombillas",
+    "descripcion": "Compra en CELASA: lámparas y cables",
     "empresa": "CELASA",
     "monto": 1212.08,
     "tipo": "gasto-normal",
@@ -107,7 +162,7 @@ Formato esperado:
   }
 ]
 
-Si no detectas movimientos:
+Si no detectas movimientos financieros válidos:
 []
 `,
           },
@@ -126,14 +181,16 @@ Si no detectas movimientos:
                 text: `
 Analiza el documento financiero.
 
-Si es una factura o ticket:
-- devuelve un solo gasto
-- usa el total final
-- detecta la empresa
-- resume los productos
+REGLAS:
 
-Si es un estado de cuenta:
-- devuelve múltiples movimientos.
+- Si es una factura:
+  devuelve UN solo gasto total.
+
+- Si es transferencia:
+  detecta monto y destinatario.
+
+- Si es estado de cuenta:
+  devuelve múltiples movimientos.
 
 Devuelve únicamente JSON válido.
 `,
@@ -154,18 +211,27 @@ Devuelve únicamente JSON válido.
 
         temperature: 0.1,
 
-        max_tokens: 1200,
+        max_tokens: 1400,
       });
 
     // ─────────────────────────────────
     // Contenido IA
     // ─────────────────────────────────
-    const contenido =
+    let contenido =
       response
         .choices[0]
         .message
         .content
         .trim();
+
+    // ─────────────────────────────────
+    // Limpiar markdown si OpenAI responde
+    // con ```json
+    // ─────────────────────────────────
+    contenido = contenido
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
     let resultado;
 
@@ -193,7 +259,6 @@ Devuelve únicamente JSON válido.
     }
 
     // ─────────────────────────────────
-    // Si devuelve:
     // { movimientos: [] }
     // ─────────────────────────────────
     if (
@@ -206,7 +271,7 @@ Devuelve únicamente JSON válido.
     }
 
     // ─────────────────────────────────
-    // Si devuelve array directamente
+    // Array directo
     // ─────────────────────────────────
     if (Array.isArray(resultado)) {
 
