@@ -11,6 +11,7 @@ import GastosFijos from "../components/user/GastosFijos";
 import Notificaciones from "../components/user/Notificaciones";
 import CalendarioFinanciero from "../components/user/CalendarioFinanciero";
 import IngresosFijos from "../components/user/IngresosFijos";
+import EscanerIA from "../components/escaner/EscanerIA";
 import "../assets/usuario.css";
 
 const PanelUsuario = () => {
@@ -67,24 +68,22 @@ const PanelUsuario = () => {
       </div>
 
       {/* Navegación de vistas */}
-      <div className="d-flex flex-wrap gap-2 mb-4">
+      <div className="nav-mobile-scroll mb-4">
         {[
-          { id: "resumen", label: "Resumen" },
-          { id: "transacciones", label: "Transacciones" },
-          { id: "gastos-fijos", label: "Gastos Fijos" },
-          { id: "ingresos-fijos", label: "Ingresos Fijos" },
-          {
-            id: "calendario",
-            label: "Calendario",
-          },
-          { id: "ia", label: "Asitente" },
-          { id: "ahorro", label: "Ahorro" },
-          { id: "analisis", label: "Análisis" },
-          { id: "configuracion", label: "Configuración" },
+          { id: "resumen", label: "🏠 Resumen" },
+          { id: "transacciones", label: "💳 Transacciones" },
+          { id: "gastos-fijos", label: "📉 Gastos Fijos" },
+          { id: "ingresos-fijos", label: "💰 Ingresos Fijos" },
+          { id: "calendario", label: "📅 Calendario" },
+          { id: "ia", label: "🤖 Asistente" },
+          { id: "escaner", label: "📷 Escaner IA" },
+          { id: "ahorro", label: "🪙 Ahorro" },
+          { id: "analisis", label: "📊 Análisis" },
+          { id: "configuracion", label: "⚙️ Configuración" },
         ].map((opcion) => (
           <button
             key={opcion.id}
-            className={`btn ${vista === opcion.id ? "btn-primary" : "btn-outline-primary"
+            className={`nav-btn ${vista === opcion.id ? "nav-btn-active" : ""
               }`}
             onClick={() => setVista(opcion.id)}
           >
@@ -101,6 +100,7 @@ const PanelUsuario = () => {
         {vista === "ingresos-fijos" && <IngresosFijos />}
         {vista === "calendario" && <CalendarioFinanciero />}
         {vista === "ia" && <AsistenteIA nombreUsuario={usuario?.nombres} />}
+        {vista === "escaner" && <EscanerIA />}
         {vista === "ahorro" && <SeccionAhorro />}
         {vista === "analisis" && <AnalisisFinanciero />}
         {vista === "configuracion" && <ConfiguracionUsuario />}

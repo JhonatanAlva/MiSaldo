@@ -40,6 +40,27 @@ const iaLimiter = rateLimit({
 });
 
 // ─────────────────────────────────────
+// Rate limit Escáner IA
+// ─────────────────────────────────────
+const escanerLimiter = rateLimit({
+
+  windowMs:
+    5 * 60 * 1000,
+
+  max: 10,
+
+  standardHeaders: true,
+
+  legacyHeaders: false,
+
+  message: {
+    mensaje:
+      "Demasiados escaneos. Intenta más tarde.",
+  },
+
+});
+
+// ─────────────────────────────────────
 // Middleware
 // ─────────────────────────────────────
 app.use(cookieParser());
@@ -121,6 +142,12 @@ app.use(passport.session());
 app.use("/auth", require("./routes/auth"));
 
 app.use("/asistente", iaLimiter, require("./routes/asistente"));
+
+app.use(
+  "/escaner-ia",
+  escanerLimiter,
+  require("./routes/escanerIA")
+);
 
 app.use("/finanzas", require("./routes/finanzas"));
 

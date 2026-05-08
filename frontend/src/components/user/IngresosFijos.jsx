@@ -291,21 +291,31 @@ const IngresosFijos = () => {
           onClick={limpiarFormulario}
         >
           <div
+            onClick={(e) => e.stopPropagation()}
             className="
-              text-white
-              rounded-4
-              shadow-lg
-              p-4
-              position-relative
-            "
+        bg-dark
+        text-white
+        rounded-4
+        shadow-lg
+        position-relative
+    "
             style={{
               width: "100%",
-              maxWidth: "520px",
-              maxHeight: "90vh",
+              maxWidth: "650px",
+
+              // ✅ responsive
+              maxHeight: "92vh",
               overflowY: "auto",
-              background: "linear-gradient(135deg,#111827,#1f2937)",
+
+              // ✅ menos padding en móvil
+              padding: window.innerWidth < 768 ? "1.2rem" : "2rem",
+
+              // ✅ márgenes laterales
+              margin: "0.5rem",
+
+              // ✅ evita que toque bordes
+              border: "1px solid rgba(255,255,255,0.08)",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div
@@ -533,20 +543,31 @@ const IngresosFijos = () => {
           onClick={() => setMostrarHistorial(false)}
         >
           <div
+            onClick={(e) => e.stopPropagation()}
             className="
-              text-white
-              rounded-4
-              shadow-lg
-              p-4
-            "
+        bg-dark
+        text-white
+        rounded-4
+        shadow-lg
+        position-relative
+    "
             style={{
               width: "100%",
               maxWidth: "650px",
-              maxHeight: "90vh",
+
+              // ✅ responsive
+              maxHeight: "92vh",
               overflowY: "auto",
-              background: "linear-gradient(135deg,#111827,#1f2937)",
+
+              // ✅ menos padding en móvil
+              padding: window.innerWidth < 768 ? "1.2rem" : "2rem",
+
+              // ✅ márgenes laterales
+              margin: "0.5rem",
+
+              // ✅ evita que toque bordes
+              border: "1px solid rgba(255,255,255,0.08)",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div
               className="

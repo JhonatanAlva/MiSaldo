@@ -14,7 +14,24 @@ const AsistenteIA = ({
     useState("");
 
   const [respuestas, setRespuestas] =
-    useState([]);
+    useState(() => {
+
+      const data =
+        sessionStorage.getItem(
+          "asistente_ia_chat"
+        );
+
+      if (data) {
+        return JSON.parse(data);
+      }
+
+      return [
+        {
+          rol: "asistente",
+          texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?`,
+        },
+      ];
+    });
 
   const [cargando, setCargando] =
     useState(false);
@@ -49,16 +66,21 @@ const AsistenteIA = ({
       attributeFilter: ["data-theme"],
     });
 
-    setRespuestas([
-      {
-        rol: "asistente",
-        texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?`,
-      },
-    ]);
-
     return () => observer.disconnect();
 
-  }, [nombreUsuario]);
+  }, []);
+
+  // ─────────────────────────────────────
+  // Guardar conversación
+  // ─────────────────────────────────────
+  useEffect(() => {
+
+    sessionStorage.setItem(
+      "asistente_ia_chat",
+      JSON.stringify(respuestas)
+    );
+
+  }, [respuestas]);
 
   // ─────────────────────────────────────
   // Auto scroll

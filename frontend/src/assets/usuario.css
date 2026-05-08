@@ -348,3 +348,494 @@ body[data-theme="dark"] .alerta-cero {
 }
 
 
+/* =========================
+   NAVEGACIÓN RESPONSIVE
+========================= */
+
+.nav-mobile-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+
+.nav-mobile-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-btn {
+  border: 2px solid #10b981;
+  background: transparent;
+  color: #10b981;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  font-size: 0.95rem;
+}
+
+.nav-btn:hover {
+  background: #10b981;
+  color: white;
+}
+
+.nav-btn-active {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* =========================
+   ESCRITORIO
+========================= */
+
+@media (min-width: 768px) {
+  .nav-mobile-scroll {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+/* =========================
+   MÓVIL
+========================= */
+
+@media (max-width: 767px) {
+  .nav-btn {
+    min-height: 48px;
+    font-size: 0.88rem;
+    padding: 10px 16px;
+    border-width: 1.8px;
+  }
+}
+
+.nav-mobile-scroll {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-btn {
+  scroll-snap-align: start;
+}
+
+/* ========================================
+   ESCANER IA
+======================================== */
+
+.scanner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 3rem;
+}
+
+/* TITULO */
+
+.scanner-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 0.3rem;
+}
+
+.scanner-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* DROPZONE */
+
+.scanner-dropzone {
+  position: relative;
+  overflow: hidden;
+
+  border: 2px dashed rgba(16, 185, 129, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.06),
+    rgba(16, 185, 129, 0.02)
+  );
+
+  border-radius: 32px;
+
+  padding: 4rem 2rem;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.scanner-dropzone:hover {
+  transform: translateY(-3px);
+
+  border-color: #10b981;
+
+  box-shadow:
+    0 15px 40px rgba(16, 185, 129, 0.12);
+}
+
+.scanner-dropzone-active {
+  border-color: #10b981;
+
+  background: rgba(16, 185, 129, 0.08);
+}
+
+/* ICONO */
+
+.scanner-upload-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+
+  animation: floatScanner 2.5s ease-in-out infinite;
+}
+
+@keyframes floatScanner {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* TEXTOS */
+
+.scanner-upload-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+
+  color: #111827;
+
+  margin-bottom: 0.6rem;
+}
+
+.scanner-upload-text {
+  color: #6b7280;
+
+  font-size: 1rem;
+
+  max-width: 500px;
+
+  margin: auto;
+}
+
+/* PREVIEW */
+
+.scanner-preview-card {
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 1.5rem;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.scanner-preview-image {
+  width: 100%;
+
+  max-height: 500px;
+
+  object-fit: contain;
+
+  border-radius: 24px;
+
+  background: #f3f4f6;
+}
+
+/* BOTONES */
+
+.scanner-preview-card button {
+  border-radius: 16px !important;
+
+  font-weight: 700 !important;
+
+  transition: all 0.25s ease !important;
+}
+
+.scanner-preview-card button:hover {
+  transform: translateY(-2px);
+}
+
+/* RESULTADOS */
+
+.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3 {
+  margin-top: 1rem;
+}
+
+/* MODO OSCURO */
+
+body[data-theme="dark"] .scanner-title {
+  color: white;
+}
+
+body[data-theme="dark"] .scanner-subtitle {
+  color: #9ca3af;
+}
+
+body[data-theme="dark"] .scanner-dropzone {
+  background: rgba(255, 255, 255, 0.03);
+
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme="dark"] .scanner-upload-title {
+  color: white;
+}
+
+body[data-theme="dark"] .scanner-upload-text {
+  color: #9ca3af;
+}
+
+body[data-theme="dark"] .scanner-preview-card {
+  background: rgba(255, 255, 255, 0.03);
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .scanner-title {
+    font-size: 1.9rem;
+  }
+
+  .scanner-upload-title {
+    font-size: 1.3rem;
+  }
+
+  .scanner-dropzone {
+    padding: 3rem 1.2rem;
+  }
+
+  .scanner-upload-icon {
+    font-size: 3rem;
+  }
+
+  .scanner-preview-card {
+    padding: 1rem;
+  }
+}
+
+/* =========================================
+   NUEVAS CARDS ESCANER IA
+========================================= */
+
+.scanner-card-modern {
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 1.4rem;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.08);
+
+  border: 1px solid rgba(0,0,0,0.05);
+
+  transition: all 0.25s ease;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  height: 100%;
+}
+
+.scanner-card-modern:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* HEADER */
+
+.scanner-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* MONTO */
+
+.scanner-card-price {
+  background:
+    linear-gradient(
+      135deg,
+      #ef4444,
+      #dc2626
+    );
+
+  color: white;
+
+  padding: 0.65rem 1rem;
+
+  border-radius: 999px;
+
+  font-size: 1.1rem;
+
+  font-weight: 800;
+
+  min-width: fit-content;
+}
+
+/* BOTON EDITAR */
+
+.scanner-card-edit {
+  border: 2px solid #10b981;
+
+  background: transparent;
+
+  color: #10b981;
+
+  border-radius: 999px;
+
+  padding: 0.7rem 1.2rem;
+
+  font-weight: 700;
+
+  transition: all 0.25s ease;
+}
+
+.scanner-card-edit:hover {
+  background: #10b981;
+  color: white;
+}
+
+/* TITULO */
+
+.scanner-card-name {
+  font-size: 1.9rem;
+
+  font-weight: 800;
+
+  color: #111827;
+
+  line-height: 1.2;
+
+  margin: 0;
+}
+
+/* SUBTEXTO */
+
+.scanner-card-subtitle {
+  color: #6b7280;
+
+  font-size: 0.95rem;
+
+  margin: 0;
+}
+
+/* TAGS */
+
+.scanner-card-tags {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+
+  margin-top: auto;
+}
+
+.scanner-card-tag {
+  padding: 0.55rem 1rem;
+
+  border-radius: 12px;
+
+  font-size: 0.85rem;
+
+  font-weight: 700;
+}
+
+.scanner-card-tag-fixed {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.scanner-card-tag-normal {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* CUOTAS */
+
+.scanner-card-cuotas {
+  background: rgba(16,185,129,0.12);
+
+  color: #059669;
+
+  border: 1px solid rgba(16,185,129,0.2);
+
+  padding: 0.55rem 1rem;
+
+  border-radius: 12px;
+
+  font-size: 0.85rem;
+
+  font-weight: 700;
+}
+
+/* DARK MODE */
+
+body[data-theme="dark"] .scanner-card-modern {
+  background: #111827;
+
+  border-color: rgba(255,255,255,0.05);
+}
+
+body[data-theme="dark"] .scanner-card-name {
+  color: white;
+}
+
+body[data-theme="dark"] .scanner-card-subtitle {
+  color: #9ca3af;
+}
+
+body[data-theme="dark"] .scanner-card-tag-normal {
+  background: rgba(255,255,255,0.08);
+
+  color: white;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .scanner-card-modern {
+    padding: 1.1rem;
+  }
+
+  .scanner-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .scanner-card-name {
+    font-size: 1.4rem;
+  }
+
+  .scanner-card-edit {
+    width: 100%;
+  }
+
+  .scanner-card-price {
+    font-size: 1rem;
+  }
+}

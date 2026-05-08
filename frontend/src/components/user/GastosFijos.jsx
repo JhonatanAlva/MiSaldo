@@ -3,27 +3,18 @@ import api from "../../services/api";
 import Swal from "sweetalert2";
 
 const GastosFijos = () => {
+
     const [gastos, setGastos] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [historiales, setHistoriales] =
-        useState({});
+    const [historial, setHistorial] = useState([]);
+    const [mostrarHistorial, setMostrarHistorial] = useState(false);
+    const [nombreHistorial, setNombreHistorial] = useState("");
 
-    const [mostrarHistorial, setMostrarHistorial] =
-        useState({});
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-    const [mostrarFormulario, setMostrarFormulario] =
-        useState(false);
-
-    const [editandoId, setEditandoId] =
-        useState(null);
-
-    const [mostrarModalEliminar, setMostrarModalEliminar] =
-        useState(false);
-
-    const [gastoEliminar, setGastoEliminar] =
-        useState(null);
+    const [editandoId, setEditandoId] = useState(null);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -32,132 +23,107 @@ const GastosFijos = () => {
         categoria_id: "",
         tiene_cuotas: false,
         cuotas_total: "",
-        cuotas_pagadas: "",
+        cuotas_pagadas: 0,
         activo: true,
     });
 
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     // Obtener gastos
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     const obtenerGastos = async () => {
+
         try {
-            const res = await api.get("/gastos-fijos");
+
+            const res =
+                await api.get("/gastos-fijos");
 
             setGastos(res.data);
+
         } catch (error) {
-            console.error(
-                "Error al obtener gastos fijos:",
-                error
-            );
+
+            console.error(error);
+
         } finally {
+
             setLoading(false);
-        }
-    };
-
-    const obtenerHistorial = async (gastoId) => {
-
-        try {
-
-            const res = await api.get(
-                `/gastos-fijos/${gastoId}/historial`
-            );
-
-            setHistoriales((prev) => ({
-                ...prev,
-                [gastoId]: res.data,
-            }));
-
-        } catch (error) {
-
-            console.error(
-                "Error obteniendo historial:",
-                error
-            );
 
         }
+
     };
 
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     // Obtener categorías
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     const obtenerCategorias = async () => {
+
         try {
-            const res = await api.get("/categorias");
+
+            const res =
+                await api.get("/categorias");
 
             setCategorias(res.data);
+
         } catch (error) {
-            console.error(
-                "Error al obtener categorías:",
-                error
-            );
+
+            console.error(error);
+
         }
+
     };
 
-    // ─────────────────────────────────────────────
-    // Guardar / Editar
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
+    // Historial modal
+    // ─────────────────────────────
+    const abrirHistorial = async (gasto) => {
+
+        try {
+
+            const res =
+                await api.get(
+                    `/gastos-fijos/${gasto.id}/historial`
+                );
+
+            setHistorial(res.data);
+
+            setNombreHistorial(gasto.nombre);
+
+            setMostrarHistorial(true);
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    // ─────────────────────────────
+    // Guardar
+    // ─────────────────────────────
     const guardarGastoFijo = async () => {
 
-        // VALIDACIONES
         if (!formData.nombre.trim()) {
+
             return Swal.fire({
                 icon: "warning",
                 title: "Nombre requerido",
-                text: "Debes ingresar un nombre para el gasto fijo.",
-                confirmButtonColor: "#10b981",
+                text: "Debes ingresar un nombre.",
                 background: "#1e1e1e",
                 color: "#fff",
             });
-        }
 
-        if (!formData.monto || Number(formData.monto) <= 0) {
-            return Swal.fire({
-                icon: "warning",
-                title: "Monto inválido",
-                text: "Ingresa un monto válido.",
-                confirmButtonColor: "#10b981",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
-        }
-
-        if (!formData.dia_cobro) {
-            return Swal.fire({
-                icon: "warning",
-                title: "Día requerido",
-                text: "Selecciona un día de cobro.",
-                confirmButtonColor: "#10b981",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
         }
 
         if (!formData.categoria_id) {
+
             return Swal.fire({
                 icon: "warning",
                 title: "Categoría requerida",
-                text: "Debes seleccionar una categoría.",
-                confirmButtonColor: "#10b981",
+                text: "Selecciona una categoría.",
                 background: "#1e1e1e",
                 color: "#fff",
             });
-        }
 
-        if (
-            formData.tiene_cuotas &&
-            (
-                !formData.cuotas_total ||
-                Number(formData.cuotas_total) <= 0
-            )
-        ) {
-            return Swal.fire({
-                icon: "warning",
-                title: "Cuotas inválidas",
-                text: "Ingresa el total de cuotas.",
-                confirmButtonColor: "#10b981",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
         }
 
         try {
@@ -165,17 +131,24 @@ const GastosFijos = () => {
             const payload = {
                 ...formData,
 
-                monto: Number(formData.monto),
+                monto:
+                    Number(formData.monto),
 
-                dia_cobro: Number(formData.dia_cobro),
+                dia_cobro:
+                    Number(formData.dia_cobro),
 
-                categoria_id: Number(formData.categoria_id),
+                categoria_id:
+                    Number(formData.categoria_id),
 
-                cuotas_total: formData.tiene_cuotas
-                    ? Number(formData.cuotas_total)
-                    : null,
+                cuotas_total:
+                    formData.tiene_cuotas
+                        ? Number(formData.cuotas_total)
+                        : null,
 
-                cuotas_pagadas: 0,
+                cuotas_pagadas:
+                    formData.tiene_cuotas
+                        ? Number(formData.cuotas_pagadas)
+                        : null,
             };
 
             if (editandoId) {
@@ -187,9 +160,9 @@ const GastosFijos = () => {
 
                 Swal.fire({
                     icon: "success",
-                    title: "Gasto actualizado",
-                    text: "El gasto fijo fue actualizado correctamente.",
-                    timer: 2000,
+                    title: "Actualizado",
+                    text: "Gasto actualizado.",
+                    timer: 1800,
                     showConfirmButton: false,
                     background: "#1e1e1e",
                     color: "#fff",
@@ -204,15 +177,19 @@ const GastosFijos = () => {
 
                 Swal.fire({
                     icon: "success",
-                    title: "Gasto creado",
-                    text: "El gasto fijo fue registrado correctamente.",
-                    timer: 2000,
+                    title: "Creado",
+                    text: "Gasto creado.",
+                    timer: 1800,
                     showConfirmButton: false,
                     background: "#1e1e1e",
                     color: "#fff",
                 });
 
             }
+
+            setMostrarFormulario(false);
+
+            setEditandoId(null);
 
             setFormData({
                 nombre: "",
@@ -221,13 +198,9 @@ const GastosFijos = () => {
                 categoria_id: "",
                 tiene_cuotas: false,
                 cuotas_total: "",
-                cuotas_pagadas: "",
+                cuotas_pagadas: 0,
                 activo: true,
             });
-
-            setEditandoId(null);
-
-            setMostrarFormulario(false);
 
             obtenerGastos();
 
@@ -238,34 +211,30 @@ const GastosFijos = () => {
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "No se pudo guardar el gasto fijo.",
-                confirmButtonColor: "#ef4444",
+                text: "No se pudo guardar.",
                 background: "#1e1e1e",
                 color: "#fff",
             });
 
         }
+
     };
 
-    // ─────────────────────────────────────────────
-    // Editar
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
+    // EDITAR FUNCIONAL
+    // ─────────────────────────────
     const editarGasto = (gasto) => {
+
+        setMostrarHistorial(false);
+
         setFormData({
             nombre: gasto.nombre,
             monto: gasto.monto,
             dia_cobro: gasto.dia_cobro,
-            categoria_id:
-                gasto.categoria_id || "",
-
-            tiene_cuotas:
-                gasto.tiene_cuotas,
-
-            cuotas_total:
-                gasto.cuotas_total || "",
-
-            cuotas_pagadas: "",
-
+            categoria_id: gasto.categoria_id || "",
+            tiene_cuotas: gasto.tiene_cuotas,
+            cuotas_total: gasto.cuotas_total || "",
+            cuotas_pagadas: gasto.cuotas_pagadas ?? 0,
             activo: gasto.activo,
         });
 
@@ -273,29 +242,24 @@ const GastosFijos = () => {
 
         setMostrarFormulario(true);
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-        });
     };
 
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     // Eliminar
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
     const eliminarGasto = async (gasto) => {
 
-        const result = await Swal.fire({
-            title: "¿Eliminar gasto fijo?",
-            text: `Se eliminará "${gasto.nombre}"`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Sí, eliminar",
-            cancelButtonText: "Cancelar",
-            background: "#1e1e1e",
-            color: "#fff",
-        });
+        const result =
+            await Swal.fire({
+                title: "¿Eliminar?",
+                text: gasto.nombre,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ef4444",
+                cancelButtonColor: "#6b7280",
+                background: "#1e1e1e",
+                color: "#fff",
+            });
 
         if (!result.isConfirmed) return;
 
@@ -305,97 +269,261 @@ const GastosFijos = () => {
                 `/gastos-fijos/${gasto.id}`
             );
 
+            obtenerGastos();
+
             Swal.fire({
                 icon: "success",
                 title: "Eliminado",
-                text: "El gasto fijo fue eliminado.",
-                timer: 1800,
+                timer: 1500,
                 showConfirmButton: false,
                 background: "#1e1e1e",
                 color: "#fff",
             });
 
-            obtenerGastos();
-
         } catch (error) {
 
             console.error(error);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo eliminar el gasto.",
-                confirmButtonColor: "#ef4444",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
-
         }
+
     };
 
     useEffect(() => {
+
         obtenerGastos();
 
         obtenerCategorias();
+
     }, []);
 
     return (
+
         <div className="container-fluid">
 
             {/* Header */}
-            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div className="d-flex justify-content-between align-items-center mb-4">
 
-                <h3 className="fw-bold m-0">
+                <h3 className="fw-bold">
                     📌 Gastos Fijos
                 </h3>
 
                 <button
-                    className="btn btn-success rounded-pill px-4 fw-semibold shadow-sm"
+                    className="
+                        btn
+                        btn-success
+                        rounded-pill
+                        px-4
+                    "
                     onClick={() => {
-                        setMostrarFormulario(
-                            !mostrarFormulario
-                        );
 
-                        if (mostrarFormulario) {
-                            setEditandoId(null);
+                        setMostrarFormulario(true);
 
-                            setFormData({
-                                nombre: "",
-                                monto: "",
-                                dia_cobro: "",
-                                categoria_id: "",
-                                tiene_cuotas: false,
-                                cuotas_total: "",
-                                cuotas_pagadas: "",
-                                activo: true,
-                            });
-                        }
+                        setEditandoId(null);
+
                     }}
                 >
                     + Agregar gasto fijo
                 </button>
+
             </div>
 
-            {/* Modal formulario */}
-            {/* Modal */}
+            {/* Cards */}
+            <div className="row g-4">
+
+                {gastos.map((gasto) => (
+
+                    <div
+                        className="col-12 col-md-6 col-lg-4"
+                        key={gasto.id}
+                    >
+
+                        <div className="
+                            card
+                            border-0
+                            rounded-4
+                            shadow-lg
+                            h-100
+                        ">
+
+                            <div className="card-body p-4">
+
+                                <div className="
+                                    d-flex
+                                    justify-content-between
+                                    align-items-start
+                                    mb-3
+                                ">
+
+                                    <div>
+
+                                        <h5 className="fw-bold">
+                                            {gasto.nombre}
+                                        </h5>
+
+                                        <small className="text-muted">
+                                            Cobro cada día {gasto.dia_cobro}
+                                        </small>
+
+                                    </div>
+
+                                    <span className="
+                                        badge
+                                        bg-danger
+                                        rounded-pill
+                                        fs-6
+                                        px-3
+                                        py-2
+                                    ">
+                                        Q{gasto.monto}
+                                    </span>
+
+                                </div>
+
+                                {gasto.categoria_nombre && (
+
+                                    <div className="mb-3">
+
+                                        <span className="
+                                            badge
+                                            bg-light
+                                            text-dark
+                                            border
+                                        ">
+                                            📂 {gasto.categoria_nombre}
+                                        </span>
+
+                                    </div>
+
+                                )}
+
+                                {gasto.tiene_cuotas && (
+
+                                    <div className="mb-4">
+
+                                        <div className="
+                                            d-flex
+                                            justify-content-between
+                                            mb-2
+                                        ">
+
+                                            <span>
+                                                💳 Cuotas
+                                            </span>
+
+                                            <span className="
+                                                badge
+                                                bg-warning
+                                                text-dark
+                                                rounded-pill
+                                            ">
+                                                {gasto.cuotas_pagadas}/
+                                                {gasto.cuotas_total}
+                                            </span>
+
+                                        </div>
+
+                                        <div
+                                            className="progress rounded-pill"
+                                            style={{
+                                                height: "10px",
+                                            }}
+                                        >
+
+                                            <div
+                                                className="
+                                                    progress-bar
+                                                    bg-warning
+                                                "
+                                                style={{
+                                                    width:
+                                                        `${(gasto.cuotas_pagadas /
+                                                            gasto.cuotas_total) * 100}%`,
+                                                }}
+                                            />
+
+                                        </div>
+
+                                    </div>
+
+                                )}
+
+                                {/* Botones */}
+                                <div className="d-flex gap-2">
+
+                                    <button
+                                        className="
+                                            btn
+                                            btn-outline-primary
+                                            rounded-pill
+                                            flex-fill
+                                        "
+                                        onClick={() =>
+                                            editarGasto(gasto)
+                                        }
+                                    >
+                                        ✏️ Editar
+                                    </button>
+
+                                    <button
+                                        className="
+                                            btn
+                                            btn-outline-danger
+                                            rounded-pill
+                                            flex-fill
+                                        "
+                                        onClick={() =>
+                                            eliminarGasto(gasto)
+                                        }
+                                    >
+                                        🗑️ Eliminar
+                                    </button>
+
+                                </div>
+
+                                {/* Historial */}
+                                <button
+                                    className="
+                                        btn
+                                        btn-outline-dark
+                                        rounded-pill
+                                        w-100
+                                        mt-3
+                                    "
+                                    onClick={() =>
+                                        abrirHistorial(gasto)
+                                    }
+                                >
+                                    📜 Ver historial
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                ))}
+
+            </div>
+
+            {/* MODAL FORMULARIO */}
             {mostrarFormulario && (
 
                 <div
                     className="
-            position-fixed
-            top-0
-            start-0
-            w-100
-            h-100
-            d-flex
-            justify-content-center
-            align-items-center
-        "
+                        position-fixed
+                        top-0
+                        start-0
+                        w-100
+                        h-100
+                        d-flex
+                        justify-content-center
+                        align-items-center
+                    "
                     style={{
                         background: "rgba(0,0,0,0.70)",
-                        zIndex: 9999,
+                        zIndex: 10000,
                         backdropFilter: "blur(5px)",
-                        padding: "1rem",
                     }}
                     onClick={() => {
                         setMostrarFormulario(false);
@@ -406,30 +534,37 @@ const GastosFijos = () => {
                     <div
                         onClick={(e) => e.stopPropagation()}
                         className="
-                bg-dark
-                text-white
-                rounded-4
-                shadow-lg
-                p-4
-                position-relative
-            "
+        bg-dark
+        text-white
+        rounded-4
+        shadow-lg
+        position-relative
+    "
                         style={{
                             width: "100%",
                             maxWidth: "650px",
-                            maxHeight: "90vh",
+
+                            // ✅ responsive
+                            maxHeight: "92vh",
                             overflowY: "auto",
+
+                            // ✅ menos padding en móvil
+                            padding: window.innerWidth < 768 ? "1.2rem" : "2rem",
+
+                            // ✅ márgenes laterales
+                            margin: "0.5rem",
+
+                            // ✅ evita que toque bordes
+                            border: "1px solid rgba(255,255,255,0.08)",
                         }}
                     >
 
-                        {/* Header */}
-                        <div
-                            className="
-                    d-flex
-                    justify-content-between
-                    align-items-center
-                    mb-4
-                "
-                        >
+                        <div className="
+                            d-flex
+                            justify-content-between
+                            align-items-center
+                            mb-4
+                        ">
 
                             <h3 className="fw-bold">
 
@@ -441,9 +576,9 @@ const GastosFijos = () => {
 
                             <button
                                 className="
-                        btn-close
-                        btn-close-white
-                    "
+                                    btn-close
+                                    btn-close-white
+                                "
                                 onClick={() => {
                                     setMostrarFormulario(false);
                                     setEditandoId(null);
@@ -452,10 +587,8 @@ const GastosFijos = () => {
 
                         </div>
 
-                        {/* Formulario */}
                         <div className="row g-3">
 
-                            {/* Nombre */}
                             <div className="col-md-6">
 
                                 <label className="form-label">
@@ -465,11 +598,10 @@ const GastosFijos = () => {
                                 <input
                                     type="text"
                                     className="
-                            form-control
-                            bg-dark
-                            text-white
-                        "
-                                    placeholder="Netflix"
+                                        form-control
+                                        bg-dark
+                                        text-white
+                                    "
                                     value={formData.nombre}
                                     onChange={(e) =>
                                         setFormData({
@@ -481,7 +613,6 @@ const GastosFijos = () => {
 
                             </div>
 
-                            {/* Monto */}
                             <div className="col-md-6">
 
                                 <label className="form-label">
@@ -491,11 +622,10 @@ const GastosFijos = () => {
                                 <input
                                     type="number"
                                     className="
-                            form-control
-                            bg-dark
-                            text-white
-                        "
-                                    placeholder="50"
+                                        form-control
+                                        bg-dark
+                                        text-white
+                                    "
                                     value={formData.monto}
                                     onChange={(e) =>
                                         setFormData({
@@ -507,7 +637,6 @@ const GastosFijos = () => {
 
                             </div>
 
-                            {/* Día */}
                             <div className="col-md-6">
 
                                 <label className="form-label">
@@ -516,33 +645,34 @@ const GastosFijos = () => {
 
                                 <select
                                     className="
-                            form-select
-                            bg-dark
-                            text-white
-                        "
+                                        form-select
+                                        bg-dark
+                                        text-white
+                                    "
                                     value={formData.dia_cobro}
                                     onChange={(e) =>
                                         setFormData({
                                             ...formData,
-                                            dia_cobro:
-                                                e.target.value,
+                                            dia_cobro: e.target.value,
                                         })
                                     }
                                 >
 
                                     <option value="">
-                                        Selecciona un día
+                                        Selecciona
                                     </option>
 
                                     {Array.from(
                                         { length: 31 },
                                         (_, i) => (
+
                                             <option
                                                 key={i + 1}
                                                 value={i + 1}
                                             >
                                                 Día {i + 1}
                                             </option>
+
                                         )
                                     )}
 
@@ -550,7 +680,6 @@ const GastosFijos = () => {
 
                             </div>
 
-                            {/* Categoría */}
                             <div className="col-md-6">
 
                                 <label className="form-label">
@@ -559,10 +688,10 @@ const GastosFijos = () => {
 
                                 <select
                                     className="
-                            form-select
-                            bg-dark
-                            text-white
-                        "
+                                        form-select
+                                        bg-dark
+                                        text-white
+                                    "
                                     value={formData.categoria_id}
                                     onChange={(e) =>
                                         setFormData({
@@ -574,29 +703,36 @@ const GastosFijos = () => {
                                 >
 
                                     <option value="">
-                                        Selecciona categoría
+                                        Selecciona
                                     </option>
 
                                     {categorias.map((cat) => (
+
                                         <option
                                             key={cat.id}
                                             value={cat.id}
                                         >
                                             {cat.nombre}
                                         </option>
+
                                     ))}
 
                                 </select>
 
                             </div>
 
-                            {/* Cuotas */}
+                            {/* cuotas */}
                             <div className="col-12">
 
-                                <div className="form-check form-switch">
+                                <div className="
+                                    form-check
+                                    form-switch
+                                ">
 
                                     <input
-                                        className="form-check-input"
+                                        className="
+                                            form-check-input
+                                        "
                                         type="checkbox"
                                         checked={
                                             formData.tiene_cuotas
@@ -610,7 +746,9 @@ const GastosFijos = () => {
                                         }
                                     />
 
-                                    <label className="form-check-label">
+                                    <label className="
+                                        form-check-label
+                                    ">
                                         Tiene cuotas
                                     </label>
 
@@ -620,72 +758,74 @@ const GastosFijos = () => {
 
                             {formData.tiene_cuotas && (
 
-                                <div className="col-md-6">
+                                <>
+                                    <div className="col-md-6">
 
-                                    <label className="form-label">
-                                        Total cuotas
-                                    </label>
+                                        <label className="form-label">
+                                            Total cuotas
+                                        </label>
 
-                                    <input
-                                        type="number"
-                                        className="
-                                form-control
-                                bg-dark
-                                text-white
-                            "
-                                        value={
-                                            formData.cuotas_total
-                                        }
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                cuotas_total:
-                                                    e.target.value,
-                                            })
-                                        }
-                                    />
+                                        <input
+                                            type="number"
+                                            className="
+                                                form-control
+                                                bg-dark
+                                                text-white
+                                            "
+                                            value={formData.cuotas_total}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    cuotas_total:
+                                                        e.target.value,
+                                                })
+                                            }
+                                        />
 
-                                </div>
+                                    </div>
+
+                                    <div className="col-md-6">
+
+                                        <label className="form-label">
+                                            Cuotas pagadas
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            className="
+                                                form-control
+                                                bg-dark
+                                                text-white
+                                            "
+                                            value={formData.cuotas_pagadas}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    cuotas_pagadas:
+                                                        e.target.value,
+                                                })
+                                            }
+                                        />
+
+                                    </div>
+                                </>
 
                             )}
 
-                            {/* Activo */}
                             <div className="col-12">
 
-                                <div className="form-check form-switch">
-
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        checked={formData.activo}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                activo:
-                                                    e.target.checked,
-                                            })
-                                        }
-                                    />
-
-                                    <label className="form-check-label">
-                                        Gasto activo
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                            {/* Botones */}
-                            <div className="col-12">
-
-                                <div className="d-flex gap-3 mt-3">
+                                <div className="
+                                    d-flex
+                                    gap-3
+                                    mt-3
+                                ">
 
                                     <button
                                         className="
-                                btn
-                                btn-secondary
-                                flex-fill
-                            "
+                                            btn
+                                            btn-secondary
+                                            flex-fill
+                                        "
                                         onClick={() => {
                                             setMostrarFormulario(false);
                                             setEditandoId(null);
@@ -696,19 +836,17 @@ const GastosFijos = () => {
 
                                     <button
                                         className={`
-                                btn
-                                flex-fill
-                                ${editandoId
+                                            btn
+                                            flex-fill
+                                            ${editandoId
                                                 ? "btn-warning"
                                                 : "btn-success"}
-                            `}
+                                        `}
                                         onClick={guardarGastoFijo}
                                     >
-
                                         {editandoId
                                             ? "Actualizar"
                                             : "Guardar"}
-
                                     </button>
 
                                 </div>
@@ -720,235 +858,134 @@ const GastosFijos = () => {
                     </div>
 
                 </div>
+
             )}
 
-            {/* Lista */}
-            {loading ? (
-                <p>Cargando gastos fijos...</p>
-            ) : gastos.length === 0 ? (
-                <div className="alert alert-info rounded-4 shadow-sm border-0">
-                    No tienes gastos fijos registrados.
-                </div>
-            ) : (
-                <div className="row g-4">
+            {/* MODAL HISTORIAL */}
+            {mostrarHistorial && (
 
-                    {gastos.map((gasto) => (
-                        <div
-                            className="col-12 col-md-6 col-lg-4"
-                            key={gasto.id}
-                        >
-                            <div className="card border-0 shadow-lg rounded-4 h-100">
-
-                                <div className="card-body p-4">
-
-                                    <div className="d-flex justify-content-between align-items-start mb-3">
-
-                                        <div>
-                                            <h5 className="fw-bold mb-1">
-                                                {gasto.nombre}
-                                            </h5>
-
-                                            <small className="text-muted">
-                                                Cobro cada día{" "}
-                                                {gasto.dia_cobro}
-                                            </small>
-                                        </div>
-
-                                        <span className="badge bg-danger fs-6 px-3 py-2 rounded-pill">
-                                            Q{gasto.monto}
-                                        </span>
-                                    </div>
-
-                                    {gasto.categoria_nombre && (
-                                        <div className="mb-3">
-                                            <span className="badge bg-light text-dark border">
-                                                📂{" "}
-                                                {
-                                                    gasto.categoria_nombre
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {gasto.tiene_cuotas && (
-                                        <div className="mb-3">
-
-                                            {/* Texto cuotas */}
-                                            <div className="d-flex justify-content-between align-items-center mb-2">
-
-                                                <span className="fw-semibold small">
-                                                    💳 Cuotas
-                                                </span>
-
-                                                <span className="badge bg-warning text-dark rounded-pill px-3 py-2">
-                                                    {gasto.cuotas_pagadas}/
-                                                    {gasto.cuotas_total}
-                                                </span>
-
-                                            </div>
-
-                                            {/* Barra progreso */}
-                                            <div
-                                                className="progress rounded-pill"
-                                                style={{
-                                                    height: "10px",
-                                                }}
-                                            >
-
-                                                <div
-                                                    className={`
-                progress-bar
-                ${gasto.cuotas_pagadas ===
-                                                            gasto.cuotas_total
-                                                            ? "bg-success"
-                                                            : "bg-warning"
-                                                        }
-            `}
-                                                    role="progressbar"
-                                                    style={{
-                                                        width: `${(gasto.cuotas_pagadas /
-                                                            gasto.cuotas_total) *
-                                                            100
-                                                            }%`,
-                                                    }}
-                                                ></div>
-
-                                            </div>
-
-                                            {/* Porcentaje */}
-                                            <small className="text-muted">
-
-                                                {Math.round(
-                                                    (gasto.cuotas_pagadas /
-                                                        gasto.cuotas_total) *
-                                                    100
-                                                )}
-                                                % completado
-
-                                            </small>
-
-                                        </div>
-                                    )}
-
-                                    {!gasto.activo && (
-                                        <div className="mb-3">
-                                            <span className="badge bg-secondary rounded-pill">
-                                                Inactivo
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    <div className="d-flex gap-2 mt-4">
-
-                                        <button
-                                            className="btn btn-outline-primary rounded-pill flex-fill"
-                                            onClick={() =>
-                                                editarGasto(gasto)
-                                            }
-                                        >
-                                            ✏️ Editar
-                                        </button>
-
-                                        <button
-                                            className="btn btn-outline-danger rounded-pill flex-fill"
-                                            onClick={() => eliminarGasto(gasto)}
-                                        >
-                                            🗑️ Eliminar
-                                        </button>
-
-                                    </div>
-
-                                    {/* Botón historial */}
-                                    <button
-                                        className="btn btn-outline-dark w-100 mt-3 rounded-pill"
-                                        onClick={async () => {
-
-                                            const abierto =
-                                                mostrarHistorial[gasto.id];
-
-                                            setMostrarHistorial((prev) => ({
-                                                ...prev,
-                                                [gasto.id]: !abierto,
-                                            }));
-
-                                            if (!abierto) {
-                                                await obtenerHistorial(gasto.id);
-                                            }
-                                        }}
-                                    >
-                                        {mostrarHistorial[gasto.id]
-                                            ? "📕 Ocultar historial"
-                                            : "📜 Ver historial"}
-                                    </button>
-
-                                    {/* Historial */}
-                                    {mostrarHistorial[gasto.id] && (
-
-                                        <div className="mt-3 border-top pt-3">
-
-                                            <h6 className="fw-bold mb-3">
-                                                📜 Historial de pagos
-                                            </h6>
-
-                                            {!historiales[gasto.id] ||
-                                                historiales[gasto.id].length === 0 ? (
-
-                                                <div className="text-muted small">
-                                                    No hay historial todavía
-                                                </div>
-
-                                            ) : (
-
-                                                historiales[gasto.id].map((h) => (
-
-                                                    <div
-                                                        key={h.id}
-                                                        className="
-                        small
-                        border
-                        rounded-4
-                        p-3
-                        mb-2
-                        bg-light
-                        shadow-sm
+                <div
+                    className="
+                        position-fixed
+                        top-0
+                        start-0
+                        w-100
+                        h-100
+                        d-flex
+                        justify-content-center
+                        align-items-center
                     "
-                                                    >
+                    style={{
+                        background: "rgba(0,0,0,0.70)",
+                        zIndex: 9999,
+                        backdropFilter: "blur(5px)",
+                        padding: "1rem",
+                    }}
+                    onClick={() =>
+                        setMostrarHistorial(false)
+                    }
+                >
 
-                                                        <div className="fw-bold">
-                                                            💰 Q{h.monto}
-                                                        </div>
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="
+        bg-dark
+        text-white
+        rounded-4
+        shadow-lg
+        position-relative
+    "
+                        style={{
+                            width: "100%",
+                            maxWidth: "650px",
 
-                                                        {h.cuota_numero && (
-                                                            <div className="mt-1">
-                                                                💳 Cuota #{h.cuota_numero}
-                                                            </div>
-                                                        )}
+                            // ✅ responsive
+                            maxHeight: "92vh",
+                            overflowY: "auto",
 
-                                                        <div className="text-muted mt-1">
-                                                            🕒{" "}
-                                                            {new Date(
-                                                                h.fecha_pago
-                                                            ).toLocaleString()}
-                                                        </div>
+                            // ✅ menos padding en móvil
+                            padding: window.innerWidth < 768 ? "1.2rem" : "2rem",
 
-                                                    </div>
+                            // ✅ márgenes laterales
+                            margin: "0.5rem",
 
-                                                ))
+                            // ✅ evita que toque bordes
+                            border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                    >
 
-                                            )}
+                        <div className="
+                            d-flex
+                            justify-content-between
+                            align-items-center
+                            mb-4
+                        ">
 
-                                        </div>
+                            <h3 className="fw-bold">
+                                📜 Historial de {nombreHistorial}
+                            </h3>
 
-                                    )}
-                                </div>
-                            </div>
+                            <button
+                                className="
+                                    btn-close
+                                    btn-close-white
+                                "
+                                onClick={() =>
+                                    setMostrarHistorial(false)
+                                }
+                            />
+
                         </div>
-                    ))}
+
+                        {historial.length === 0 ? (
+
+                            <div className="
+                                alert
+                                alert-secondary
+                            ">
+                                No hay historial todavía.
+                            </div>
+
+                        ) : (
+
+                            historial.map((item) => (
+
+                                <div
+                                    key={item.id}
+                                    className="
+                                        bg-dark
+                                        rounded-4
+                                        p-3
+                                        mb-3
+                                    "
+                                >
+
+                                    <div className="fw-bold">
+                                        💰 Q{item.monto}
+                                    </div>
+
+                                    <div className="small text-muted">
+                                        {new Date(
+                                            item.fecha_pago
+                                        ).toLocaleString()}
+                                    </div>
+
+                                </div>
+
+                            ))
+
+                        )}
+
+                    </div>
+
                 </div>
+
             )}
 
         </div>
+
     );
+
 };
 
 export default GastosFijos;

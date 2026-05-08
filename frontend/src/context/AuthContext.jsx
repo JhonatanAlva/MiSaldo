@@ -24,17 +24,42 @@ export const AuthProvider = ({ children }) => {
 
   const cerrarSesion = async () => {
     try {
+
+      // Limpiar sesiones temporales
+      sessionStorage.removeItem("asistente_ia_chat");
+      sessionStorage.removeItem("scanner_resultado");
+
       await logout();
+
       setUsuario(null);
-      setMensajeLogout('Sesión cerrada correctamente.');
+
+      setMensajeLogout(
+        'Sesión cerrada correctamente.'
+      );
+
       setTimeout(() => {
+
         setMensajeLogout(null);
+
         window.location.href = '/login';
+
       }, 2000);
+
     } catch (err) {
-      console.error('Error al cerrar sesión:', err);
-      setMensajeLogout('Error al cerrar sesión.');
-      setTimeout(() => setMensajeLogout(null), 3000);
+
+      console.error(
+        'Error al cerrar sesión:',
+        err
+      );
+
+      setMensajeLogout(
+        'Error al cerrar sesión.'
+      );
+
+      setTimeout(
+        () => setMensajeLogout(null),
+        3000
+      );
     }
   };
 

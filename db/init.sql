@@ -216,7 +216,6 @@ SELECT setval ('bitacora_id_seq', 365);
 -- ------------------------------------------------------------
 -- 10. gastos_fijos
 -- ------------------------------------------------------------
-DROP TABLE IF EXISTS gastos_fijos CASCADE;
 
 CREATE TABLE gastos_fijos (
     id SERIAL PRIMARY KEY,
