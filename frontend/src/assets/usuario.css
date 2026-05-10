@@ -225,14 +225,70 @@ small {
   font-weight: 500;
 }
 
-/* Gráfica */
+/* =========================
+   GRAFICAS GENERALES
+========================= */
+
 .recharts-wrapper {
-  background-color: var(--grafica-bg);
   color: var(--text);
-  border-radius: 0.75rem;
-  padding: 1rem;
   transition: background-color 0.3s ease;
   flex-grow: 1;
+}
+
+/* SOLO cards normales */
+
+.card .recharts-wrapper {
+  background-color: var(--grafica-bg);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+/* =========================
+   ANALISIS FINANCIERO
+========================= */
+
+.analisis-card .recharts-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* TOOLTIP RECHARTS */
+
+body[data-theme="dark"] .recharts-default-tooltip {
+  background: #111827 !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 14px !important;
+}
+
+body[data-theme="dark"] .recharts-tooltip-label,
+body[data-theme="dark"] .recharts-tooltip-item {
+  color: white !important;
+}
+
+/* LEGENDAS */
+
+body[data-theme="dark"] .recharts-legend-item-text {
+  color: #e5e7eb !important;
+}
+
+/* EJES */
+
+body[data-theme="dark"] .recharts-cartesian-axis-tick-value {
+  fill: #cbd5e1 !important;
+}
+
+/* GRID */
+
+body[data-theme="dark"] .recharts-cartesian-grid line {
+  stroke: rgba(255,255,255,.08) !important;
+}
+
+/* LINEAS */
+
+body[data-theme="dark"] .recharts-cartesian-axis-line,
+body[data-theme="dark"] .recharts-cartesian-axis-tick-line {
+  stroke: rgba(255,255,255,.15) !important;
 }
 
 /* Scroll para tarjetas internas */

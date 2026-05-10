@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Tab, Button, Spinner } from "react-bootstrap";
+import { Tabs, Tab, Spinner } from "react-bootstrap";
 import {
   BarChart,
   Bar,
@@ -15,30 +15,59 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Icon } from "@iconify/react";
-import BotonesExportar from "../user/BotonesExportar";
 import api from "../../services/api";
+import exportarReporteFinanciero from "../../utils/exportarReporteFinanciero";
 
 const AnalisisFinanciero = () => {
   const [tabKey, setTabKey] = useState("resumen");
   const [monthlyData, setMonthlyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
-  const [savingsData, setSavingsData] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [mesSeleccionado, setMesSeleccionado] = useState(
-    new Date().getMonth() + 1, // mes actual
+    new Date().getMonth() + 1,
   );
+
   const [tendenciaAhorro, setTendenciaAhorro] = useState([]);
-  const isDarkMode = document.body.classList.contains("dark");
-  const buttonVariant = isDarkMode ? "light" : "dark"; // No más outline
+
+  const [periodoProyeccion, setPeriodoProyeccion] = useState(12);
+
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.body.getAttribute("data-theme") === "dark"
+  );
+
+  useEffect(() => {
+
+    const actualizarTema = () => {
+      setIsDarkMode(
+        document.body.getAttribute("data-theme") === "dark"
+      );
+    };
+
+    actualizarTema();
+
+    const observer = new MutationObserver(() => {
+      actualizarTema();
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+
+  }, []);
 
   const ahorroMensualPromedio = monthlyData.length
     ? monthlyData.reduce((acc, item) => acc + item.ahorro, 0) /
-      monthlyData.length
+    monthlyData.length
     : 0;
-  const [periodoProyeccion, setPeriodoProyeccion] = useState(12);
 
-  const formatCurrency = (value) => `Q ${value.toLocaleString()}`;
+  const formatCurrency = (value) =>
+    `Q ${Number(value).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+    })}`;
 
   useEffect(() => {
     const obtenerDatos = async () => {
@@ -46,7 +75,10 @@ const AnalisisFinanciero = () => {
         setLoading(true);
 
         const resBalance = await api.get("/finanzas/balance?tipo=mensual");
-        const resCategorias = await api.get("/finanzas/clasificacion-gastos");
+
+        const resCategorias = await api.get(
+          "/finanzas/clasificacion-gastos",
+        );
 
         const datosBalance = resBalance.data.map((item) => ({
           name: item.mes || item.periodo,
@@ -61,18 +93,11 @@ const AnalisisFinanciero = () => {
           color: "#" + Math.floor(Math.random() * 16777215).toString(16),
         }));
 
-        // console.log("Valores de categoría:", categorias);
-
-        const ahorros = datosBalance.map(({ name, ahorro }) => ({
-          name,
-          ahorro,
-        }));
-
         setMonthlyData(datosBalance);
         setCategoryData(categorias);
-        setSavingsData(ahorros);
+
       } catch (error) {
-        console.error("❌ Error al obtener datos del análisis:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -92,452 +117,641 @@ const AnalisisFinanciero = () => {
       }));
 
       setTendenciaAhorro(datos);
+
     } catch (err) {
-      console.error("Error al obtener tendencia de ahorro", err);
+      console.error(err);
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center my-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3">Cargando análisis financiero...</p>
+      <div className="text-center py-5">
+        <Spinner animation="border" variant="success" />
+        <p className="mt-3">
+          Cargando análisis financiero...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold" style={{ color: "var(--text)" }}>
-          Análisis Financiero
-        </h2>
-        <BotonesExportar targetId="exportArea" isDarkMode={isDarkMode} />
-      </div>
+    <>
+      <style>
+        {`
+    .analisis-container{
+      min-height:100vh;
+      padding:30px;
+      transition:.3s;
+    }
 
-      <Tabs activeKey={tabKey} onSelect={(k) => setTabKey(k)} className="mb-4">
-        <Tab eventKey="resumen" title="Resumen">
-          <div id="exportArea" className="pdf-export-container">
-            {/* Ingresos vs Gastos */}
-            <div className="grafica-bloque mb-4">
-              <h5 style={{ color: "var(--text)" }}>
-                Ingresos vs Gastos Mensuales
-              </h5>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData} className="recharts-wrapper">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#6c757d" />
-                  <XAxis dataKey="name" tick={{ fill: "var(--text)" }} />
-                  <YAxis
-                    tickFormatter={formatCurrency}
-                    tick={{ fill: "var(--text)" }}
-                  />
-                  <Tooltip
-                    formatter={(value) => formatCurrency(value)}
-                    contentStyle={{
-                      backgroundColor: "var(--grafica-bg)",
-                      borderColor: "#495057",
-                      color: "var(--text)",
-                    }}
-                  />
-                  <Legend wrapperStyle={{ color: "var(--text)" }} />
-                  <Bar dataKey="ingresos" fill="#20c997" name="Ingresos" />
-                  <Bar dataKey="gastos" fill="#dc3545" name="Gastos" />
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="only-pdf mt-2">
-                <ul
-                  style={{
-                    color: "black",
-                    fontSize: "0.9rem",
-                    paddingLeft: 16,
-                  }}
-                >
-                  {monthlyData.map((item, idx) => (
-                    <li key={idx}>
-                      <strong>{item.name}</strong>: Ingresos{" "}
-                      {formatCurrency(item.ingresos)} — Gastos{" "}
-                      {formatCurrency(item.gastos)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+    /* =========================
+       DARK MODE
+    ========================= */
 
-            {/* Page break */}
-            <div className="only-pdf-pagebreak"></div>
+    .analisis-dark{
+      background:#000000;
+      color:#ffffff;
+    }
 
-            {/* Distribución de Gastos */}
-            <div className="grafica-bloque mb-4">
-              <h5 style={{ color: "var(--text)" }}>Distribución de Gastos</h5>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart className="recharts-wrapper">
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => formatCurrency(value)}
-                    contentStyle={{
-                      backgroundColor: "var(--grafica-bg)",
-                      borderColor: "#495057",
-                    }}
-                    labelStyle={{ color: "var(--text)" }}
-                    itemStyle={{ color: "var(--text)" }}
-                  />
-                  <Legend wrapperStyle={{ color: "var(--text)" }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="only-pdf mt-3">
-                <h6 style={{ color: "black" }}>Detalle de Categorías</h6>
-                <ul className="legend-list">
-                  {categoryData.map((entry, index) => (
-                    <li
-                      key={index}
-                      className="d-flex align-items-center gap-2 mb-1"
-                    >
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 12,
-                          height: 12,
-                          backgroundColor: entry.color,
-                          borderRadius: "50%",
-                        }}
-                      ></span>
-                      <span style={{ color: "black" }}>
-                        {entry.name}:{" "}
-                        <strong>{formatCurrency(entry.value)}</strong>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+    .analisis-dark .analisis-subtitle{
+      color:#9ca3af;
+    }
 
-            <div className="only-pdf-pagebreak"></div>
+    .analisis-dark .nav-tabs{
+      border-color:rgba(255,255,255,.08)!important;
+    }
 
-            {/* Saldo mensual */}
-            <div className="grafica-bloque mb-4">
-              <h5 style={{ color: "var(--text)" }}>
-                Saldo Mensual (Ingresos - Gastos)
-              </h5>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData} className="recharts-wrapper">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#6c757d" />
-                  <XAxis dataKey="name" tick={{ fill: "var(--text)" }} />
-                  <YAxis
-                    tickFormatter={formatCurrency}
-                    tick={{ fill: "var(--text)" }}
-                  />
-                  <Tooltip
-                    formatter={(value) => formatCurrency(value)}
-                    contentStyle={{
-                      backgroundColor: "var(--grafica-bg)",
-                      borderColor: "#495057",
-                      color: "var(--text)",
-                    }}
-                  />
-                  <Legend wrapperStyle={{ color: "var(--text)" }} />
-                  <Line
-                    type="monotone"
-                    dataKey="ahorro"
-                    stroke="#0d6efd"
-                    strokeWidth={3}
-                    name="Saldo"
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="only-pdf mt-2">
-                <ul
-                  style={{
-                    color: "black",
-                    fontSize: "0.9rem",
-                    paddingLeft: 16,
-                  }}
-                >
-                  {monthlyData.map((item, idx) => (
-                    <li key={idx}>
-                      <strong>{item.name}</strong>: Saldo{" "}
-                      {formatCurrency(item.ahorro)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+    .analisis-dark .analisis-card{
+      background:#0a0a0a;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 10px 30px rgba(0,0,0,.55);
+    }
 
-            <div className="only-pdf-pagebreak"></div>
+    .analisis-dark .card-title-custom{
+      color:#ffffff;
+    }
 
-            {/* Tendencia de Ahorro */}
-            <div className="grafica-bloque mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
-                {/* <Icon icon="mdi:trending-up" className="text-primary fs-5" /> */}
-                <h5 className="mb-0" style={{ color: "var(--text)" }}>
-                  Tendencia de Ahorro
+    .analisis-dark .recommendation-item{
+      background:#111111;
+      border:1px solid rgba(255,255,255,.05);
+      color:#ffffff;
+    }
+
+    .analisis-dark .form-select{
+      background:#0a0a0a;
+      color:#ffffff;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .analisis-dark .form-select:focus{
+      box-shadow:none;
+      border-color:#10b981;
+    }
+
+    .analisis-dark .recharts-cartesian-axis-tick-value{
+      fill:#d1d5db !important;
+    }
+
+    .analisis-dark .recharts-legend-item-text{
+      color:#ffffff !important;
+    }
+
+    /* =========================
+       LIGHT MODE
+    ========================= */
+
+    .analisis-light{
+      background:#f4f7fb;
+      color:#111827;
+    }
+
+    .analisis-light .analisis-card{
+      background:white;
+      border:1px solid #e5e7eb;
+      box-shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+
+    .analisis-light .btn-periodo:not(.active){
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    .analisis-light .recommendation-item{
+      background:#f9fafb;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .analisis-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:20px;
+      margin-bottom:30px;
+    }
+
+    .analisis-title{
+      font-size:2.5rem;
+      font-weight:800;
+      margin-bottom:5px;
+    }
+
+    .analisis-subtitle{
+      opacity:.7;
+      margin:0;
+    }
+
+    /* =========================
+       TABS
+    ========================= */
+
+    .custom-tabs .nav-link{
+      border:none !important;
+      border-radius:12px !important;
+      padding:10px 20px !important;
+      font-weight:600;
+      margin-right:10px;
+      color:#9ca3af !important;
+      background:transparent !important;
+      transition:.3s;
+    }
+
+    .custom-tabs .nav-link.active{
+      background:linear-gradient(135deg,#10b981,#06b6d4)!important;
+      color:white !important;
+      box-shadow:0 10px 25px rgba(16,185,129,.35);
+    }
+
+    /* =========================
+       CARDS
+    ========================= */
+
+    .analisis-card{
+      border-radius:24px;
+      padding:24px;
+      margin-bottom:24px;
+      transition:.3s;
+    }
+
+    .card-title-custom{
+      font-size:1.1rem;
+      font-weight:700;
+      margin-bottom:20px;
+    }
+
+    /* =========================
+       PREDICCIONES
+    ========================= */
+
+    .prediction-card{
+      border-radius:24px;
+      overflow:hidden;
+    }
+
+    .prediction-amount{
+      font-size:3rem;
+      font-weight:800;
+      color:#10b981;
+    }
+
+    /* =========================
+       BOTONES
+    ========================= */
+
+    .btn-periodo{
+      border:none;
+      border-radius:12px;
+      padding:10px 18px;
+      font-weight:600;
+      transition:.3s;
+    }
+
+    .btn-periodo.active{
+      background:linear-gradient(135deg,#10b981,#06b6d4);
+      color:white;
+      box-shadow:0 10px 20px rgba(16,185,129,.3);
+    }
+
+    .btn-periodo:not(.active){
+      background:#111111;
+      color:white;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media(max-width:768px){
+
+      .analisis-container{
+        padding:16px;
+      }
+
+      .analisis-title{
+        font-size:2rem;
+      }
+
+      .prediction-amount{
+        font-size:2.2rem;
+      }
+
+      .analisis-card{
+        padding:18px;
+      }
+
+    }
+  `}
+      </style>
+
+      <div
+        className={`analisis-container ${isDarkMode
+          ? "analisis-dark"
+          : "analisis-light"
+          }`}
+      >
+        {/* HEADER */}
+
+        <div className="analisis-header">
+          <div>
+            <h1 className="analisis-title">
+              Análisis Financiero
+            </h1>
+
+            <p className="analisis-subtitle">
+              Visualiza estadísticas y tendencias financieras
+            </p>
+          </div>
+
+          <button
+            className="btn btn-dark rounded-4 px-4 py-2"
+            onClick={() =>
+              exportarReporteFinanciero({
+                monthlyData,
+                categoryData,
+                tendenciaAhorro,
+                periodoProyeccion,
+              })
+            }
+          >
+            📄 Exportar PDF
+          </button>
+        </div>
+
+        {/* TABS */}
+
+        <Tabs
+          activeKey={tabKey}
+          onSelect={(k) => setTabKey(k)}
+          className="mb-4 custom-tabs"
+        >
+          {/* RESUMEN */}
+
+          <Tab eventKey="resumen" title="Resumen">
+            <div id="exportArea">
+
+              {/* INGRESOS VS GASTOS */}
+
+              <div className="analisis-card"
+                id="pdf-ingresos-gastos">
+                <h5 className="card-title-custom">
+                  Ingresos vs Gastos Mensuales
                 </h5>
+
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid
+                      strokeDasharray="4 4"
+                      stroke={
+                        isDarkMode
+                          ? "#1e293b"
+                          : "#d1d5db"
+                      }
+                    />
+
+                    <XAxis
+                      dataKey="name"
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <YAxis
+                      tickFormatter={formatCurrency}
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <Tooltip
+                      formatter={(value) =>
+                        formatCurrency(value)
+                      }
+                      contentStyle={{
+                        borderRadius: "14px",
+                        border: "none",
+                        backgroundColor: isDarkMode
+                          ? "#111827"
+                          : "#ffffff",
+                        color: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <Legend />
+
+                    <Bar
+                      dataKey="ingresos"
+                      fill="#10b981"
+                      radius={[10, 10, 0, 0]}
+                    />
+
+                    <Bar
+                      dataKey="gastos"
+                      fill="#ef4444"
+                      radius={[10, 10, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <div className="graph-container">
-                <div className="d-flex justify-content-end mb-2">
+
+              {/* PIE */}
+
+              <div className="analisis-card"
+                id="pdf-distribucion">
+                <h5 className="card-title-custom">
+                  Distribución de Gastos
+                </h5>
+
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      outerRadius={110}
+                      dataKey="value"
+                      label={({ name }) => name}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell
+                          key={index}
+                          fill={entry.color}
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip />
+
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* SALDO */}
+
+              <div className="analisis-card"
+                id="pdf-saldo">
+                <h5 className="card-title-custom">
+                  Saldo Mensual
+                </h5>
+
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={monthlyData}>
+                    <CartesianGrid
+                      strokeDasharray="4 4"
+                      stroke={
+                        isDarkMode
+                          ? "#1e293b"
+                          : "#d1d5db"
+                      }
+                    />
+
+                    <XAxis
+                      dataKey="name"
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <YAxis
+                      tickFormatter={formatCurrency}
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <Tooltip />
+
+                    <Legend />
+
+                    <Line
+                      type="monotone"
+                      dataKey="ahorro"
+                      name="Saldo"
+                      stroke="#3b82f6"
+                      strokeWidth={4}
+                      dot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* TENDENCIA */}
+
+              <div className="analisis-card"
+                id="pdf-tendencia">
+                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                  <h5 className="card-title-custom m-0">
+                    Tendencia de Ahorro
+                  </h5>
+
                   <select
                     className="form-select w-auto"
                     value={mesSeleccionado}
                     onChange={(e) => {
                       const mes = parseInt(e.target.value);
+
                       setMesSeleccionado(mes);
+
                       obtenerTendenciaAhorro(mes);
                     }}
                   >
                     {[...Array(12)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {new Date(0, i).toLocaleString("es-ES", {
-                          month: "long",
-                        })}
+                      <option
+                        key={i + 1}
+                        value={i + 1}
+                      >
+                        {new Date(0, i).toLocaleString(
+                          "es-ES",
+                          {
+                            month: "long",
+                          },
+                        )}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {tendenciaAhorro.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart
-                      data={tendenciaAhorro}
-                      className="recharts-wrapper"
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#6c757d" />
-                      <XAxis
-                        dataKey="fecha"
-                        tickFormatter={(str) =>
-                          new Date(str).toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                          })
-                        }
-                        tick={{ fontSize: 12, fill: "var(--text)" }}
-                      />
-                      <YAxis
-                        tickFormatter={formatCurrency}
-                        tick={{ fontSize: 12, fill: "var(--text)" }}
-                      />
-                      <Tooltip
-                        formatter={(value) => formatCurrency(value)}
-                        labelFormatter={(label) =>
-                          `Fecha: ${new Date(label).toLocaleDateString(
-                            "es-ES",
-                          )}`
-                        }
-                        contentStyle={{
-                          backgroundColor: "var(--grafica-bg)",
-                          borderColor: "#495057",
-                          color: "var(--text)",
-                        }}
-                      />
-                      <Legend
-                        wrapperStyle={{ color: "var(--text)" }}
-                        verticalAlign="top"
-                        height={36}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="ahorro"
-                        stroke="#0d6efd"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div
-                    className="text-center py-5 text-muted"
-                    style={{
-                      backgroundColor: "#f8f9fa",
-                      borderRadius: "0.5rem",
-                    }}
-                  >
-                    No hay datos registrados para este mes.
-                  </div>
-                )}
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={tendenciaAhorro}>
+                    <CartesianGrid
+                      strokeDasharray="4 4"
+                      stroke={
+                        isDarkMode
+                          ? "#1e293b"
+                          : "#d1d5db"
+                      }
+                    />
 
-                <div className="only-pdf mt-2">
-                  <ul
-                    style={{
-                      color: "black",
-                      fontSize: "0.9rem",
-                      paddingLeft: 16,
-                    }}
-                  >
-                    {tendenciaAhorro.map((item, idx) => (
-                      <li key={idx}>
-                        {new Date(item.fecha).toLocaleDateString("es-ES")}:
-                        Ahorro {formatCurrency(item.ahorro)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                    <XAxis
+                      dataKey="fecha"
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
 
-                {tendenciaAhorro.length > 0 && (
-                  <p
-                    className="text-end mt-2 mb-0 small fst-italic"
-                    style={{ color: "var(--text)" }}
-                  >
-                    Último ahorro:{" "}
-                    <strong>
-                      {new Date(
-                        tendenciaAhorro[tendenciaAhorro.length - 1].fecha,
-                      ).toLocaleDateString("es-ES")}
-                    </strong>{" "}
-                    — llevas{" "}
-                    <strong>
-                      {Math.floor(
-                        (new Date() -
-                          new Date(
-                            tendenciaAhorro[tendenciaAhorro.length - 1].fecha,
-                          )) /
-                          (1000 * 60 * 60 * 24),
-                      )}
-                    </strong>{" "}
-                    días sin ahorrar.
-                  </p>
-                )}
+                    <YAxis
+                      tickFormatter={formatCurrency}
+                      tick={{
+                        fill: isDarkMode
+                          ? "#fff"
+                          : "#111",
+                      }}
+                    />
+
+                    <Tooltip />
+
+                    <Legend />
+
+                    <Line
+                      type="monotone"
+                      dataKey="ahorro"
+                      stroke="#06b6d4"
+                      strokeWidth={4}
+                      dot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          </div>
-        </Tab>
+          </Tab>
 
-        <Tab eventKey="predicciones" title="Predicciones">
-          <div className="container py-4">
-            <div
-              className="card shadow-sm mb-4"
-              style={{
-                backgroundColor: "var(--card-bg)",
-                color: "var(--text)",
-              }}
-            >
-              <div className="card-body">
-                <h5 className="card-title">Proyección de Ahorros</h5>
-                <p className="card-text">
-                  Basado en tus hábitos de ahorro actuales, podrías acumular
-                  aproximadamente:
-                </p>
+          {/* PREDICCIONES */}
 
-                <div className="d-flex align-items-center justify-content-between flex-wrap">
+          <Tab
+            eventKey="predicciones"
+            title="Predicciones"
+          >
+            <div className="py-2">
+
+              {/* PROYECCION */}
+
+              <div className="analisis-card prediction-card">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-4">
+
                   <div>
-                    <h2 className="fw-bold text-success">
+                    <h5 className="card-title-custom">
+                      Proyección de Ahorros
+                    </h5>
+
+                    <p className="mb-4 opacity-75">
+                      Basado en tus hábitos financieros
+                    </p>
+
+                    <div className="prediction-amount">
                       Q{" "}
                       {(
                         ahorroMensualPromedio *
-                        (tabKey === "predicciones" && periodoProyeccion)
-                      ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </h2>
-                    <p className="mb-0">
-                      en los próximos {periodoProyeccion} meses
+                        periodoProyeccion
+                      ).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+
+                    <p className="mt-2 opacity-75">
+                      en los próximos{" "}
+                      {periodoProyeccion} meses
                     </p>
                   </div>
-                  <div className="btn-group mt-3 mt-md-0">
+
+                  <div className="d-flex gap-2">
                     {[3, 6, 12].map((meses) => (
                       <button
                         key={meses}
-                        className={`btn btn-outline-secondary ${
-                          periodoProyeccion === meses
-                            ? "active btn-success"
-                            : ""
-                        }`}
-                        onClick={() => setPeriodoProyeccion(meses)}
+                        onClick={() =>
+                          setPeriodoProyeccion(meses)
+                        }
+                        className={`btn-periodo ${periodoProyeccion === meses
+                          ? "active"
+                          : ""
+                          }`}
                       >
-                        {meses === 12 ? "1 año" : `${meses} meses`}
+                        {meses === 12
+                          ? "1 año"
+                          : `${meses} meses`}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <p className="text-muted mt-3 small">
-                  * Esta proyección asume que mantendrás un ahorro mensual
-                  promedio similar al actual.
-                </p>
               </div>
-            </div>
 
-            <div
-              className="card shadow-sm"
-              style={{
-                backgroundColor: "var(--card-bg)",
-                color: "var(--text)",
-              }}
-            >
-              <div className="card-body">
-                <h5 className="card-title">Recomendaciones Personalizadas</h5>
-                <p className="text-muted">
-                  Aquí se vera sugerencias basadas en tus hábitos financieros.
-                  (pendiente IA)
-                </p>
+              {/* RECOMENDACIONES */}
 
-                <ul className="list-unstyled mt-3">
-                  <li className="mb-3 d-flex align-items-start">
-                    <span className="me-2 fs-5">💡</span>
+              <div className="analisis-card">
+                <h5 className="card-title-custom">
+                  Recomendaciones Inteligentes
+                </h5>
+
+                <div className="recommendation-item">
+                  <div className="d-flex gap-3">
+                    <div>💡</div>
+
                     <div>
-                      <strong>Reduce gastos en Entretenimiento</strong>
-                      <br />
-                      <small className="text-muted">
-                        Tus gastos han aumentado un 15% respecto al mes
-                        anterior.
-                      </small>
-                    </div>
-                  </li>
+                      <strong>
+                        Reduce gastos en entretenimiento
+                      </strong>
 
-                  <li className="mb-3 d-flex align-items-start">
-                    <span className="me-2 fs-5">🎯</span>
-                    <div>
-                      <strong>Meta de ahorro alcanzable</strong>
-                      <br />
-                      <small className="text-muted">
-                        Con Q200 extra al mes podrías lograr tu meta 2 meses
-                        antes.
-                      </small>
+                      <div className="opacity-75 small mt-1">
+                        Tus gastos aumentaron un 15%
+                        respecto al mes anterior.
+                      </div>
                     </div>
-                  </li>
+                  </div>
+                </div>
 
-                  <li className="d-flex align-items-start">
-                    <span className="me-2 fs-5">🔁</span>
+                <div className="recommendation-item">
+                  <div className="d-flex gap-3">
+                    <div>🎯</div>
+
                     <div>
-                      <strong>Atención a gastos recurrentes</strong>
-                      <br />
-                      <small className="text-muted">
-                        Revisa tus suscripciones activas. Algunas podrían no ser
-                        necesarias.
-                      </small>
+                      <strong>
+                        Meta de ahorro alcanzable
+                      </strong>
+
+                      <div className="opacity-75 small mt-1">
+                        Con Q200 extra al mes puedes
+                        alcanzar tu meta antes.
+                      </div>
                     </div>
-                  </li>
-                </ul>
+                  </div>
+                </div>
+
+                <div className="recommendation-item">
+                  <div className="d-flex gap-3">
+                    <div>🔁</div>
+
+                    <div>
+                      <strong>
+                        Revisa gastos recurrentes
+                      </strong>
+
+                      <div className="opacity-75 small mt-1">
+                        Algunas suscripciones podrían
+                        no ser necesarias.
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </Tab>
 
-        {/* <Tab eventKey="reportes" title="Reportes">
-          <div className="mt-3">
-            <h5 style={{ color: "var(--text)" }}>Reportes Disponibles</h5>
-            <ul style={{ color: "var(--text)" }}>
-              <li>Resumen Mensual</li>
-              <li>Análisis por Categorías</li>
-              <li>Tendencias Anuales</li>
-              <li>Progreso de Metas</li>
-            </ul>
-            <Button variant="primary" className="mt-3">
-              <Icon icon="lucide:download" className="me-1" /> Descargar Todo
-            </Button>
-          </div>
-        </Tab> */}
-      </Tabs>
-    </div>
+            </div>
+          </Tab>
+        </Tabs>
+      </div>
+    </>
   );
 };
 

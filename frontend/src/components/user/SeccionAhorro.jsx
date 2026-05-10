@@ -158,146 +158,527 @@ const SeccionAhorro = () => {
     : "bg-white text-dark";
 
   return (
-    <div className="w-100 px-3 py-4 min-vh-100">
+    <div
+      className={`container-fluid min-vh-100 py-4 px-3 ${modoOscuro ? "bg-black text-light" : "bg-light text-dark"
+        }`}
+    >
+      {/* ALERTA */}
       {alerta && (
-        <Alert variant={alerta.tipo} className="text-center">
+        <Alert
+          variant={alerta.tipo}
+          className="rounded-4 border-0 shadow-sm fw-semibold"
+        >
           {alerta.mensaje}
         </Alert>
       )}
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className={modoOscuro ? "text-light" : "text-dark"}>Metas de Ahorro</h4>
-        <Button variant="success" onClick={() => setShowModal(true)}>
-          <Icon icon="mdi:plus" className="me-1" />
-          Nueva Meta
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+          <h1
+            className="fw-bold mb-1"
+            style={{
+              fontSize: "2.5rem",
+              letterSpacing: "-1px",
+            }}
+          >
+            Metas de ahorro
+          </h1>
+
+          <p
+            className={`mb-0 ${modoOscuro
+                ? "text-secondary"
+                : "text-muted"
+              }`}
+          >
+            Administra tus metas y controla
+            tu progreso financiero
+          </p>
+        </div>
+
+        <Button
+          variant="success"
+          className="rounded-pill px-4 py-2 fw-semibold shadow"
+          onClick={() => setShowModal(true)}
+        >
+          <Icon
+            icon="mdi:plus"
+            className="me-2"
+          />
+          Nueva meta
         </Button>
       </div>
 
+      {/* SIN METAS */}
       {planes.length === 0 && (
-        <p className={modoOscuro ? "text-light" : "text-dark"}>
-          No tienes metas de ahorro activas.
-        </p>
+        <div
+          className={`text-center p-5 rounded-4 shadow-sm ${modoOscuro
+              ? "bg-dark border border-secondary"
+              : "bg-white"
+            }`}
+        >
+          <Icon
+            icon="mdi:piggy-bank-outline"
+            style={{
+              fontSize: "70px",
+              color: "#10b981",
+            }}
+          />
+
+          <h4 className="fw-bold mt-3">
+            No tienes metas de ahorro
+          </h4>
+
+          <p
+            className={
+              modoOscuro
+                ? "text-secondary"
+                : "text-muted"
+            }
+          >
+            Crea tu primera meta y comienza
+            a ahorrar
+          </p>
+        </div>
       )}
 
-      <div className="d-flex flex-column gap-4">
+      {/* GRID */}
+      <div className="row g-4">
         {planes.map((plan) => {
-          const progreso = calcularProgreso(plan);
+          const progreso =
+            calcularProgreso(plan);
+
           return (
             <div
-              key={`plan-${plan.id}`}
-              className={`p-4 rounded shadow ${tarjetaEstilo} w-100`}
+              className="col-12 col-lg-6"
+              key={plan.id}
             >
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                  <h5 className="mb-1 fw-bold">{plan.descripcion || `Meta ${plan.id}`}</h5>
-                  <small className={modoOscuro ? "text-light" : "text-dark"}>
-                    Meta para {plan.fecha_fin?.split("T")[0] || "sin fecha"}
+              <div
+                className={`rounded-4 p-4 h-100 position-relative overflow-hidden ${modoOscuro
+                    ? "bg-dark border border-secondary"
+                    : "bg-white border"
+                  }`}
+                style={{
+                  boxShadow:
+                    modoOscuro
+                      ? "0 10px 40px rgba(0,0,0,.45)"
+                      : "0 10px 30px rgba(0,0,0,.08)",
+                }}
+              >
+                {/* TOP */}
+                <div className="d-flex justify-content-between align-items-start mb-4">
+                  <div>
+                    <div
+                      className="d-flex align-items-center justify-content-center rounded-4 mb-3"
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        background:
+                          "rgba(16,185,129,.15)",
+                        color: "#10b981",
+                        fontSize: "28px",
+                      }}
+                    >
+                      <Icon icon="mdi:target" />
+                    </div>
+
+                    <h3 className="fw-bold mb-1">
+                      {plan.descripcion}
+                    </h3>
+
+                    <p
+                      className={`mb-0 ${modoOscuro
+                          ? "text-secondary"
+                          : "text-muted"
+                        }`}
+                    >
+                      Fecha límite:{" "}
+                      {plan.fecha_fin?.split(
+                        "T"
+                      )[0]}
+                    </p>
+                  </div>
+
+                  <div className="text-end">
+                    <h2
+                      className="fw-bold mb-0"
+                      style={{
+                        color: "#10b981",
+                      }}
+                    >
+                      Q{" "}
+                      {Number(
+                        plan.total_ahorrado || 0
+                      ).toFixed(2)}
+                    </h2>
+
+                    <small
+                      className={
+                        modoOscuro
+                          ? "text-secondary"
+                          : "text-muted"
+                      }
+                    >
+                      de Q{" "}
+                      {Number(
+                        plan.meta
+                      ).toFixed(2)}
+                    </small>
+                  </div>
+                </div>
+
+                {/* PROGRESS */}
+                <div
+                  className={`progress rounded-pill mb-2 ${modoOscuro
+                      ? "bg-secondary"
+                      : ""
+                    }`}
+                  style={{
+                    height: "12px",
+                  }}
+                >
+                  <div
+                    className="progress-bar rounded-pill"
+                    style={{
+                      width: `${progreso}%`,
+                      background:
+                        "linear-gradient(90deg,#10b981,#34d399)",
+                    }}
+                  ></div>
+                </div>
+
+                <div className="d-flex justify-content-between mb-4">
+                  <small className="fw-semibold">
+                    {progreso}% completado
+                  </small>
+
+                  <small className="fw-semibold">
+                    Q{" "}
+                    {plan.monto_diario ||
+                      0}
+                    / día
                   </small>
                 </div>
-                <div className="text-end">
-                  <p className="mb-1 fw-semibold">
-                    Q {plan.total_ahorrado || 0} / Q {plan.meta}
-                  </p>
-                  <small className="text-success">{progreso}% completado</small>
+
+                {/* BOTONES */}
+                <div className="row g-2">
+                  <div className="col-md-4">
+                    <Button
+                      variant={
+                        modoOscuro
+                          ? "outline-primary"
+                          : "outline-primary"
+                      }
+                      className="w-100 rounded-4 fw-semibold py-2"
+                      onClick={() =>
+                        abrirEdicion(plan)
+                      }
+                    >
+                      <Icon
+                        icon="mdi:pencil-outline"
+                        className="me-2"
+                      />
+                      Editar
+                    </Button>
+                  </div>
+
+                  <div className="col-md-4">
+                    <Button
+                      variant="success"
+                      className="w-100 rounded-4 fw-semibold py-2"
+                      onClick={() =>
+                        abrirDeposito(plan)
+                      }
+                    >
+                      <Icon
+                        icon="mdi:cash-plus"
+                        className="me-2"
+                      />
+                      Depositar
+                    </Button>
+                  </div>
+
+                  <div className="col-md-4">
+                    <Button
+                      variant="danger"
+                      className="w-100 rounded-4 fw-semibold py-2"
+                      onClick={() => {
+                        setMetaSeleccionada(
+                          plan.id
+                        );
+
+                        setShowEliminar(
+                          true
+                        );
+                      }}
+                    >
+                      <Icon
+                        icon="mdi:trash-can-outline"
+                        className="me-2"
+                      />
+                      Eliminar
+                    </Button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="progress mb-3" style={{ height: "10px" }}>
-                <div
-                  className="progress-bar bg-success"
-                  style={{ width: `${progreso}%` }}
-                ></div>
-              </div>
-
-              <div className="d-flex justify-content-end gap-2">
-                <Button variant="outline-secondary" size="sm" onClick={() => abrirEdicion(plan)}>
-                  <Icon icon="mdi:pencil" className="me-1" /> Editar
-                </Button>
-                <Button variant="success" size="sm" onClick={() => abrirDeposito(plan)}>
-                  <Icon icon="mdi:cash-plus" className="me-1" /> Depositar
-                </Button>
-                <Button variant="danger" size="sm" onClick={() => { setMetaSeleccionada(plan.id); setShowEliminar(true); }}>
-                  <Icon icon="mdi:trash-can-outline" className="me-1" /> Eliminar
-                </Button>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Modal Nueva/Editar Meta */}
-      <Modal show={showModal} fullscreen onHide={() => setShowModal(false)}>
+      {/* MODAL CREAR */}
+      <Modal
+        show={showModal}
+        centered
+        size="lg"
+        onHide={() =>
+          setShowModal(false)
+        }
+      >
         <Modal.Header closeButton>
-          <Modal.Title>{modoEdicion ? "Editar Meta de Ahorro" : "Nueva Meta de Ahorro"}</Modal.Title>
+          <Modal.Title className="fw-bold">
+            {modoEdicion
+              ? "Editar meta"
+              : "Nueva meta"}
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleGuardarMeta} className="p-3">
+
+        <Modal.Body
+          className={
+            modoOscuro
+              ? "bg-dark text-light"
+              : ""
+          }
+        >
+          <Form
+            onSubmit={handleGuardarMeta}
+          >
             <Form.Group className="mb-3">
-              <Form.Label>Descripción</Form.Label>
-              <Form.Control type="text" required value={nuevaMeta.descripcion} onChange={(e) => setNuevaMeta({ ...nuevaMeta, descripcion: e.target.value })} />
+              <Form.Label>
+                Descripción
+              </Form.Label>
+
+              <Form.Control
+                type="text"
+                required
+                value={
+                  nuevaMeta.descripcion
+                }
+                onChange={(e) =>
+                  setNuevaMeta({
+                    ...nuevaMeta,
+                    descripcion:
+                      e.target.value,
+                  })
+                }
+              />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Monto meta (Q)</Form.Label>
-              <Form.Control type="number" required value={nuevaMeta.meta} onChange={(e) => setNuevaMeta({ ...nuevaMeta, meta: e.target.value })} />
-            </Form.Group>
+            <div className="row">
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  Meta total
+                </Form.Label>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Monto diario sugerido</Form.Label>
-              <Form.Control type="number" required value={nuevaMeta.monto_diario} onChange={(e) => setNuevaMeta({ ...nuevaMeta, monto_diario: e.target.value })} />
-            </Form.Group>
+                <Form.Control
+                  type="number"
+                  required
+                  value={nuevaMeta.meta}
+                  onChange={(e) =>
+                    setNuevaMeta({
+                      ...nuevaMeta,
+                      meta: e.target.value,
+                    })
+                  }
+                />
+              </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Fecha inicio</Form.Label>
-              <Form.Control type="date" required value={nuevaMeta.fecha_inicio} onChange={(e) => setNuevaMeta({ ...nuevaMeta, fecha_inicio: e.target.value })} />
-            </Form.Group>
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  Monto diario
+                </Form.Label>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Fecha fin</Form.Label>
-              <Form.Control type="date" required value={nuevaMeta.fecha_fin} onChange={(e) => setNuevaMeta({ ...nuevaMeta, fecha_fin: e.target.value })} />
-            </Form.Group>
+                <Form.Control
+                  type="number"
+                  required
+                  value={
+                    nuevaMeta.monto_diario
+                  }
+                  onChange={(e) =>
+                    setNuevaMeta({
+                      ...nuevaMeta,
+                      monto_diario:
+                        e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
 
-            <div className="text-end">
-              <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>Cancelar</Button>
-              <Button variant="success" type="submit">
-                {modoEdicion ? "Actualizar" : "Guardar"}
+            <div className="row">
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  Fecha inicio
+                </Form.Label>
+
+                <Form.Control
+                  type="date"
+                  required
+                  value={
+                    nuevaMeta.fecha_inicio
+                  }
+                  onChange={(e) =>
+                    setNuevaMeta({
+                      ...nuevaMeta,
+                      fecha_inicio:
+                        e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  Fecha fin
+                </Form.Label>
+
+                <Form.Control
+                  type="date"
+                  required
+                  value={
+                    nuevaMeta.fecha_fin
+                  }
+                  onChange={(e) =>
+                    setNuevaMeta({
+                      ...nuevaMeta,
+                      fecha_fin:
+                        e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 mt-4">
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setShowModal(false)
+                }
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                type="submit"
+                variant="success"
+              >
+                {modoEdicion
+                  ? "Actualizar"
+                  : "Guardar"}
               </Button>
             </div>
           </Form>
         </Modal.Body>
       </Modal>
 
-      {/* Modal Eliminar */}
-      <Modal show={showEliminar} centered onHide={() => setShowEliminar(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Eliminar Meta</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          ¿Estás seguro que deseas eliminar esta meta de ahorro? Esta acción no se puede deshacer.
+      {/* MODAL ELIMINAR */}
+      <Modal
+        show={showEliminar}
+        centered
+        onHide={() =>
+          setShowEliminar(false)
+        }
+      >
+        <Modal.Body
+          className={`p-4 rounded-4 ${modoOscuro
+              ? "bg-dark text-light"
+              : ""
+            }`}
+        >
+          <h3 className="fw-bold mb-3">
+            Eliminar meta
+          </h3>
+
+          <p>
+            ¿Seguro que deseas eliminar
+            esta meta?
+          </p>
+
+          <div className="d-flex justify-content-end gap-2 mt-4">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                setShowEliminar(false)
+              }
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={eliminarMeta}
+            >
+              Eliminar
+            </Button>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEliminar(false)}>Cancelar</Button>
-          <Button variant="danger" onClick={eliminarMeta}>Sí, eliminar</Button>
-        </Modal.Footer>
       </Modal>
 
-      {/* Modal Depósito */}
-      <Modal show={showDeposito} centered onHide={() => setShowDeposito(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Depositar en Meta</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Monto a depositar</Form.Label>
-              <Form.Control type="number" value={abono} min="0" onChange={(e) => setAbono(e.target.value)} />
-            </Form.Group>
-          </Form>
+      {/* MODAL DEPOSITO */}
+      <Modal
+        show={showDeposito}
+        centered
+        onHide={() =>
+          setShowDeposito(false)
+        }
+      >
+        <Modal.Body
+          className={`p-4 rounded-4 ${modoOscuro
+              ? "bg-dark text-light"
+              : ""
+            }`}
+        >
+          <h3 className="fw-bold mb-3">
+            Depositar ahorro
+          </h3>
+
+          <Form.Group>
+            <Form.Label>
+              Monto a depositar
+            </Form.Label>
+
+            <Form.Control
+              type="number"
+              value={abono}
+              onChange={(e) =>
+                setAbono(
+                  e.target.value
+                )
+              }
+            />
+          </Form.Group>
+
+          <div className="d-flex justify-content-end gap-2 mt-4">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                setShowDeposito(false)
+              }
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="success"
+              onClick={
+                realizarDeposito
+              }
+            >
+              Depositar
+            </Button>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeposito(false)}>Cancelar</Button>
-          <Button variant="success" onClick={realizarDeposito}>Depositar</Button>
-        </Modal.Footer>
       </Modal>
     </div>
   );
