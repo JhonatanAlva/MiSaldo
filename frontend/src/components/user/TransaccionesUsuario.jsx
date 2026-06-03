@@ -195,9 +195,7 @@ const TransaccionesUsuario = () => {
   };
 
   const eliminarTransaccion = async (tipo, id) => {
-
     const result = await Swal.fire({
-
       title: "¿Eliminar movimiento?",
 
       text: "Esta acción no se puede deshacer.",
@@ -214,13 +212,9 @@ const TransaccionesUsuario = () => {
 
       cancelButtonColor: "#6b7280",
 
-      background: modoOscuro
-        ? "#1a1a1a"
-        : "#ffffff",
+      background: modoOscuro ? "#1a1a1a" : "#ffffff",
 
-      color: modoOscuro
-        ? "#ffffff"
-        : "#111827",
+      color: modoOscuro ? "#ffffff" : "#111827",
 
       borderRadius: "20px",
     });
@@ -228,13 +222,9 @@ const TransaccionesUsuario = () => {
     if (!result.isConfirmed) return;
 
     try {
-
-      await api.delete(
-        `/finanzas/movimiento/${tipo}/${id}`
-      );
+      await api.delete(`/finanzas/movimiento/${tipo}/${id}`);
 
       await Swal.fire({
-
         icon: "success",
 
         title: "Movimiento eliminado",
@@ -245,38 +235,27 @@ const TransaccionesUsuario = () => {
 
         showConfirmButton: false,
 
-        background: modoOscuro
-          ? "#1a1a1a"
-          : "#ffffff",
+        background: modoOscuro ? "#1a1a1a" : "#ffffff",
 
-        color: modoOscuro
-          ? "#ffffff"
-          : "#111827",
+        color: modoOscuro ? "#ffffff" : "#111827",
       });
 
       await obtenerHistorial();
 
       resetFormulario();
-
     } catch (err) {
-
       console.error(err);
 
       Swal.fire({
-
         icon: "error",
 
         title: "Error",
 
         text: "No se pudo eliminar el movimiento.",
 
-        background: modoOscuro
-          ? "#1a1a1a"
-          : "#ffffff",
+        background: modoOscuro ? "#1a1a1a" : "#ffffff",
 
-        color: modoOscuro
-          ? "#ffffff"
-          : "#111827",
+        color: modoOscuro ? "#ffffff" : "#111827",
       });
     }
   };
@@ -325,25 +304,29 @@ const TransaccionesUsuario = () => {
   }, [filter, transactions]);
 
   const formatCurrency = (v) => `Q ${parseFloat(v).toFixed(2)}`;
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString("es-GT", {
+  const formatDate = (d) => {
+    const fecha = d?.includes("T") ? new Date(d) : new Date(d + "T00:00:00");
+    return fecha.toLocaleDateString("es-GT", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
+  };
 
   /* ── Clases ──────────────────────────────────────────── */
   const card = `rounded-xl p-4 cursor-pointer transition-all duration-200
     hover:scale-[1.02] active:scale-[0.98]
-    ${modoOscuro
-      ? "bg-[#1a1a1a] text-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
-      : "bg-white text-[#2e2828] shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
+    ${
+      modoOscuro
+        ? "bg-[#1a1a1a] text-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
+        : "bg-white text-[#2e2828] shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
     }`;
 
   const inputCls = `w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors
-    ${modoOscuro
-      ? "bg-[#262626] text-gray-100 border border-white/15 focus:border-[#00c57a]"
-      : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"
+    ${
+      modoOscuro
+        ? "bg-[#262626] text-gray-100 border border-white/15 focus:border-[#00c57a]"
+        : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"
     }`;
 
   const muted = modoOscuro ? "text-gray-400" : "text-gray-500";
@@ -408,11 +391,12 @@ const TransaccionesUsuario = () => {
             onClick={() => setFilter(f.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
               transition-all duration-200 shrink-0
-              ${filter === f.id
-                ? f.color
-                : modoOscuro
-                  ? "text-gray-400 bg-white/5 hover:bg-white/10"
-                  : "text-gray-500 bg-black/5 hover:bg-black/10"
+              ${
+                filter === f.id
+                  ? f.color
+                  : modoOscuro
+                    ? "text-gray-400 bg-white/5 hover:bg-white/10"
+                    : "text-gray-500 bg-black/5 hover:bg-black/10"
               }`}
           >
             {f.label}
@@ -491,10 +475,11 @@ const TransaccionesUsuario = () => {
       text-center
       border
       animate-pulse
-      ${alerta.tipo === "success"
-                    ? "bg-[#00c57a]/10 text-[#00c57a] border-[#00c57a]/20"
-                    : "bg-red-500/10 text-red-400 border-red-500/20"
-                  }
+      ${
+        alerta.tipo === "success"
+          ? "bg-[#00c57a]/10 text-[#00c57a] border-[#00c57a]/20"
+          : "bg-red-500/10 text-red-400 border-red-500/20"
+      }
     `}
               >
                 {alerta.mensaje}
@@ -531,11 +516,12 @@ const TransaccionesUsuario = () => {
                   })
                 }
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
-                  ${newTransaction.type === "ingreso"
-                    ? "bg-[#00c57a] text-white shadow-sm"
-                    : modoOscuro
-                      ? "text-gray-400"
-                      : "text-gray-500"
+                  ${
+                    newTransaction.type === "ingreso"
+                      ? "bg-[#00c57a] text-white shadow-sm"
+                      : modoOscuro
+                        ? "text-gray-400"
+                        : "text-gray-500"
                   }`}
               >
                 Ingreso
@@ -549,11 +535,12 @@ const TransaccionesUsuario = () => {
                   })
                 }
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
-                  ${newTransaction.type === "gasto"
-                    ? "bg-red-500 text-white shadow-sm"
-                    : modoOscuro
-                      ? "text-gray-400"
-                      : "text-gray-500"
+                  ${
+                    newTransaction.type === "gasto"
+                      ? "bg-red-500 text-white shadow-sm"
+                      : modoOscuro
+                        ? "text-gray-400"
+                        : "text-gray-500"
                   }`}
               >
                 Gasto
@@ -578,15 +565,15 @@ const TransaccionesUsuario = () => {
                 </option>
                 {isIngreso
                   ? fuentesIngreso.map((c, i) => (
-                    <option key={i} value={c}>
-                      {c}
-                    </option>
-                  ))
+                      <option key={i} value={c}>
+                        {c}
+                      </option>
+                    ))
                   : categorias.map((c) => (
-                    <option key={c.id} value={c.nombre}>
-                      {c.nombre}
-                    </option>
-                  ))}
+                      <option key={c.id} value={c.nombre}>
+                        {c.nombre}
+                      </option>
+                    ))}
               </select>
 
               {/* Descripción */}
@@ -607,10 +594,11 @@ const TransaccionesUsuario = () => {
               <div className="flex">
                 <span
                   className={`px-3 py-2.5 rounded-l-lg text-sm border-y border-l font-medium
-                  ${modoOscuro
+                  ${
+                    modoOscuro
                       ? "bg-[#333] border-white/15 text-gray-300"
                       : "bg-gray-100 border-gray-200 text-gray-500"
-                    }`}
+                  }`}
                 >
                   Q
                 </span>
@@ -618,9 +606,10 @@ const TransaccionesUsuario = () => {
                   type="number"
                   min="1"
                   className={`flex-1 px-3 py-2.5 rounded-r-lg text-sm outline-none border
-                    ${modoOscuro
-                      ? "bg-[#262626] text-gray-100 border-white/15 focus:border-[#00c57a]"
-                      : "bg-gray-50 text-[#2e2828] border-gray-200 focus:border-[#00c57a]"
+                    ${
+                      modoOscuro
+                        ? "bg-[#262626] text-gray-100 border-white/15 focus:border-[#00c57a]"
+                        : "bg-gray-50 text-[#2e2828] border-gray-200 focus:border-[#00c57a]"
                     }`}
                   placeholder="0.00"
                   value={newTransaction.amount}
@@ -649,9 +638,10 @@ const TransaccionesUsuario = () => {
               <button
                 onClick={resetFormulario}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors
-                  ${modoOscuro
-                    ? "bg-white/5 text-gray-300 hover:bg-white/10"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ${
+                    modoOscuro
+                      ? "bg-white/5 text-gray-300 hover:bg-white/10"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
               >
                 Cancelar
@@ -659,9 +649,10 @@ const TransaccionesUsuario = () => {
               <button
                 onClick={handleAddTransaction}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white
-                  transition-colors ${isIngreso
-                    ? "bg-[#00c57a] hover:bg-[#00a865]"
-                    : "bg-red-500 hover:bg-red-600"
+                  transition-colors ${
+                    isIngreso
+                      ? "bg-[#00c57a] hover:bg-[#00a865]"
+                      : "bg-red-500 hover:bg-red-600"
                   }`}
               >
                 {modoEdicion ? "Actualizar" : "Guardar"}
