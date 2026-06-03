@@ -305,8 +305,11 @@ const TransaccionesUsuario = () => {
 
   const formatCurrency = (v) => `Q ${parseFloat(v).toFixed(2)}`;
   const formatDate = (d) => {
-    const fecha = d?.includes("T") ? new Date(d) : new Date(d + "T00:00:00");
-    return fecha.toLocaleDateString("es-GT", {
+    if (!d) return "";
+    // Tomar solo la parte de fecha del string (antes de T)
+    const soloFecha = d.includes("T") ? d.split("T")[0] : d;
+    const [anio, mes, dia] = soloFecha.split("-");
+    return new Date(anio, mes - 1, dia).toLocaleDateString("es-GT", {
       day: "2-digit",
       month: "short",
       year: "numeric",
