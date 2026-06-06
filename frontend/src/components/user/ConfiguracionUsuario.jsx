@@ -3,18 +3,10 @@ import api from "../../services/api";
 
 api.defaults.withCredentials = true;
 
-const MONEDAS = [
-  { code: "GTQ", label: "Quetzal (Q)" },
-  { code: "USD", label: "Dólar ($)" },
-  { code: "MXN", label: "Peso MX ($)" },
-  { code: "EUR", label: "Euro (€)" },
-];
-
 const TABS = [
   { id: "perfil",         label: "Perfil" },
   { id: "seguridad",      label: "Contraseña" },
   { id: "notificaciones", label: "Notificaciones" },
-  { id: "preferencias",   label: "Preferencias" },
 ];
 
 // ── Mensaje ───────────────────────────────────────────────────
@@ -167,21 +159,6 @@ export default function ConfiguracionUsuario() {
     } finally { setGuardando(false); }
   };
 
-  // Guardar preferencias — guarda moneda en localStorage y formato en backend
-  const guardarPreferencias = async () => {
-    setGuardando(true);
-    try {
-      localStorage.setItem("moneda", moneda);
-      await api.put("/configuraciones", {
-        notificaciones: { ...notif, email:true, weekly:true, monthly:true },
-        formato,
-      });
-      mostrarMsg("Preferencias guardadas.");
-    } catch(e) {
-      mostrarMsg("Error al guardar preferencias.");
-    } finally { setGuardando(false); }
-  };
-
   // ── Estilos dinámicos ─────────────────────────────────────
   const card = `rounded-3xl border p-6 shadow-sm w-full ${modoOscuro ? "..." : "..."}`;
   const inputCls = `w-full px-4 py-3 rounded-2xl border text-sm outline-none transition-all
@@ -288,6 +265,7 @@ export default function ConfiguracionUsuario() {
                     className={`${inputCls} pr-16`}
                     placeholder="••••••••"
                     value={pass[key]}
+                    autoComplete="new-password"
                     onChange={e => setPass(p => ({ ...p, [key]: e.target.value }))}
                   />
                   <button type="button"
@@ -345,61 +323,6 @@ export default function ConfiguracionUsuario() {
           <div className="flex justify-end mt-6">
             <button onClick={guardarNotificaciones} disabled={guardando} className={btnBase}>
               {guardando ? "Guardando..." : "Guardar"}
-            </button>
-          </div>
-          <Msg msg={msg} />
-        </div>
-      )}
-
-      {/* ── PREFERENCIAS ────────────────────────────────────── */}
-      {tab === "preferencias" && (
-        <div className={card}>
-          <h5 className="font-semibold mb-1">Preferencias</h5>
-          <p className={`text-sm mb-5 ${modoOscuro ? "text-gray-500" : "text-gray-400"}`}>
-            Personaliza cómo se muestran tus datos.
-          </p>
-
-          {/* Moneda */}
-          <div className="mb-6">
-            <label className={labelCls}>Moneda</label>
-            <div className="grid grid-cols-2 gap-2">
-              {MONEDAS.map(m => (
-                <button key={m.code} onClick={() => setMoneda(m.code)}
-                  className={`px-4 py-3 rounded-2xl text-sm text-left border transition-all font-medium
-                    ${moneda === m.code
-                      ? "border-[#00c57a] bg-[#00c57a]/10 text-[#00c57a]"
-                      : modoOscuro
-                        ? "border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/5"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                    }`}>
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Formato exportación */}
-          <div className="mb-2">
-            <label className={labelCls}>Formato de exportación</label>
-            <div className="flex gap-2">
-              {["pdf","excel","html"].map(f => (
-                <button key={f} onClick={() => setFormato(f)}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold border transition-all uppercase
-                    ${formato === f
-                      ? "border-[#00c57a] bg-[#00c57a]/10 text-[#00c57a]"
-                      : modoOscuro
-                        ? "border-white/10 text-gray-400 hover:border-white/20"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
-                    }`}>
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-6">
-            <button onClick={guardarPreferencias} disabled={guardando} className={btnBase}>
-              {guardando ? "Guardando..." : "Guardar preferencias"}
             </button>
           </div>
           <Msg msg={msg} />
