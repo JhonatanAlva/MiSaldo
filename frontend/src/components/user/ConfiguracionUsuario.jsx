@@ -183,7 +183,7 @@ export default function ConfiguracionUsuario() {
   };
 
   // ── Estilos dinámicos ─────────────────────────────────────
-  const card   = `rounded-3xl border p-6 shadow-sm ${modoOscuro ? "bg-[#1a1a1a] border-white/10 text-gray-100" : "bg-white border-gray-100 text-gray-800"}`;
+  const card = `rounded-3xl border p-6 shadow-sm w-full ${modoOscuro ? "..." : "..."}`;
   const inputCls = `w-full px-4 py-3 rounded-2xl border text-sm outline-none transition-all
     ${modoOscuro
       ? "bg-[#262626] border-white/15 text-gray-100 placeholder-gray-500 focus:border-[#00c57a]"
@@ -201,7 +201,7 @@ export default function ConfiguracionUsuario() {
   );
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-10">
+    <div className="w-full pb-10">
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold">Configuración</h2>
@@ -211,7 +211,7 @@ export default function ConfiguracionUsuario() {
       </div>
 
       {/* Tabs — scroll horizontal en móvil */}
-      <div className={`flex gap-1 p-1 rounded-2xl mb-5 overflow-x-auto scrollbar-none ${tabBg}`}>
+      <div className={`flex gap-1 p-1 rounded-2xl mb-5 overflow-x-auto scrollbar-none max-w-md ${tabBg}`}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => { setTab(t.id); setMsg(""); }}
             className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap
@@ -238,7 +238,7 @@ export default function ConfiguracionUsuario() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { key:"nombres",   lab:"Nombres",   ph:"Tu nombre" },
               { key:"apellidos", lab:"Apellidos",  ph:"Tu apellido" },
@@ -274,7 +274,7 @@ export default function ConfiguracionUsuario() {
             Mínimo 6 caracteres. Usa una combinación segura.
           </p>
 
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { key:"actual",    lab:"Contraseña actual" },
               { key:"nueva",     lab:"Nueva contraseña" },
