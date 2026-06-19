@@ -6,6 +6,7 @@ const { generarToken } = require("../utils/jwt");
 const { registrarBitacora } = require("../utils/bitacora");
 const { BACKEND_URL, FRONTEND_URL } = require("../utils/urls");
 const { generarEmailConfirmacion } = require("../utils/emailTemplates");
+const { generarEmailRecuperacion } = require("../utils/emailTemplates");
 
 // ── Login ─────────────────────────────────────────────────────
 const login = async (correo, contrasena) => {
@@ -145,6 +146,78 @@ const googleCallback = async (usuario) => {
   return { token, destino };
 };
 
+// ── Solicitar recuperación de contraseña ───────────────────────
+const solicitarRecuperacion = async (correo) => {
+  const result = await db.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
+ 
+  // Por seguridad, siempre respondemos lo mismo exista o no el correo
+  // (evita que alguien pueda enumerar correos registrados)
+  if (result.rows.length === 0) {
+    return { mensaje: "Si el correo existe, recibirás un enlace para recuperar tu contraseña." };
+  }
+ 
+  const usuario = result.rows[0];
+  const token   = uuidv4();
+  const expira  = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
+ 
+  await db.query(
+    "UPDATE usuarios SET token_recuperacion = $1, token_recuperacion_expira = $2 WHERE id = $3",
+    [token, expira, usuario.id]
+  );
+ 
+  const url  = `${FRONTEND_URL}/restablecer/${token}`;
+  const html = generarEmailRecuperacion(usuario.nombres, url);
+ 
+  await sendEmail(correo, "Recupera tu contraseña en SaldoGt", html);
+ 
+  return { mensaje: "Si el correo existe, recibirás un enlace para recuperar tu contraseña." };
+};
+ 
+// ── Validar token de recuperación ──────────────────────────────
+const validarTokenRecuperacion = async (token) => {
+  const result = await db.query(
+    "SELECT id, token_recuperacion_expira FROM usuarios WHERE token_recuperacion = $1",
+    [token]
+  );
+ 
+  if (result.rows.length === 0) {
+    return { error: 400, mensaje: "Token inválido o expirado." };
+  }
+ 
+  const usuario = result.rows[0];
+  if (new Date(usuario.token_recuperacion_expira) < new Date()) {
+    return { error: 400, mensaje: "El enlace ha expirado. Solicita uno nuevo." };
+  }
+ 
+  return { ok: true };
+};
+ 
+// ── Restablecer contraseña con token ───────────────────────────
+const restablecerPassword = async (token, nuevaContrasena) => {
+  const result = await db.query(
+    "SELECT id, token_recuperacion_expira FROM usuarios WHERE token_recuperacion = $1",
+    [token]
+  );
+ 
+  if (result.rows.length === 0) {
+    return { error: 400, mensaje: "Token inválido o expirado." };
+  }
+ 
+  const usuario = result.rows[0];
+  if (new Date(usuario.token_recuperacion_expira) < new Date()) {
+    return { error: 400, mensaje: "El enlace ha expirado. Solicita uno nuevo." };
+  }
+ 
+  const hash = await bcrypt.hash(nuevaContrasena, 10);
+  await db.query(
+    "UPDATE usuarios SET contrasena = $1, token_recuperacion = NULL, token_recuperacion_expira = NULL WHERE id = $2",
+    [hash, usuario.id]
+  );
+ 
+  return { ok: true, mensaje: "Contraseña actualizada correctamente." };
+};
+
+
 module.exports = {
   login,
   registro,
@@ -152,4 +225,7 @@ module.exports = {
   getUsuario,
   listarUsuarios,
   googleCallback,
+  solicitarRecuperacion,
+  validarTokenRecuperacion,
+  restablecerPassword
 };

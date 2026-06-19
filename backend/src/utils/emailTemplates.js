@@ -31,6 +31,34 @@ const generarEmailConfirmacion = (nombre, url) => {
   `;
 };
 
+const generarEmailRecuperacion = (nombres, url) => `
+  <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background:#f5f7fb;">
+    <div style="background:#ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+      <h2 style="color:#111318; margin-bottom: 8px;">Hola, ${nombres} 👋</h2>
+      <p style="color:#555; font-size: 15px; line-height: 1.6;">
+        Recibimos una solicitud para restablecer tu contraseña en <strong>SaldoGt</strong>.
+        Si fuiste tú, haz clic en el siguiente botón para continuar:
+      </p>
+      <div style="text-align:center; margin: 28px 0;">
+        <a href="${url}"
+           style="background:#00c896; color:#000; text-decoration:none; font-weight:bold;
+                  padding: 12px 28px; border-radius: 10px; display:inline-block; font-size: 14px;">
+          Restablecer contraseña
+        </a>
+      </div>
+      <p style="color:#999; font-size: 13px; line-height: 1.5;">
+        Este enlace expirará en 1 hora. Si no solicitaste este cambio, puedes ignorar este correo
+        y tu contraseña seguirá igual.
+      </p>
+      <hr style="border:none; border-top:1px solid #eee; margin: 24px 0;">
+      <p style="color:#bbb; font-size: 11px; text-align:center;">
+        © 2025 SaldoGt · Todos los derechos reservados
+      </p>
+    </div>
+  </div>
+`;
+
 module.exports = {
   generarEmailConfirmacion,
+  generarEmailRecuperacion,
 };

@@ -134,6 +134,49 @@ const listarUsuarios = async (req, res) => {
   }
 };
 
+// ── Solicitar recuperación ─────────────────────────────────────
+const solicitarRecuperacion = async (req, res) => {
+  try {
+    const { correo } = req.body;
+    if (!correo) return res.status(400).json({ mensaje: "El correo es obligatorio" });
+ 
+    const data = await authService.solicitarRecuperacion(correo);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ mensaje: "Error al procesar la solicitud" });
+  }
+};
+ 
+// ── Validar token (para mostrar el form solo si es válido) ────
+const validarTokenRecuperacion = async (req, res) => {
+  try {
+    const data = await authService.validarTokenRecuperacion(req.params.token);
+    if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ mensaje: "Error al validar el token" });
+  }
+};
+ 
+// ── Restablecer contraseña ─────────────────────────────────────
+const restablecerPassword = async (req, res) => {
+  try {
+    const { token, nuevaContrasena } = req.body;
+    if (!token || !nuevaContrasena) {
+      return res.status(400).json({ mensaje: "Datos incompletos" });
+    }
+    if (nuevaContrasena.length < 6) {
+      return res.status(400).json({ mensaje: "La contraseña debe tener al menos 6 caracteres" });
+    }
+ 
+    const data = await authService.restablecerPassword(token, nuevaContrasena);
+    if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
+    res.json({ mensaje: data.mensaje });
+  } catch (err) {
+    res.status(500).json({ mensaje: "Error al restablecer la contraseña" });
+  }
+};
+
 module.exports = {
   googleCallback,
   getUsuario,
@@ -142,4 +185,7 @@ module.exports = {
   confirmarCuenta,
   registro,
   listarUsuarios,
+  solicitarRecuperacion,
+  validarTokenRecuperacion,
+  restablecerPassword
 };

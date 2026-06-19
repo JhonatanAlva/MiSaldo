@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
+import { login, getUsuario } from "../../services/authService";
 import { AuthContext } from "../../context/AuthContext";
 
 const LoginForm = ({ setError }) => {
@@ -9,7 +9,7 @@ const LoginForm = ({ setError }) => {
   const [cargando, setCargando] = useState(false);
 
   const navigate = useNavigate();
-  const { verificarUsuario } = useContext(AuthContext); // obtener función
+  const { verificarUsuario } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,16 +17,13 @@ const LoginForm = ({ setError }) => {
     setCargando(true);
 
     try {
-      await login(correo, contrasena); // establece la cookie
+      await login(correo, contrasena);
+      await verificarUsuario();
 
-      await verificarUsuario(); // sincroniza el contexto con el backend
-
-      const res = await import("../../services/authService")
-        .then(m => m.getUsuario());
+      const res = await getUsuario();
       const rol = res.data?.rol;
 
       navigate(rol === "Administrador" ? "/admin" : "/usuario");
-
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al iniciar sesión");
     } finally {
@@ -52,14 +49,24 @@ const LoginForm = ({ setError }) => {
         required
       />
 
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={contrasena}
-        onChange={(e) => setContrasena(e.target.value)}
-        className={inputClass}
-        required
-      />
+      <div>
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={contrasena}
+          onChange={(e) => setContrasena(e.target.value)}
+          className={inputClass}
+          required
+        />
+        <div className="text-right mt-1.5">
+          <a
+            href="/olvide-contrasena"
+            className="text-xs text-gray-500 hover:text-[#00c896] transition-colors"
+          >
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+      </div>
 
       <button
         type="submit"

@@ -45,6 +45,20 @@ const registroLimiter = rateLimit({
 });
 
 // ─────────────────────────────────────
+// Recuperación limiter
+// ─────────────────────────────────────
+
+const recuperacionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    mensaje: "Demasiadas solicitudes de recuperación. Intenta más tarde.",
+  },
+});
+
+// ─────────────────────────────────────
 // Google OAuth
 // ─────────────────────────────────────
 router.get(
@@ -96,6 +110,23 @@ router.get(
   "/confirmar/:token",
 
   authController.confirmarCuenta,
+);
+
+router.post(
+  "/solicitar-recuperacion",
+  recuperacionLimiter,
+  authController.solicitarRecuperacion,
+);
+ 
+router.get(
+  "/validar-token-recuperacion/:token",
+  authController.validarTokenRecuperacion,
+);
+ 
+router.post(
+  "/restablecer-password",
+  recuperacionLimiter,
+  authController.restablecerPassword,
 );
 
 // ─────────────────────────────────────

@@ -6,6 +6,8 @@ import Admin from "./pages/Admin";
 import RutaUsuario from "./components/user/RutaUsuario";
 import PanelUsuario from "./pages/PanelUsuario";
 import OAuthSuccess from "./pages/OAuthSuccess";
+import OlvideContrasena from "./pages/OlvideContrasena";
+import RestablecerContrasena from "./pages/RestablecerContrasena";
 
 function App() {
   return (
@@ -15,6 +17,9 @@ function App() {
         <Route path="/registro" element={<Registro />} />
 
         <Route path="/oauth-success" element={<OAuthSuccess />} />
+
+        <Route path="/olvide-contrasena" element={<OlvideContrasena />} />
+        <Route path="/restablecer/:token" element={<RestablecerContrasena />} />
 
         <Route
           path="/admin"
