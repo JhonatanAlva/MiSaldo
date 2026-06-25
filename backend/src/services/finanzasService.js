@@ -223,30 +223,30 @@ const getHistorial = async (usuarioId, { fechaInicio, fechaFin }) => {
 };
 
 // ── Eliminar movimiento ───────────────────────────────────────
-const eliminarMovimiento = async (tipo, id) => {
+const eliminarMovimiento = async (usuarioId, tipo, id) => {
     const tabla = tipo === 'ingreso' ? 'ingresos' : tipo === 'gasto' ? 'gastos' : null;
     if (!tabla) return { error: 400, mensaje: 'Tipo inválido' };
 
-    const result = await db.query(`DELETE FROM ${tabla} WHERE id = $1`, [id]);
+    const result = await db.query(`DELETE FROM ${tabla} WHERE id = $1 AND usuario_id = $2`, [id, usuarioId]);
     if (result.rowCount === 0) return { error: 404, mensaje: 'Movimiento no encontrado o ya eliminado' };
     return { ok: true };
 };
 
 // ── Editar movimiento —────────────────────────────────────── 
-const editarMovimiento = async (tipo, id, body) => {
+const editarMovimiento = async (usuarioId, tipo, id, body) => {
   const { monto, fuente, descripcion, fecha, categoria_id } = body;
   const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
 
   let result;
   if (tipo === 'ingreso') {
     result = await db.query(
-      'UPDATE ingresos SET monto = $1, fuente = $2, fecha = $3, descripcion = $4 WHERE id = $5',
-      [monto, fuente, fechaFormateada, descripcion || null, id]
+      'UPDATE ingresos SET monto = $1, fuente = $2, fecha = $3, descripcion = $4 WHERE id = $5 AND usuario_id = $6',
+      [monto, fuente, fechaFormateada, descripcion || null, id, usuarioId]
     );
   } else if (tipo === 'gasto') {
     result = await db.query(
-      'UPDATE gastos SET monto = $1, descripcion = $2, fecha = $3, categoria_id = $4 WHERE id = $5',
-      [monto, descripcion, fechaFormateada, categoria_id, id]
+      'UPDATE gastos SET monto = $1, descripcion = $2, fecha = $3, categoria_id = $4 WHERE id = $5 AND usuario_id = $6',
+      [monto, descripcion, fechaFormateada, categoria_id, id, usuarioId]
     );
   } else {
     return { error: 400, mensaje: 'Tipo inválido' };
@@ -255,6 +255,7 @@ const editarMovimiento = async (tipo, id, body) => {
   if (result.rowCount === 0) return { error: 404, mensaje: 'Movimiento no encontrado' };
   return { ok: true };
 };
+
 module.exports = {
     agregarIngreso,
     agregarGasto,

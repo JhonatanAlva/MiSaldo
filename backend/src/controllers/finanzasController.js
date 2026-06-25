@@ -123,21 +123,38 @@ const getHistorial = async (req, res) => {
 
 const eliminarMovimiento = async (req, res) => {
     try {
-        const data = await finanzasService.eliminarMovimiento(req.params.tipo, req.params.id);
-        if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
-        res.json({ mensaje: 'Movimiento eliminado correctamente' });
+        const data = await finanzasService.eliminarMovimiento(
+            req.usuario.id,
+            req.params.tipo,
+            req.params.id
+        );
+
+        if (data.error)
+            return res.status(data.error).json({ mensaje: data.mensaje });
+
+        res.json({ mensaje: "Movimiento eliminado correctamente" });
+
     } catch (err) {
-        res.status(500).json({ mensaje: 'Error al eliminar movimiento' });
+        res.status(500).json({ mensaje: "Error al eliminar movimiento" });
     }
 };
 
 const editarMovimiento = async (req, res) => {
     try {
-        const data = await finanzasService.editarMovimiento(req.params.tipo, req.params.id, req.body);
-        if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
-        res.json({ mensaje: 'Movimiento actualizado correctamente' });
+        const data = await finanzasService.editarMovimiento(
+            req.usuario.id,
+            req.params.tipo,
+            req.params.id,
+            req.body
+        );
+
+        if (data.error)
+            return res.status(data.error).json({ mensaje: data.mensaje });
+
+        res.json({ mensaje: "Movimiento actualizado correctamente" });
+
     } catch (err) {
-        res.status(500).json({ mensaje: 'Error al actualizar movimiento' });
+        res.status(500).json({ mensaje: "Error al actualizar movimiento" });
     }
 };
 
