@@ -22,8 +22,7 @@ const googleCallback = async (req, res) => {
 
   const { token } = await authService.googleCallback(req.user);
 
-  res.cookie("token", token, getCookieOptions());
-  return res.redirect(`${FRONTEND_URL}/oauth-success`);
+  return res.redirect(`${FRONTEND_URL}/oauth-success?token=${token}`);
 };
 
 // ── Obtener usuario actual ────────────────────────────────────
@@ -177,6 +176,22 @@ const restablecerPassword = async (req, res) => {
   }
 };
 
+// ── Canjear token OAuth por httpOnly cookie ───────────────────
+const canjearTokenOAuth = (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ mensaje: "Token requerido" });
+
+  const { generarToken: _, ...jwt } = require("../utils/jwt");
+  try {
+    require("jsonwebtoken").verify(token, process.env.JWT_SECRET);
+  } catch {
+    return res.status(401).json({ mensaje: "Token inválido" });
+  }
+
+  res.cookie("token", token, getCookieOptions());
+  res.json({ ok: true });
+};
+
 module.exports = {
   googleCallback,
   getUsuario,
@@ -187,5 +202,6 @@ module.exports = {
   listarUsuarios,
   solicitarRecuperacion,
   validarTokenRecuperacion,
-  restablecerPassword
+  restablecerPassword,
+  canjearTokenOAuth,
 };

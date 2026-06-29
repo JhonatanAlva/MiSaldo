@@ -148,4 +148,6 @@ router.get(
   authController.listarUsuarios,
 );
 
+router.post("/canjear-token-oauth", authController.canjearTokenOAuth);
+
 module.exports = router;
