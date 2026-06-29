@@ -32,6 +32,12 @@ const getUsuario = async (req, res) => {
     if (data.error)
       return res.status(data.error).json({ mensaje: data.mensaje });
 
+    // Flujo OAuth: si el token llegó por Authorization header, convertirlo a httpOnly cookie
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      res.cookie("token", authHeader.split(" ")[1], getCookieOptions());
+    }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ mensaje: "Error del servidor" });
@@ -176,25 +182,6 @@ const restablecerPassword = async (req, res) => {
   }
 };
 
-// ── Canjear token OAuth → cookie + datos de usuario en una sola llamada ──
-const canjearTokenOAuth = async (req, res) => {
-  const { token } = req.body;
-  if (!token) return res.status(400).json({ mensaje: "Token requerido" });
-
-  let decoded;
-  try {
-    decoded = require("jsonwebtoken").verify(token, process.env.JWT_SECRET);
-  } catch {
-    return res.status(401).json({ mensaje: "Token inválido" });
-  }
-
-  const data = await authService.getUsuario(decoded.id);
-  if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
-
-  res.cookie("token", token, getCookieOptions());
-  res.json(data);
-};
-
 module.exports = {
   googleCallback,
   getUsuario,
@@ -206,5 +193,4 @@ module.exports = {
   solicitarRecuperacion,
   validarTokenRecuperacion,
   restablecerPassword,
-  canjearTokenOAuth,
 };

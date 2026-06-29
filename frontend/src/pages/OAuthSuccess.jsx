@@ -17,8 +17,11 @@ export default function OAuthSuccess() {
     // Borrar el token de la URL de inmediato
     window.history.replaceState({}, "", "/oauth-success");
 
-    // Una sola llamada: valida el token, pone la httpOnly cookie y devuelve el rol
-    api.post("/auth/canjear-token-oauth", { token })
+    // Enviar token como Bearer header: el backend lo verifica, setea la httpOnly cookie
+    // y devuelve los datos del usuario — todo en una sola llamada
+    api.get("/auth/usuario", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => {
         const rol = res.data.rol;
         navigate(rol === "Administrador" ? "/admin" : "/usuario");
