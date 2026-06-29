@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+const PgSession = require("connect-pg-simple")(session);
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
@@ -8,8 +9,8 @@ const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 
 const { FRONTEND_URL } = require("./utils/urls");
+const db = require("./config/db");
 
-require("./config/db");
 require("./config/passport");
 
 require("./cron");
@@ -123,17 +124,17 @@ app.use(
 // ─────────────────────────────────────
 app.use(
   session({
+    store: new PgSession({
+      pool: db,
+      tableName: "session",
+      createTableIfMissing: true,
+    }),
     secret: process.env.SESSION_SECRET,
-
     resave: false,
-
     saveUninitialized: false,
-
     cookie: {
       httpOnly: true,
-
       secure: isProduction,
-
       sameSite: isProduction ? "none" : "lax",
     },
   }),
