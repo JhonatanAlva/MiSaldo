@@ -14,12 +14,11 @@ export default function OAuthSuccess() {
       return;
     }
 
-    // Borrar el token de la URL inmediatamente
+    // Borrar el token de la URL de inmediato
     window.history.replaceState({}, "", "/oauth-success");
 
-    // Canjear el token por una httpOnly cookie en el backend
+    // Una sola llamada: valida el token, pone la httpOnly cookie y devuelve el rol
     api.post("/auth/canjear-token-oauth", { token })
-      .then(() => api.get("/auth/usuario"))
       .then((res) => {
         const rol = res.data.rol;
         navigate(rol === "Administrador" ? "/admin" : "/usuario");

@@ -176,20 +176,23 @@ const restablecerPassword = async (req, res) => {
   }
 };
 
-// ── Canjear token OAuth por httpOnly cookie ───────────────────
-const canjearTokenOAuth = (req, res) => {
+// ── Canjear token OAuth → cookie + datos de usuario en una sola llamada ──
+const canjearTokenOAuth = async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ mensaje: "Token requerido" });
 
-  const { generarToken: _, ...jwt } = require("../utils/jwt");
+  let decoded;
   try {
-    require("jsonwebtoken").verify(token, process.env.JWT_SECRET);
+    decoded = require("jsonwebtoken").verify(token, process.env.JWT_SECRET);
   } catch {
     return res.status(401).json({ mensaje: "Token inválido" });
   }
 
+  const data = await authService.getUsuario(decoded.id);
+  if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
+
   res.cookie("token", token, getCookieOptions());
-  res.json({ ok: true });
+  res.json(data);
 };
 
 module.exports = {
