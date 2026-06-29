@@ -14,14 +14,16 @@ export default function OAuthSuccess() {
       return;
     }
 
-    // Borrar el token de la URL de inmediato
+    const isProduction = window.location.hostname !== "localhost";
+    const cookieOptions = isProduction
+      ? `token=${token}; path=/; max-age=7200; secure; samesite=None; domain=.misaldo.lat`
+      : `token=${token}; path=/; max-age=7200`;
+
+    document.cookie = cookieOptions;
+
     window.history.replaceState({}, "", "/oauth-success");
 
-    // Enviar token como Bearer header: el backend lo verifica, setea la httpOnly cookie
-    // y devuelve los datos del usuario — todo en una sola llamada
-    api.get("/auth/usuario", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    api.get("/auth/usuario")
       .then((res) => {
         const rol = res.data.rol;
         navigate(rol === "Administrador" ? "/admin" : "/usuario");

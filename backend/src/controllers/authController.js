@@ -32,12 +32,6 @@ const getUsuario = async (req, res) => {
     if (data.error)
       return res.status(data.error).json({ mensaje: data.mensaje });
 
-    // Flujo OAuth: si el token llegó por Authorization header, convertirlo a httpOnly cookie
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      res.cookie("token", authHeader.split(" ")[1], getCookieOptions());
-    }
-
     res.json(data);
   } catch (err) {
     res.status(500).json({ mensaje: "Error del servidor" });
