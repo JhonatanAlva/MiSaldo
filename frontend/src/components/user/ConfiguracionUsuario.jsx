@@ -160,7 +160,7 @@ export default function ConfiguracionUsuario() {
   };
 
   // ── Estilos dinámicos ─────────────────────────────────────
-  const card = `rounded-3xl border p-6 shadow-sm w-full ${modoOscuro ? "..." : "..."}`;
+  const card = `rounded-3xl border p-6 shadow-sm w-full ${modoOscuro ? "bg-[#1a1a1a] border-white/10 text-gray-100" : "bg-white border-gray-100 text-gray-800"}`;
   const inputCls = `w-full px-4 py-3 rounded-2xl border text-sm outline-none transition-all
     ${modoOscuro
       ? "bg-[#262626] border-white/15 text-gray-100 placeholder-gray-500 focus:border-[#00c57a]"

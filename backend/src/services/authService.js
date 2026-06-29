@@ -1,6 +1,9 @@
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
+const { createHash } = require("crypto");
+
+const hashToken = (token) => createHash("sha256").update(token).digest("hex");
 const { sendEmail } = require("../utils/mailer");
 const { generarToken } = require("../utils/jwt");
 const { registrarBitacora } = require("../utils/bitacora");
@@ -159,17 +162,18 @@ const solicitarRecuperacion = async (correo) => {
   const usuario = result.rows[0];
   const token   = uuidv4();
   const expira  = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
- 
-  await db.query(
-    "UPDATE usuarios SET token_recuperacion = $1, token_recuperacion_expira = $2 WHERE id = $3",
-    [token, expira, usuario.id]
-  );
- 
+
   const url  = `${FRONTEND_URL}/restablecer/${token}`;
   const html = generarEmailRecuperacion(usuario.nombres, url);
- 
+
+  // Enviar primero: si falla, la BD no se toca y no queda estado inconsistente
   await sendEmail(correo, "Recupera tu contraseña en SaldoGt", html);
- 
+
+  await db.query(
+    "UPDATE usuarios SET token_recuperacion = $1, token_recuperacion_expira = $2 WHERE id = $3",
+    [hashToken(token), expira, usuario.id]
+  );
+
   return { mensaje: "Si el correo existe, recibirás un enlace para recuperar tu contraseña." };
 };
  
@@ -177,7 +181,7 @@ const solicitarRecuperacion = async (correo) => {
 const validarTokenRecuperacion = async (token) => {
   const result = await db.query(
     "SELECT id, token_recuperacion_expira FROM usuarios WHERE token_recuperacion = $1",
-    [token]
+    [hashToken(token)]
   );
  
   if (result.rows.length === 0) {
@@ -194,9 +198,10 @@ const validarTokenRecuperacion = async (token) => {
  
 // ── Restablecer contraseña con token ───────────────────────────
 const restablecerPassword = async (token, nuevaContrasena) => {
+  const tokenHash = hashToken(token);
   const result = await db.query(
     "SELECT id, token_recuperacion_expira FROM usuarios WHERE token_recuperacion = $1",
-    [token]
+    [tokenHash]
   );
  
   if (result.rows.length === 0) {
@@ -209,11 +214,15 @@ const restablecerPassword = async (token, nuevaContrasena) => {
   }
  
   const hash = await bcrypt.hash(nuevaContrasena, 10);
-  await db.query(
-    "UPDATE usuarios SET contrasena = $1, token_recuperacion = NULL, token_recuperacion_expira = NULL WHERE id = $2",
-    [hash, usuario.id]
+  const update = await db.query(
+    "UPDATE usuarios SET contrasena = $1, token_recuperacion = NULL, token_recuperacion_expira = NULL WHERE id = $2 AND token_recuperacion = $3",
+    [hash, usuario.id, tokenHash]
   );
- 
+
+  if (update.rowCount === 0) {
+    return { error: 400, mensaje: "Token inválido o expirado." };
+  }
+
   return { ok: true, mensaje: "Contraseña actualizada correctamente." };
 };
 

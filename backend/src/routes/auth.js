@@ -6,7 +6,7 @@ const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
 
-const { verificarToken } = require("../utils/jwt");
+const { verificarToken, verificarAdmin } = require("../utils/jwt");
 
 const authController = require("../controllers/authController");
 
@@ -120,6 +120,7 @@ router.post(
  
 router.get(
   "/validar-token-recuperacion/:token",
+  recuperacionLimiter,
   authController.validarTokenRecuperacion,
 );
  
@@ -142,9 +143,8 @@ router.get(
 
 router.get(
   "/usuarios",
-
   verificarToken,
-
+  verificarAdmin,
   authController.listarUsuarios,
 );
 

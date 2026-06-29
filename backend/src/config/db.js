@@ -5,13 +5,16 @@ console.log("Inicializando conexión a DB...");
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const sslConfig = {
+  rejectUnauthorized: true,
+  ...(process.env.DB_SSL_CERT && { ca: process.env.DB_SSL_CERT }),
+};
+
 const pool = new Pool(
   isProduction
     ? {
         connectionString: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: sslConfig,
       }
     : {
         host: process.env.DB_HOST,

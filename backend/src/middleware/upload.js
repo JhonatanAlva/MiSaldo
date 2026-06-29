@@ -1,8 +1,7 @@
 const multer = require("multer");
-
 const path = require("path");
-
 const fs = require("fs");
+const crypto = require("crypto");
 
 // ─────────────────────────────────────
 // Crear carpeta uploads si no existe
@@ -34,58 +33,29 @@ const storage =
 
     },
 
-    filename: (
-      req,
-      file,
-      cb
-    ) => {
-
-      const nombre =
-        Date.now() +
-        "-" +
-        file.originalname
-          .replace(/\s+/g, "-");
-
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const nombre = crypto.randomUUID() + ext;
       cb(null, nombre);
-
     },
   });
 
 // ─────────────────────────────────────
 // Filtro imágenes
 // ─────────────────────────────────────
-const fileFilter = (
-  req,
-  file,
-  cb
-) => {
+const EXTENSIONES_PERMITIDAS = [".jpg", ".jpeg", ".png", ".webp"];
+const MIMES_PERMITIDOS = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
-  const tiposPermitidos = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
+const fileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mimeValido = MIMES_PERMITIDOS.includes(file.mimetype);
+  const extValida = EXTENSIONES_PERMITIDAS.includes(ext);
 
-  if (
-    tiposPermitidos.includes(
-      file.mimetype
-    )
-  ) {
-
+  if (mimeValido && extValida) {
     cb(null, true);
-
   } else {
-
-    cb(
-      new Error(
-        "Formato no permitido"
-      ),
-      false
-    );
-
+    cb(new Error("Formato no permitido"), false);
   }
-
 };
 
 // ─────────────────────────────────────

@@ -22,8 +22,8 @@ const googleCallback = async (req, res) => {
 
   const { token } = await authService.googleCallback(req.user);
 
-  // Pasar el token por query param en vez de cookie
-  return res.redirect(`${FRONTEND_URL}/oauth-success?token=${token}`);
+  res.cookie("token", token, getCookieOptions());
+  return res.redirect(`${FRONTEND_URL}/oauth-success`);
 };
 
 // ── Obtener usuario actual ────────────────────────────────────

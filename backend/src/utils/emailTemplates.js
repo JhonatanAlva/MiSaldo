@@ -1,12 +1,21 @@
+const escapeHtml = (s) =>
+  String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const generarEmailConfirmacion = (nombre, url) => {
+  const nombreSeguro = escapeHtml(nombre);
   return `
   <div style="font-family: Arial, sans-serif; background:#0f172a; padding:40px;">
-    
+
     <div style="max-width:500px; margin:auto; background:#111827; padding:30px; border-radius:12px; text-align:center;">
 
       <h1 style="color:#00c896; margin-bottom:10px;">SaldoGt</h1>
 
-      <h2 style="color:#ffffff;">Hola ${nombre},</h2>
+      <h2 style="color:#ffffff;">Hola ${nombreSeguro},</h2>
 
       <p style="color:#9ca3af; font-size:14px;">
         Gracias por registrarte. Para activar tu cuenta, confirma tu correo haciendo clic en el botón.
@@ -31,10 +40,12 @@ const generarEmailConfirmacion = (nombre, url) => {
   `;
 };
 
-const generarEmailRecuperacion = (nombres, url) => `
+const generarEmailRecuperacion = (nombres, url) => {
+  const nombresSeguro = escapeHtml(nombres);
+  return `
   <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background:#f5f7fb;">
     <div style="background:#ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-      <h2 style="color:#111318; margin-bottom: 8px;">Hola, ${nombres} 👋</h2>
+      <h2 style="color:#111318; margin-bottom: 8px;">Hola, ${nombresSeguro} 👋</h2>
       <p style="color:#555; font-size: 15px; line-height: 1.6;">
         Recibimos una solicitud para restablecer tu contraseña en <strong>SaldoGt</strong>.
         Si fuiste tú, haz clic en el siguiente botón para continuar:
@@ -57,6 +68,7 @@ const generarEmailRecuperacion = (nombres, url) => `
     </div>
   </div>
 `;
+};
 
 module.exports = {
   generarEmailConfirmacion,

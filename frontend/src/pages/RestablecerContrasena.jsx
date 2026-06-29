@@ -79,7 +79,7 @@ const RestablecerContrasena = () => {
             <h2 className="text-xl font-bold text-white mb-2">Enlace inválido</h2>
             <p className="text-sm text-gray-500 mb-6">{errorToken}</p>
             <button
-              onClick={() => (window.location.href = "/olvide-contrasena")}
+              onClick={() => navigate("/olvide-contrasena")}
               className="w-full py-2.5 rounded-lg bg-[#00c896] text-black text-sm font-bold
                          hover:bg-[#00b388] transition-all duration-200"
             >

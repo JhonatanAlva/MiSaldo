@@ -85,7 +85,12 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      // Permitir sin Origin solo en desarrollo (herramientas locales, curl, etc.)
+      // En producción rechazamos null origin para evitar ataques desde file://
+      if (!origin) {
+        if (process.env.NODE_ENV !== "production") return callback(null, true);
+        return callback(new Error("No permitido por CORS"));
+      }
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);

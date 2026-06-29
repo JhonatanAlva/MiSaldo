@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login, getUsuario } from "../../services/authService";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -59,12 +59,12 @@ const LoginForm = ({ setError }) => {
           required
         />
         <div className="text-right mt-1.5">
-          <a
-            href="/olvide-contrasena"
+          <Link
+            to="/olvide-contrasena"
             className="text-xs text-gray-500 hover:text-[#00c896] transition-colors"
           >
             ¿Olvidaste tu contraseña?
-          </a>
+          </Link>
         </div>
       </div>
 

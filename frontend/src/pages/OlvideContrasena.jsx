@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { solicitarRecuperacion } from "../services/authService";
 
 const OlvideContrasena = () => {
+  const navigate = useNavigate();
   const [correo, setCorreo]       = useState("");
   const [enviado, setEnviado]     = useState(false);
   const [cargando, setCargando]   = useState(false);
@@ -82,7 +84,7 @@ const OlvideContrasena = () => {
         )}
 
         <button
-          onClick={() => (window.location.href = "/login")}
+          onClick={() => navigate("/login")}
           className="w-full mt-6 py-2.5 rounded-lg border border-[#00c896]/40 text-[#00c896] text-sm font-medium
                      hover:bg-[#00c896]/10 transition-all duration-200"
         >

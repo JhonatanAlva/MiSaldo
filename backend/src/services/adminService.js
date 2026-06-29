@@ -7,7 +7,9 @@ const { generarEmailConfirmacion } = require("../utils/emailTemplates");
 
 // ── Obtener todos los usuarios ────────────────────────────────
 const listarUsuarios = async () => {
-  const result = await db.query("SELECT * FROM usuarios");
+  const result = await db.query(
+    "SELECT id, nombres, apellidos, correo, celular, rol_id, confirmado, activo FROM usuarios"
+  );
   return result.rows.map((u) => ({ ...u, activo: Boolean(u.activo) }));
 };
 
