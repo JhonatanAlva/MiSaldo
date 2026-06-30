@@ -1,9 +1,7 @@
-import React, {
-    useEffect,
-    useState,
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import SpinnerCentrado from "../ui/SpinnerCentrado";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const CalendarioFinanciero = () => {
 
@@ -142,18 +140,16 @@ const CalendarioFinanciero = () => {
 
             </div>
 
-            {/* Loading */}
             {loading ? (
-
-                <div className="text-center py-5">
-                    Cargando calendario...
-                </div>
+                <SpinnerCentrado texto="Cargando calendario..." />
 
             ) : eventos.length === 0 ? (
 
-                <div className="alert alert-info rounded-4">
-                    No tienes gastos fijos activos.
-                </div>
+                <EstadoVacio
+                    icono="📅"
+                    titulo="Sin gastos fijos activos"
+                    descripcion="Agrega tus gastos fijos para verlos aquí."
+                />
 
             ) : (
 

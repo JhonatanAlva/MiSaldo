@@ -1,4 +1,5 @@
 import React from "react";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const TransaccionesRecientes = ({ movimientos }) => {
   const formatearFecha = (fecha) => {
@@ -44,7 +45,7 @@ const TransaccionesRecientes = ({ movimientos }) => {
           ))}
         </ul>
       ) : (
-        <p className="text-muted">No hay transacciones recientes.</p>
+        <EstadoVacio icono="💸" titulo="Sin transacciones recientes" />
       )}
     </div>
   );

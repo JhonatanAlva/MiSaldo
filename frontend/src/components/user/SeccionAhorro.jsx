@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import { Icon } from "@iconify/react";
 
@@ -7,12 +9,11 @@ const SeccionAhorro = () => {
   const [planes, setPlanes] = useState([]);
   const [modoOscuro, setModoOscuro] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [alerta, setAlerta] = useState(null);
-  const [showEliminar, setShowEliminar] = useState(false);
   const [metaSeleccionada, setMetaSeleccionada] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [showDeposito, setShowDeposito] = useState(false);
   const [abono, setAbono] = useState(0);
+  const [guardando, setGuardando] = useState(false);
 
   const [nuevaMeta, setNuevaMeta] = useState({
     meta: "",
@@ -40,11 +41,6 @@ const SeccionAhorro = () => {
 
     return () => observer.disconnect();
   }, []);
-
-  const mostrarAlerta = (mensaje, tipo = "success") => {
-    setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), 3000);
-  };
 
   const obtenerPlanes = async () => {
     try {
@@ -77,32 +73,42 @@ const SeccionAhorro = () => {
 
   const handleGuardarMeta = async (e) => {
     e.preventDefault();
+    setGuardando(true);
     try {
       if (modoEdicion && metaSeleccionada) {
         await api.put(`/ahorro/${metaSeleccionada}`, nuevaMeta);
       } else {
         await api.post("/ahorro", nuevaMeta);
       }
-      mostrarAlerta(modoEdicion ? "Meta actualizada" : "Meta guardada correctamente");
+      toast.success(modoEdicion ? "Meta actualizada" : "Meta guardada");
       setShowModal(false);
       resetFormulario();
       obtenerPlanes();
     } catch (err) {
-      console.error("Error al guardar meta:", err);
-      mostrarAlerta("Error al guardar meta", "danger");
+    } finally {
+      setGuardando(false);
     }
   };
 
-  const eliminarMeta = async () => {
+  const eliminarMeta = async (id) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar meta de ahorro?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      background: "#1e1e1e",
+      color: "#fff",
+    });
+    if (!result.isConfirmed) return;
     try {
-      await api.delete(`/ahorro/${metaSeleccionada}`);
-      mostrarAlerta("Meta eliminada correctamente");
-      setShowEliminar(false);
-      setMetaSeleccionada(null);
+      await api.delete(`/ahorro/${id}`);
       obtenerPlanes();
+      toast.success("Meta eliminada");
     } catch (err) {
-      console.error("Error al eliminar meta:", err);
-      mostrarAlerta("Error al eliminar meta", "danger");
     }
   };
 
@@ -143,13 +149,11 @@ const SeccionAhorro = () => {
         plan_id: metaSeleccionada,
         monto: parseFloat(abono),
       });
-      mostrarAlerta("Depósito realizado correctamente");
+      toast.success("Depósito realizado");
       setShowDeposito(false);
       setAbono(0);
       obtenerPlanes();
     } catch (err) {
-      console.error("Error al realizar abono:", err);
-      mostrarAlerta("Error al realizar depósito", "danger");
     }
   };
 
@@ -162,16 +166,6 @@ const SeccionAhorro = () => {
       className={`container-fluid min-vh-100 py-4 px-3 ${modoOscuro ? "bg-black text-light" : "bg-light text-dark"
         }`}
     >
-      {/* ALERTA */}
-      {alerta && (
-        <Alert
-          variant={alerta.tipo}
-          className="rounded-4 border-0 shadow-sm fw-semibold"
-        >
-          {alerta.mensaje}
-        </Alert>
-      )}
-
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
@@ -402,15 +396,7 @@ const SeccionAhorro = () => {
                     <Button
                       variant="danger"
                       className="w-100 rounded-4 fw-semibold py-2"
-                      onClick={() => {
-                        setMetaSeleccionada(
-                          plan.id
-                        );
-
-                        setShowEliminar(
-                          true
-                        );
-                      }}
+                      onClick={() => eliminarMeta(plan.id)}
                     >
                       <Icon
                         icon="mdi:trash-can-outline"
@@ -572,56 +558,12 @@ const SeccionAhorro = () => {
               <Button
                 type="submit"
                 variant="success"
+                disabled={guardando}
               >
-                {modoEdicion
-                  ? "Actualizar"
-                  : "Guardar"}
+                {guardando ? "Guardando..." : modoEdicion ? "Actualizar" : "Guardar"}
               </Button>
             </div>
           </Form>
-        </Modal.Body>
-      </Modal>
-
-      {/* MODAL ELIMINAR */}
-      <Modal
-        show={showEliminar}
-        centered
-        onHide={() =>
-          setShowEliminar(false)
-        }
-      >
-        <Modal.Body
-          className={`p-4 rounded-4 ${modoOscuro
-              ? "bg-dark text-light"
-              : ""
-            }`}
-        >
-          <h3 className="fw-bold mb-3">
-            Eliminar meta
-          </h3>
-
-          <p>
-            ¿Seguro que deseas eliminar
-            esta meta?
-          </p>
-
-          <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button
-              variant="secondary"
-              onClick={() =>
-                setShowEliminar(false)
-              }
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              variant="danger"
-              onClick={eliminarMeta}
-            >
-              Eliminar
-            </Button>
-          </div>
         </Modal.Body>
       </Modal>
 

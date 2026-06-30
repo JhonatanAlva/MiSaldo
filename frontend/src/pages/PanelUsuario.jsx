@@ -12,6 +12,7 @@ import Notificaciones from "../components/user/Notificaciones";
 import CalendarioFinanciero from "../components/user/CalendarioFinanciero";
 import IngresosFijos from "../components/user/IngresosFijos";
 import EscanerIA from "../components/escaner/EscanerIA";
+import ErrorBoundary from "../components/ui/ErrorBoundary";
 import "../assets/usuario.css";
 
 const PanelUsuario = () => {
@@ -94,16 +95,56 @@ const PanelUsuario = () => {
 
       {/* Contenido dinámico */}
       <div className="vista-contenido">
-        {vista === "resumen" && <ResumenDashboard setVista={setVista} />}
-        {vista === "transacciones" && <TransaccionesUsuario />}
-        {vista === "gastos-fijos" && <GastosFijos />}
-        {vista === "ingresos-fijos" && <IngresosFijos />}
-        {vista === "calendario" && <CalendarioFinanciero />}
-        {vista === "ia" && <AsistenteIA nombreUsuario={usuario?.nombres} />}
-        {vista === "escaner" && <EscanerIA />}
-        {vista === "ahorro" && <SeccionAhorro />}
-        {vista === "analisis" && <AnalisisFinanciero />}
-        {vista === "configuracion" && <ConfiguracionUsuario />}
+        {vista === "resumen" && (
+          <ErrorBoundary titulo="Error en el resumen" descripcion="No se pudo cargar el resumen. Intenta recargar la página.">
+            <ResumenDashboard setVista={setVista} />
+          </ErrorBoundary>
+        )}
+        {vista === "transacciones" && (
+          <ErrorBoundary titulo="Error en transacciones">
+            <TransaccionesUsuario />
+          </ErrorBoundary>
+        )}
+        {vista === "gastos-fijos" && (
+          <ErrorBoundary titulo="Error en gastos fijos">
+            <GastosFijos />
+          </ErrorBoundary>
+        )}
+        {vista === "ingresos-fijos" && (
+          <ErrorBoundary titulo="Error en ingresos fijos">
+            <IngresosFijos />
+          </ErrorBoundary>
+        )}
+        {vista === "calendario" && (
+          <ErrorBoundary titulo="Error en el calendario">
+            <CalendarioFinanciero />
+          </ErrorBoundary>
+        )}
+        {vista === "ia" && (
+          <ErrorBoundary titulo="Error en el asistente IA" descripcion="El asistente no pudo iniciarse. Intenta recargar la página.">
+            <AsistenteIA nombreUsuario={usuario?.nombres} />
+          </ErrorBoundary>
+        )}
+        {vista === "escaner" && (
+          <ErrorBoundary titulo="Error en el escáner IA" descripcion="El escáner no pudo iniciarse. Intenta recargar la página.">
+            <EscanerIA />
+          </ErrorBoundary>
+        )}
+        {vista === "ahorro" && (
+          <ErrorBoundary titulo="Error en metas de ahorro">
+            <SeccionAhorro />
+          </ErrorBoundary>
+        )}
+        {vista === "analisis" && (
+          <ErrorBoundary titulo="Error en el análisis financiero" descripcion="El análisis no pudo generarse. Intenta recargar la página.">
+            <AnalisisFinanciero />
+          </ErrorBoundary>
+        )}
+        {vista === "configuracion" && (
+          <ErrorBoundary titulo="Error en configuración">
+            <ConfiguracionUsuario />
+          </ErrorBoundary>
+        )}
       </div>
     </div>
   );

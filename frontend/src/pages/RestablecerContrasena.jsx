@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { validarTokenRecuperacion, restablecerPassword } from "../services/authService";
+import SpinnerCentrado from "../components/ui/SpinnerCentrado";
 
 const RestablecerContrasena = () => {
   const { token } = useParams();
@@ -69,7 +70,7 @@ const RestablecerContrasena = () => {
         <img src="/logo.png" alt="SaldoGt" className="w-24 mx-auto mb-8" />
 
         {validando ? (
-          <p className="text-center text-gray-500 text-sm">Validando enlace...</p>
+          <SpinnerCentrado texto="Validando enlace..." />
 
         ) : !tokenValido ? (
           <div className="text-center">

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import RutaAdmin from "./components/admin/RutaAdmin";
@@ -12,6 +13,7 @@ import RestablecerContrasena from "./pages/RestablecerContrasena";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors closeButton />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />

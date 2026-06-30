@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import { toast } from "sonner";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const GastosFijos = () => {
 
     const [gastos, setGastos] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [guardando, setGuardando] = useState(false);
 
     const [historial, setHistorial] = useState([]);
     const [mostrarHistorial, setMostrarHistorial] = useState(false);
@@ -126,6 +129,7 @@ const GastosFijos = () => {
 
         }
 
+        setGuardando(true);
         try {
 
             const payload = {
@@ -158,15 +162,7 @@ const GastosFijos = () => {
                     payload
                 );
 
-                Swal.fire({
-                    icon: "success",
-                    title: "Actualizado",
-                    text: "Gasto actualizado.",
-                    timer: 1800,
-                    showConfirmButton: false,
-                    background: "#1e1e1e",
-                    color: "#fff",
-                });
+                toast.success("Gasto actualizado");
 
             } else {
 
@@ -175,15 +171,7 @@ const GastosFijos = () => {
                     payload
                 );
 
-                Swal.fire({
-                    icon: "success",
-                    title: "Creado",
-                    text: "Gasto creado.",
-                    timer: 1800,
-                    showConfirmButton: false,
-                    background: "#1e1e1e",
-                    color: "#fff",
-                });
+                toast.success("Gasto creado");
 
             }
 
@@ -205,17 +193,8 @@ const GastosFijos = () => {
             obtenerGastos();
 
         } catch (error) {
-
-            console.error(error);
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo guardar.",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
-
+        } finally {
+            setGuardando(false);
         }
 
     };
@@ -251,10 +230,12 @@ const GastosFijos = () => {
 
         const result =
             await Swal.fire({
-                title: "¿Eliminar?",
+                title: "¿Eliminar gasto fijo?",
                 text: gasto.nombre,
                 icon: "warning",
                 showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
                 confirmButtonColor: "#ef4444",
                 cancelButtonColor: "#6b7280",
                 background: "#1e1e1e",
@@ -270,19 +251,9 @@ const GastosFijos = () => {
             );
 
             obtenerGastos();
-
-            Swal.fire({
-                icon: "success",
-                title: "Eliminado",
-                timer: 1500,
-                showConfirmButton: false,
-                background: "#1e1e1e",
-                color: "#fff",
-            });
+            toast.success("Gasto eliminado");
 
         } catch (error) {
-
-            console.error(error);
 
         }
 
@@ -843,10 +814,13 @@ const GastosFijos = () => {
                                                 : "btn-success"}
                                         `}
                                         onClick={guardarGastoFijo}
+                                        disabled={guardando}
                                     >
-                                        {editandoId
-                                            ? "Actualizar"
-                                            : "Guardar"}
+                                        {guardando
+                                            ? "Guardando..."
+                                            : editandoId
+                                                ? "Actualizar"
+                                                : "Guardar"}
                                     </button>
 
                                 </div>
@@ -939,12 +913,7 @@ const GastosFijos = () => {
 
                         {historial.length === 0 ? (
 
-                            <div className="
-                                alert
-                                alert-secondary
-                            ">
-                                No hay historial todavía.
-                            </div>
+                            <EstadoVacio icono="📋" titulo="Sin historial" descripcion="Aquí aparecerán los movimientos registrados." />
 
                         ) : (
 

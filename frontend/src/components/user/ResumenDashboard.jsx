@@ -4,6 +4,7 @@ import GraficaBalance from "./GraficaBalance";
 import { FaShoppingBag, FaCreditCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import EstadoVacio from "../ui/EstadoVacio";
 
 import useBudgetAlert from "../../hooks/useBudgetAlert";
 import BudgetAlertModal from "../ui/BudgetAlertModal";
@@ -381,9 +382,7 @@ const ResumenDashboard = ({ setVista }) => {
                 </Button>
               </div>
               {metas.length === 0 ? (
-                <small className={textoMuted}>
-                  No tienes metas de ahorro activas.
-                </small>
+                <EstadoVacio icono="🎯" titulo="Sin metas de ahorro" descripcion="Crea una meta para empezar a ahorrar." />
               ) : (
                 metas.map((meta, i) => {
                   const porcentaje = calcularPorcentaje(meta.total_ahorrado);

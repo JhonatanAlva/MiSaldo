@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import useNotificaciones from "../../hooks/useNotificaciones";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const Notificaciones = () => {
   const { notificaciones, cantidadNoLeidas, marcarLeida } = useNotificaciones();
@@ -127,19 +128,7 @@ const Notificaciones = () => {
           {/* Lista */}
           <div className="p-3">
             {notificacionesVisibles.length === 0 ? (
-              <div
-                className={`
-                                    text-center
-                                    py-5
-                                    ${
-                                      temaOscuro
-                                        ? "text-light opacity-75"
-                                        : "text-muted"
-                                    }
-                                `}
-              >
-                No tienes notificaciones nuevas
-              </div>
+              <EstadoVacio icono="🔔" titulo="Sin notificaciones" descripcion="Todo al día por aquí." />
             ) : (
               notificacionesVisibles.map((n) => (
                 <div

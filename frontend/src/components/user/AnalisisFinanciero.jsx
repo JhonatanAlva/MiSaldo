@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Tab, Spinner } from "react-bootstrap";
+import { Tabs, Tab } from "react-bootstrap";
+import SpinnerCentrado from "../ui/SpinnerCentrado";
 import {
   BarChart,
   Bar,
@@ -125,12 +126,7 @@ const AnalisisFinanciero = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" variant="success" />
-        <p className="mt-3">
-          Cargando análisis financiero...
-        </p>
-      </div>
+      <SpinnerCentrado texto="Cargando análisis financiero..." />
     );
   }
 

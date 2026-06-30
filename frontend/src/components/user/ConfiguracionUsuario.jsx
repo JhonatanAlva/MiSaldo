@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import { toast } from "sonner";
+import SpinnerCentrado from "../ui/SpinnerCentrado";
 
 api.defaults.withCredentials = true;
 
@@ -8,21 +10,6 @@ const TABS = [
   { id: "seguridad",      label: "Contraseña" },
   { id: "notificaciones", label: "Notificaciones" },
 ];
-
-// ── Mensaje ───────────────────────────────────────────────────
-const Msg = ({ msg }) => {
-  if (!msg) return null;
-  const esError = msg.toLowerCase().startsWith("error");
-  return (
-    <div className={`mt-4 px-4 py-3 rounded-2xl text-sm font-medium border
-      ${esError
-        ? "bg-red-50 text-red-500 border-red-200"
-        : "bg-green-50 text-green-600 border-green-200"
-      }`}>
-      {msg}
-    </div>
-  );
-};
 
 // ── Switch ────────────────────────────────────────────────────
 const Switch = ({ checked, onChange, label, desc }) => (
@@ -62,7 +49,6 @@ export default function ConfiguracionUsuario() {
 
   const [cargando,  setCargando]  = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [msg,       setMsg]       = useState("");
 
   // Detectar tema
   useEffect(() => {
@@ -72,11 +58,6 @@ export default function ConfiguracionUsuario() {
     obs.observe(document.body, { attributes:true, attributeFilter:["data-theme"] });
     return () => obs.disconnect();
   }, []);
-
-  const mostrarMsg = (texto) => {
-    setMsg(texto);
-    setTimeout(() => setMsg(""), 4000);
-  };
 
   // Cargar datos
   useEffect(() => {
@@ -100,8 +81,6 @@ export default function ConfiguracionUsuario() {
         }
         if (c.data?.formato) setFormato(c.data.formato);
       } catch(e) {
-        console.error(e);
-        mostrarMsg("Error al cargar configuraciones.");
       } finally {
         setCargando(false);
       }
@@ -117,31 +96,28 @@ export default function ConfiguracionUsuario() {
         nombres: perfil.nombres, apellidos: perfil.apellidos, celular: perfil.celular ?? "",
       });
       if (data?.usuario) setPerfil(p => ({ ...p, ...data.usuario }));
-      mostrarMsg("Perfil actualizado correctamente.");
+      toast.success("Perfil actualizado");
     } catch(e) {
-      mostrarMsg("Error al actualizar el perfil.");
     } finally { setGuardando(false); }
   };
 
   // Cambiar contraseña
   const cambiarPassword = async () => {
     if (!pass.actual || !pass.nueva || !pass.confirmar) {
-      mostrarMsg("Error: Completa todos los campos."); return;
+      toast.error("Completa todos los campos."); return;
     }
     if (pass.nueva !== pass.confirmar) {
-      mostrarMsg("Error: Las contraseñas nuevas no coinciden."); return;
+      toast.error("Las contraseñas nuevas no coinciden."); return;
     }
     if (pass.nueva.length < 6) {
-      mostrarMsg("Error: La contraseña debe tener al menos 6 caracteres."); return;
+      toast.error("La contraseña debe tener al menos 6 caracteres."); return;
     }
     setGuardando(true);
     try {
       await api.put("/configuraciones/password", { actual: pass.actual, nueva: pass.nueva });
       setPass({ actual:"", nueva:"", confirmar:"" });
-      mostrarMsg("Contraseña actualizada correctamente.");
+      toast.success("Contraseña actualizada");
     } catch(e) {
-      const m = e.response?.data?.mensaje || "Error al cambiar la contraseña.";
-      mostrarMsg(`Error: ${m}`);
     } finally { setGuardando(false); }
   };
 
@@ -153,9 +129,8 @@ export default function ConfiguracionUsuario() {
         notificaciones: { ...notif, email:true, weekly:true, monthly:true },
         formato,
       });
-      mostrarMsg("Notificaciones guardadas.");
+      toast.success("Notificaciones guardadas");
     } catch(e) {
-      mostrarMsg("Error al guardar notificaciones.");
     } finally { setGuardando(false); }
   };
 
@@ -171,11 +146,7 @@ export default function ConfiguracionUsuario() {
   const btnBase  = `px-6 py-3 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50
     bg-[#00c57a] text-white hover:bg-[#00a865] active:scale-[0.98]`;
 
-  if (cargando) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-6 h-6 rounded-full border-2 border-[#00c57a] border-t-transparent animate-spin" />
-    </div>
-  );
+  if (cargando) return <SpinnerCentrado />;
 
   return (
     <div className="w-full pb-10">
@@ -190,7 +161,7 @@ export default function ConfiguracionUsuario() {
       {/* Tabs — scroll horizontal en móvil */}
       <div className={`flex gap-1 p-1 rounded-2xl mb-5 overflow-x-auto scrollbar-none max-w-md ${tabBg}`}>
         {TABS.map(t => (
-          <button key={t.id} onClick={() => { setTab(t.id); setMsg(""); }}
+          <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap
               ${tab === t.id
                 ? "bg-[#00c57a] text-white shadow-sm"
@@ -238,9 +209,7 @@ export default function ConfiguracionUsuario() {
             <button onClick={guardarPerfil} disabled={guardando} className={btnBase}>
               {guardando ? "Guardando..." : "Guardar perfil"}
             </button>
-          </div>
-          <Msg msg={msg} />
-        </div>
+          </div>        </div>
       )}
 
       {/* ── CONTRASEÑA ──────────────────────────────────────── */}
@@ -300,9 +269,7 @@ export default function ConfiguracionUsuario() {
             <button onClick={cambiarPassword} disabled={guardando} className={btnBase}>
               {guardando ? "Cambiando..." : "Cambiar contraseña"}
             </button>
-          </div>
-          <Msg msg={msg} />
-        </div>
+          </div>        </div>
       )}
 
       {/* ── NOTIFICACIONES ──────────────────────────────────── */}
@@ -324,9 +291,7 @@ export default function ConfiguracionUsuario() {
             <button onClick={guardarNotificaciones} disabled={guardando} className={btnBase}>
               {guardando ? "Guardando..." : "Guardar"}
             </button>
-          </div>
-          <Msg msg={msg} />
-        </div>
+          </div>        </div>
       )}
     </div>
   );

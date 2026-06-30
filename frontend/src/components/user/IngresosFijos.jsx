@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { toast } from "sonner";
 import api from "../../services/api";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const IngresosFijos = () => {
   const [ingresos, setIngresos] = useState([]);
@@ -10,6 +12,7 @@ const IngresosFijos = () => {
   const [editandoId, setEditandoId] = useState(null);
 
   const [errorFormulario, setErrorFormulario] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const [historial, setHistorial] = useState([]);
 
@@ -103,38 +106,23 @@ const IngresosFijos = () => {
       }
     }
 
+    setGuardando(true);
     try {
       if (editandoId) {
         await api.put(`/ingresos-fijos/${editandoId}`, formulario);
-
-        Swal.fire({
-          icon: "success",
-          title: "Ingreso actualizado",
-          timer: 1500,
-          showConfirmButton: false,
-          background: "#1e1e1e",
-          color: "#fff",
-        });
+        toast.success("Ingreso actualizado");
       } else {
         await api.post("/ingresos-fijos", formulario);
-
-        Swal.fire({
-          icon: "success",
-          title: "Ingreso agregado",
-          timer: 1500,
-          showConfirmButton: false,
-          background: "#1e1e1e",
-          color: "#fff",
-        });
+        toast.success("Ingreso agregado");
       }
 
       limpiarFormulario();
 
       obtenerIngresos();
     } catch (error) {
-      console.error(error);
-
       setErrorFormulario("No se pudo guardar el ingreso.");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -167,8 +155,8 @@ const IngresosFijos = () => {
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#dc3545",
-      cancelButtonColor: "#6c757d",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
       background: "#1e1e1e",
       color: "#fff",
     });
@@ -177,10 +165,9 @@ const IngresosFijos = () => {
 
     try {
       await api.delete(`/ingresos-fijos/${id}`);
-
       obtenerIngresos();
+      toast.success("Ingreso eliminado");
     } catch (error) {
-      console.error(error);
     }
   };
 
@@ -507,13 +494,14 @@ const IngresosFijos = () => {
 
                 <button
                   type="submit"
+                  disabled={guardando}
                   className="
                     btn
                     btn-success
                     flex-fill
                   "
                 >
-                  {editandoId ? "Actualizar" : "Guardar"}
+                  {guardando ? "Guardando..." : editandoId ? "Actualizar" : "Guardar"}
                 </button>
               </div>
             </form>
@@ -589,14 +577,7 @@ const IngresosFijos = () => {
             </div>
 
             {historial.length === 0 ? (
-              <div
-                className="
-                  alert
-                  alert-secondary
-                "
-              >
-                No hay historial todavía.
-              </div>
+              <EstadoVacio icono="📋" titulo="Sin historial" descripcion="Aquí aparecerán los movimientos registrados." />
             ) : (
               <>
                 <div

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import api from "../../services/api";
 import { Icon } from "@iconify/react";
 import Swal from "sweetalert2";
+import { toast } from "sonner";
+import EstadoVacio from "../ui/EstadoVacio";
 
 const fuentesIngreso = [
   "Salario",
@@ -145,7 +147,7 @@ const TransaccionesUsuario = () => {
           payload,
         );
 
-        mostrarAlerta("Movimiento actualizado correctamente");
+        toast.success("Movimiento actualizado");
       }
 
       // ─────────────────────────────────
@@ -178,7 +180,7 @@ const TransaccionesUsuario = () => {
           });
         }
 
-        mostrarAlerta("Transacción guardada exitosamente");
+        toast.success("Transacción guardada");
       }
 
       // ─────────────────────────────────
@@ -188,9 +190,6 @@ const TransaccionesUsuario = () => {
 
       resetFormulario();
     } catch (err) {
-      console.error(err);
-
-      mostrarAlerta("Ocurrió un error al guardar", "danger");
     }
   };
 
@@ -223,40 +222,10 @@ const TransaccionesUsuario = () => {
 
     try {
       await api.delete(`/finanzas/movimiento/${tipo}/${id}`);
-
-      await Swal.fire({
-        icon: "success",
-
-        title: "Movimiento eliminado",
-
-        text: "La transacción fue eliminada correctamente.",
-
-        timer: 1800,
-
-        showConfirmButton: false,
-
-        background: modoOscuro ? "#1a1a1a" : "#ffffff",
-
-        color: modoOscuro ? "#ffffff" : "#111827",
-      });
-
       await obtenerHistorial();
-
       resetFormulario();
+      toast.success("Movimiento eliminado");
     } catch (err) {
-      console.error(err);
-
-      Swal.fire({
-        icon: "error",
-
-        title: "Error",
-
-        text: "No se pudo eliminar el movimiento.",
-
-        background: modoOscuro ? "#1a1a1a" : "#ffffff",
-
-        color: modoOscuro ? "#ffffff" : "#111827",
-      });
     }
   };
 
@@ -442,9 +411,11 @@ const TransaccionesUsuario = () => {
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className={`text-sm ${muted}`}>
-              No hay transacciones para mostrar.
-            </p>
+            <EstadoVacio
+              icono="🔍"
+              titulo="Sin resultados"
+              descripcion="No hay transacciones que coincidan con los filtros aplicados."
+            />
           )}
         </div>
       </div>
