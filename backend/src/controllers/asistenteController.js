@@ -1,8 +1,6 @@
-const asistenteService =
-  require("../services/asistenteService");
-
-const db =
-  require("../config/db");
+const asistenteService = require("../services/asistenteService");
+const db = require("../config/db");
+const logger = require("../utils/logger");
 
 // ─────────────────────────────────────
 // Chat IA
@@ -112,10 +110,7 @@ const manejarAsistente =
 
     } catch (err) {
 
-      console.error(
-        "Error al generar respuesta IA:",
-        err
-      );
+      logger.error({ err }, "Error al generar respuesta IA");
 
       res.status(500).json({
         error:
@@ -143,10 +138,7 @@ const analizarFinanzas =
 
     } catch (err) {
 
-      console.error(
-        "Error al generar análisis IA:",
-        err.message
-      );
+      logger.error({ err }, "Error al generar análisis IA");
 
       res.status(500).json({
         resumen:
@@ -174,10 +166,7 @@ const analizarGastosFijos =
 
     } catch (err) {
 
-      console.error(
-        "Error IA gastos fijos:",
-        err
-      );
+      logger.error({ err }, "Error IA gastos fijos");
 
       res.status(500).json({
         resumen:
@@ -205,10 +194,7 @@ const analizarIngresosFijos =
 
     } catch (err) {
 
-      console.error(
-        "Error IA ingresos fijos:",
-        err
-      );
+      logger.error({ err }, "Error IA ingresos fijos");
 
       res.status(500).json({
         resumen:

@@ -1,6 +1,5 @@
-const {
-    analizarImagenOpenAI,
-} = require("../utils/openaiVision");
+const { analizarImagenOpenAI } = require("../utils/openaiVision");
+const logger = require("../utils/logger");
 
 // ─────────────────────────────────────
 // Limpiar JSON IA
@@ -119,15 +118,7 @@ const analizarImagen =
 
         } catch (error) {
 
-            console.error(
-                "Error parseando JSON IA:",
-                error
-            );
-
-            console.error(
-                "Respuesta IA:",
-                respuesta
-            );
+            logger.error({ err: error, raw: respuesta }, "Error parseando JSON de IA");
 
             return {
                 movimientos: [],

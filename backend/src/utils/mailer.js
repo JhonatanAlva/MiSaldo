@@ -1,10 +1,11 @@
 const { Resend } = require("resend");
+const logger = require("./logger");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
   try {
-    console.log("📨 Enviando correo a:", to);
+    logger.info({ to }, "Enviando correo");
 
     const response = await resend.emails.send({
       from: "SaldoGt <no-reply@misaldo.lat>",
@@ -13,9 +14,9 @@ const sendEmail = async (to, subject, html) => {
       html,
     });
 
-    console.log("✅ Resend response:", response);
+    logger.info({ id: response.id }, "Correo enviado");
   } catch (error) {
-    console.error("❌ Error al enviar correo:", error);
+    logger.error({ err: error }, "Error al enviar correo");
     throw error;
   }
 };

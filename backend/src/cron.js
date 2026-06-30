@@ -1,16 +1,14 @@
 const cron = require("node-cron");
-
 const db = require("./config/db");
-
 const gastosFijosService = require("./services/gastosFijosService");
-
 const notificacionesService = require("./services/notificacionesService");
+const logger = require("./utils/logger");
 
 // ─────────────────────────────────────────────
 // Ejecutar cada minuto
 // ─────────────────────────────────────────────
 cron.schedule("* * * * *", async () => {
-  console.log("Verificando gastos fijos...");
+  logger.info("Verificando gastos fijos");
 
   try {
     const gastos = await gastosFijosService.obtenerGastosPorCobrar();
@@ -60,7 +58,7 @@ cron.schedule("* * * * *", async () => {
             [gasto.id],
           );
 
-          console.log(`Recordatorio enviado: ${gasto.nombre}`);
+          logger.info({ nombre: gasto.nombre }, "Recordatorio enviado");
         }
       }
 
@@ -189,10 +187,10 @@ cron.schedule("* * * * *", async () => {
         );
       }
 
-      console.log(`Gasto procesado: ${gasto.nombre}`);
+      logger.info({ nombre: gasto.nombre }, "Gasto procesado");
     }
   } catch (error) {
-    console.error("Error en cron:", error);
+    logger.error({ err: error }, "Error en cron gastos fijos");
   }
 });
 
@@ -200,7 +198,7 @@ cron.schedule("* * * * *", async () => {
 // INGRESOS FIJOS AUTOMÁTICOS
 // ─────────────────────────────────────────────
 cron.schedule("* * * * *", async () => {
-  console.log("Verificando ingresos fijos...");
+  logger.info("Verificando ingresos fijos");
 
   try {
     const hoy = new Date();
@@ -342,9 +340,9 @@ cron.schedule("* * * * *", async () => {
         `💰 Se registró automáticamente el ingreso "${ingreso.nombre}" por Q${ingreso.monto}`,
       );
 
-      console.log(`Ingreso procesado: ${ingreso.nombre}`);
+      logger.info({ nombre: ingreso.nombre }, "Ingreso procesado");
     }
   } catch (error) {
-    console.error("Error ingresos fijos:", error);
+    logger.error({ err: error }, "Error en cron ingresos fijos");
   }
 });

@@ -6,8 +6,9 @@ const passport = require("passport");
 const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const morgan = require("morgan");
+const pinoHttp = require("pino-http");
 
+const logger = require("./utils/logger");
 const { FRONTEND_URL } = require("./utils/urls");
 const db = require("./config/db");
 
@@ -66,7 +67,13 @@ const escanerLimiter = rateLimit({
 // ─────────────────────────────────────
 app.use(cookieParser());
 
-app.use(morgan("combined"));
+app.use(pinoHttp({
+  logger,
+  redact: {
+    paths: ["req.headers.cookie", "req.headers.authorization"],
+    censor: "[REDACTED]",
+  },
+}));
 
 app.use(helmet());
 
@@ -145,6 +152,18 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // ─────────────────────────────────────
+// Health check
+// ─────────────────────────────────────
+app.get("/health", async (req, res) => {
+  try {
+    await db.query("SELECT 1");
+    res.json({ status: "ok", db: "ok" });
+  } catch {
+    res.status(503).json({ status: "error", db: "unreachable" });
+  }
+});
+
+// ─────────────────────────────────────
 // Rutas
 // ─────────────────────────────────────
 app.use("/auth", require("./routes/auth"));
@@ -172,5 +191,18 @@ app.use("/categorias", require("./routes/categorias"));
 app.use("/ingresos-fijos", require("./routes/ingresosFijos"));
 
 app.use("/gastos-fijos", require("./routes/gastosFijos"));
+
+// ─────────────────────────────────────
+// Error handler global
+// ─────────────────────────────────────
+app.use((err, req, res, next) => {
+  const status = err.status || err.statusCode || 500;
+
+  logger.error({ err, method: req.method, path: req.path, status }, err.message);
+
+  res.status(status).json({
+    mensaje: status === 500 ? "Error interno del servidor" : err.message,
+  });
+});
 
 module.exports = app;

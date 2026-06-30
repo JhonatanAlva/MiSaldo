@@ -1,7 +1,6 @@
 const fs = require("fs");
-
-const escanerIAService =
-  require("../services/escanerIAService");
+const escanerIAService = require("../services/escanerIAService");
+const logger = require("../utils/logger");
 
 // ─────────────────────────────────────
 // Analizar imagen
@@ -29,10 +28,7 @@ const analizarImagen =
       const rutaImagen =
         req.file.path;
 
-      console.log(
-        "Imagen recibida:",
-        rutaImagen
-      );
+      logger.info({ rutaImagen }, "Imagen recibida");
 
       // ─────────────────────────────────
       // Analizar IA
@@ -60,10 +56,7 @@ const analizarImagen =
 
     } catch (error) {
 
-      console.error(
-        "Error escáner IA:",
-        error
-      );
+      logger.error({ err: error }, "Error escáner IA");
 
       // ─────────────────────────────────
       // Eliminar imagen si falla

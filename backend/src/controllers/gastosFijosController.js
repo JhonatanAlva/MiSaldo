@@ -1,5 +1,6 @@
 const gastosFijosService = require('../services/gastosFijosService');
 const notificacionesService = require('../services/notificacionesService');
+const logger = require('../utils/logger');
 
 // ─────────────────────────────────────────────
 // Obtener gastos fijos
@@ -14,7 +15,7 @@ const getGastosFijos = async (req, res) => {
     res.json(data);
 
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en gastosFijos');
 
     res.status(500).json({
       mensaje: 'Error al obtener gastos fijos'
@@ -43,7 +44,7 @@ const crearGastoFijo = async (req, res) => {
     res.status(201).json(data);
 
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en gastosFijos');
 
     res.status(500).json({
       mensaje: 'Error al crear gasto fijo'
@@ -79,7 +80,7 @@ const editarGastoFijo = async (req, res) => {
     res.json(data);
 
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en gastosFijos');
 
     res.status(500).json({
       mensaje: 'Error al editar gasto fijo'
@@ -129,7 +130,7 @@ const eliminarGastoFijo = async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en gastosFijos');
 
     res.status(500).json({
       mensaje: 'Error al eliminar gasto fijo'
@@ -151,7 +152,7 @@ const obtenerHistorial = async (req, res) => {
 
   } catch (err) {
 
-    console.error(err);
+    logger.error({ err }, 'Error en gastosFijos');
 
     res.status(500).json({
       mensaje:
@@ -175,7 +176,7 @@ const obtenerCalendario =
 
     } catch (err) {
 
-      console.error(err);
+      logger.error({ err }, 'Error en gastosFijos');
 
       res.status(500).json({
         mensaje:

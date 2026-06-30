@@ -1,4 +1,5 @@
 const configuracionesService = require('../services/configuracionesService');
+const logger = require('../utils/logger');
 
 // ── Obtener configuración ─────────────────────────────────────
 const getConfiguracion = async (req, res) => {
@@ -6,7 +7,7 @@ const getConfiguracion = async (req, res) => {
     const data = await configuracionesService.getConfiguracion(req.usuario.id);
     res.json(data);
   } catch (err) {
-    console.error('Error al obtener configuración:', err);
+    logger.error({ err }, 'Error al obtener configuración');
     res.status(500).json({ mensaje: 'Error al obtener configuración' });
   }
 };
@@ -17,7 +18,7 @@ const guardarConfiguracion = async (req, res) => {
     await configuracionesService.guardarConfiguracion(req.usuario.id, req.body);
     res.json({ mensaje: 'Configuración actualizada correctamente' });
   } catch (err) {
-    console.error('Error al guardar configuración:', err);
+    logger.error({ err }, 'Error al guardar configuración');
     res.status(500).json({ mensaje: 'Error al guardar configuración' });
   }
 };
@@ -29,7 +30,7 @@ const actualizarPerfil = async (req, res) => {
     if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
     res.json({ mensaje: 'Perfil actualizado correctamente', usuario: data.usuario });
   } catch (err) {
-    console.error('Error al actualizar perfil:', err);
+    logger.error({ err }, 'Error al actualizar perfil');
     res.status(500).json({ mensaje: 'Error al actualizar perfil' });
   }
 };
@@ -41,7 +42,7 @@ const cambiarPassword = async (req, res) => {
     if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
     res.json({ mensaje: 'Contraseña actualizada correctamente' });
   } catch (err) {
-    console.error('Error al cambiar contraseña:', err);
+    logger.error({ err }, 'Error al cambiar contraseña');
     res.status(500).json({ mensaje: 'Error al actualizar contraseña' });
   }
 };

@@ -1,4 +1,5 @@
 const asistenteService = require('../services/asistenteService');
+const logger = require('../utils/logger');
 
 // ── Chat del asistente ────────────────────────────────────────
 const manejarAsistente = async (req, res) => {
@@ -12,7 +13,7 @@ const manejarAsistente = async (req, res) => {
     const respuesta = await asistenteService.manejarMensaje(mensaje);
     res.json({ respuesta });
   } catch (err) {
-    console.error('Error al generar respuesta IA:', err);
+    logger.error({ err }, 'Error al generar respuesta IA');
     res.status(500).json({ error: 'Error al generar respuesta de IA' });
   }
 };
@@ -23,7 +24,7 @@ const analizarGraficasIA = async (req, res) => {
     const respuesta = await asistenteService.analizarGraficas(req.body);
     res.json({ respuesta });
   } catch (err) {
-    console.error('Error en analizarGraficasIA:', err);
+    logger.error({ err }, 'Error en analizarGraficasIA');
     res.status(500).json({ error: 'Error al analizar las gráficas' });
   }
 };
@@ -34,7 +35,7 @@ const analizarFinanzas = async (req, res) => {
     const data = await asistenteService.analizarDatos(req.body);
     res.json(data);
   } catch (err) {
-    console.error('Error al generar análisis con IA:', err.message);
+    logger.error({ err }, 'Error al generar análisis con IA');
     res.status(500).json({ resumen: 'Error al generar análisis con IA.' });
   }
 };

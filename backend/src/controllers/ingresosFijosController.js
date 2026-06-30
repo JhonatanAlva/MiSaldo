@@ -1,6 +1,6 @@
 const ingresosFijosService = require("../services/ingresosFijosService");
-
 const notificacionesService = require("../services/notificacionesService");
+const logger = require("../utils/logger");
 
 // ─────────────────────────────────────
 const getIngresosFijos = async (req, res) => {
@@ -9,7 +9,7 @@ const getIngresosFijos = async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en ingresosFijos');
 
     res.status(500).json({
       mensaje: "Error al obtener ingresos fijos",
@@ -33,7 +33,7 @@ const crearIngresoFijo = async (req, res) => {
 
     res.status(201).json(data);
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en ingresosFijos');
 
     res.status(500).json({
       mensaje: "Error al crear ingreso fijo",
@@ -63,7 +63,7 @@ const editarIngresoFijo = async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en ingresosFijos');
 
     res.status(500).json({
       mensaje: "Error al editar ingreso fijo",
@@ -94,7 +94,7 @@ const eliminarIngresoFijo = async (req, res) => {
       mensaje: "Ingreso fijo eliminado",
     });
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en ingresosFijos');
 
     res.status(500).json({
       mensaje: "Error al eliminar ingreso fijo",
@@ -112,7 +112,7 @@ const obtenerHistorial = async (req, res) => {
 
     res.json(historial);
   } catch (err) {
-    console.error(err);
+    logger.error({ err }, 'Error en ingresosFijos');
 
     res.status(500).json({
       mensaje: "Error al obtener historial",

@@ -1,4 +1,5 @@
 const categoriasService = require('../services/categoriasService');
+const logger = require('../utils/logger');
 
 // ── Crear categoría ───────────────────────────────────────────
 const crearCategoria = async (req, res) => {
@@ -12,7 +13,7 @@ const crearCategoria = async (req, res) => {
         const id = await categoriasService.crearCategoria(req.usuario.id, { nombre, descripcion, es_global });
         res.json({ id, mensaje: 'Categoría creada correctamente' });
     } catch (err) {
-        console.error('Error al crear categoría:', err);
+        logger.error({ err }, 'Error al crear categoría');
         res.status(500).json({ mensaje: 'Error al crear categoría' });
     }
 };
@@ -23,7 +24,7 @@ const listarCategorias = async (req, res) => {
         const data = await categoriasService.listarCategorias(req.usuario.id);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener categorías:', err);
+        logger.error({ err }, 'Error al obtener categorías');
         res.status(500).json({ mensaje: 'Error al obtener categorías' });
     }
 };
@@ -41,7 +42,7 @@ const editarCategoria = async (req, res) => {
         if (filas === 0) return res.status(404).json({ mensaje: 'Categoría no encontrada' });
         res.json({ mensaje: 'Categoría actualizada correctamente' });
     } catch (err) {
-        console.error('Error al editar categoría:', err);
+        logger.error({ err }, 'Error al editar categoría');
         res.status(500).json({ mensaje: 'Error al editar categoría' });
     }
 };
@@ -53,7 +54,7 @@ const eliminarCategoria = async (req, res) => {
         if (filas === 0) return res.status(404).json({ mensaje: 'Categoría no encontrada' });
         res.json({ mensaje: 'Categoría eliminada correctamente' });
     } catch (err) {
-        console.error('Error al eliminar categoría:', err);
+        logger.error({ err }, 'Error al eliminar categoría');
         res.status(500).json({ mensaje: 'Error al eliminar categoría' });
     }
 };
@@ -64,7 +65,7 @@ const getUsoCategorias = async (req, res) => {
         const data = await categoriasService.getUsoCategorias();
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener uso de categorías:', err);
+        logger.error({ err }, 'Error al obtener uso de categorías');
         res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     }
 };

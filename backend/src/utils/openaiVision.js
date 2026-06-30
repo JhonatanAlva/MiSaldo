@@ -1,6 +1,6 @@
 const fs = require("fs");
-
 const { OpenAI } = require("openai");
+const logger = require("./logger");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -245,15 +245,7 @@ Devuelve únicamente JSON válido.
 
     } catch (parseError) {
 
-      console.error(
-        "Error parseando JSON:",
-        parseError
-      );
-
-      console.error(
-        "Respuesta IA:",
-        contenido
-      );
+      logger.error({ err: parseError, raw: contenido }, "Error parseando JSON de OpenAI");
 
       return [];
     }
@@ -283,12 +275,7 @@ Devuelve únicamente JSON válido.
 
   } catch (error) {
 
-    console.error(
-      "ERROR OPENAI:",
-      error.response?.data ||
-      error.message ||
-      error
-    );
+    logger.error({ err: error }, "Error llamando a OpenAI");
 
     return [];
 

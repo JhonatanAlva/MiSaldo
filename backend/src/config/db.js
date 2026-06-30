@@ -1,7 +1,8 @@
 const { Pool } = require('pg');
 require('dotenv').config();
+const logger = require('../utils/logger');
 
-console.log("Inicializando conexión a DB...");
+logger.info("Inicializando conexión a DB...");
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -27,7 +28,7 @@ const pool = new Pool(
 
 // TEST DE CONEXIÓN
 pool.query('SELECT 1')
-  .then(() => console.log('Conectado a PostgreSQL'))
-  .catch(err => console.error(' Error DB:', err));
+  .then(() => logger.info('Conectado a PostgreSQL'))
+  .catch(err => logger.error({ err }, 'Error de conexión a DB'));
 
 module.exports = pool;

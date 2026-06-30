@@ -1,11 +1,12 @@
 const finanzasService = require('../services/finanzasService');
+const logger = require('../utils/logger');
 
 const agregarIngreso = async (req, res) => {
     try {
         await finanzasService.agregarIngreso(req.usuario.id, req.body);
         res.json({ mensaje: 'Ingreso registrado correctamente' });
     } catch (err) {
-        console.error('Error al guardar ingreso:', err);
+        logger.error({ err }, 'Error al guardar ingreso');
         res.status(500).json({ mensaje: 'Error al guardar ingreso' });
     }
 };
@@ -18,7 +19,7 @@ const agregarGasto = async (req, res) => {
         await finanzasService.agregarGasto(req.usuario.id, req.body);
         res.json({ mensaje: 'Gasto registrado correctamente' });
     } catch (err) {
-        console.error('Error al guardar gasto:', err);
+        logger.error({ err }, 'Error al guardar gasto');
         res.status(500).json({ mensaje: 'Error al guardar gasto' });
     }
 };
@@ -47,7 +48,7 @@ const getResumen = async (req, res) => {
         if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener resumen:', err);
+        logger.error({ err }, 'Error al obtener resumen');
         res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
 };
@@ -88,7 +89,7 @@ const getClasificacionGastos = async (req, res) => {
         const data = await finanzasService.getClasificacionGastos(req.usuario.id);
         res.json(data);
     } catch (err) {
-        console.error('Error en clasificacion-gastos:', err);
+        logger.error({ err }, 'Error en clasificacion-gastos');
         res.status(500).json({ mensaje: 'Error al clasificar gastos' });
     }
 };
@@ -107,7 +108,7 @@ const getBalance = async (req, res) => {
         const data = await finanzasService.getBalance(req.usuario.id, req.query);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener balance:', err);
+        logger.error({ err }, 'Error al obtener balance');
         res.status(500).json({ mensaje: 'Error al obtener balance' });
     }
 };

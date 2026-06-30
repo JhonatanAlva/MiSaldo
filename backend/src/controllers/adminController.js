@@ -1,4 +1,5 @@
 const adminService = require('../services/adminService');
+const logger = require('../utils/logger');
 
 // ── Obtener todos los usuarios ────────────────────────────────
 const listarUsuarios = async (req, res) => {
@@ -6,7 +7,7 @@ const listarUsuarios = async (req, res) => {
         const usuarios = await adminService.listarUsuarios();
         res.json(usuarios);
     } catch (err) {
-        console.error('Error al obtener usuarios:', err);
+        logger.error({ err }, 'Error al obtener usuarios');
         res.status(500).json({ mensaje: 'Error al obtener usuarios' });
     }
 };
@@ -17,7 +18,7 @@ const actualizarUsuario = async (req, res) => {
         await adminService.actualizarUsuario(req.params.id, req.body);
         res.json({ mensaje: 'Usuario actualizado correctamente' });
     } catch (err) {
-        console.error('Error al actualizar usuario:', err);
+        logger.error({ err }, 'Error al actualizar usuario');
         res.status(500).json({ mensaje: 'Error al actualizar usuario' });
     }
 };
@@ -28,7 +29,7 @@ const eliminarUsuario = async (req, res) => {
         await adminService.eliminarUsuario(req.params.id);
         res.json({ mensaje: 'Usuario y datos relacionados eliminados correctamente' });
     } catch (err) {
-        console.error('Error al eliminar usuario:', err);
+        logger.error({ err }, 'Error al eliminar usuario');
         res.status(500).json({ mensaje: 'Error al eliminar usuario' });
     }
 };
@@ -39,7 +40,7 @@ const cambiarContrasena = async (req, res) => {
         await adminService.cambiarContrasena(req.params.id, req.body.contrasena);
         res.json({ mensaje: 'Contraseña actualizada correctamente' });
     } catch (err) {
-        console.error('Error al cambiar contraseña:', err);
+        logger.error({ err }, 'Error al cambiar contraseña');
         res.status(500).json({ mensaje: 'Error al cambiar contraseña' });
     }
 };
@@ -51,7 +52,7 @@ const reenviarConfirmacion = async (req, res) => {
         if (data.error) return res.status(data.error).json({ mensaje: data.mensaje });
         res.json({ mensaje: data.mensaje });
     } catch (err) {
-        console.error('Error al reenviar confirmación:', err);
+        logger.error({ err }, 'Error al reenviar confirmación');
         res.status(500).json({ mensaje: 'Error al enviar correo' });
     }
 };
@@ -62,7 +63,7 @@ const cambiarEstado = async (req, res) => {
         await adminService.cambiarEstado(req.params.id, req.body.activo);
         res.json({ mensaje: 'Estado actualizado correctamente' });
     } catch (err) {
-        console.error('Error al actualizar estado:', err);
+        logger.error({ err }, 'Error al actualizar estado');
         res.status(500).json({ mensaje: 'Error al actualizar el estado' });
     }
 };
@@ -73,7 +74,7 @@ const getBitacoraUsuario = async (req, res) => {
         const data = await adminService.getBitacoraUsuario(req.params.id);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener bitácora:', err);
+        logger.error({ err }, 'Error al obtener bitácora');
         res.status(500).json({ mensaje: 'Error al obtener actividad' });
     }
 };
@@ -84,7 +85,7 @@ const getActividadGeneral = async (req, res) => {
         const data = await adminService.getActividadGeneral();
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener actividad general:', err);
+        logger.error({ err }, 'Error al obtener actividad general');
         res.status(500).json({ mensaje: 'Error al obtener resumen' });
     }
 };
@@ -95,7 +96,7 @@ const getActividad = async (req, res) => {
         const data = await adminService.getActividad();
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener actividad:', err);
+        logger.error({ err }, 'Error al obtener actividad');
         res.status(500).json({ mensaje: 'Error en el servidor' });
     }
 };
@@ -106,7 +107,7 @@ const getActividadDatos = async (req, res) => {
         const data = await adminService.getActividadDatos(req.query.usuario_id);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener actividad de datos:', err);
+        logger.error({ err }, 'Error al obtener actividad de datos');
         res.status(500).json({ mensaje: 'Error del servidor' });
     }
 };
@@ -117,7 +118,7 @@ const getEstadisticasOperaciones = async (req, res) => {
         const data = await adminService.getEstadisticasOperaciones(req.query.usuario_id);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener estadísticas:', err);
+        logger.error({ err }, 'Error al obtener estadísticas');
         res.status(500).json({ mensaje: 'Error en el servidor' });
     }
 };
@@ -128,7 +129,7 @@ const getEvolucionMensual = async (req, res) => {
         const data = await adminService.getEvolucionMensual(req.query.usuario_id);
         res.json(data);
     } catch (err) {
-        console.error('Error al obtener evolución mensual:', err);
+        logger.error({ err }, 'Error al obtener evolución mensual');
         res.status(500).json({ mensaje: 'Error del servidor' });
     }
 };
