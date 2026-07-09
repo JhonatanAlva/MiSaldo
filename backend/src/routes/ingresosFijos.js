@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const { verificarToken } = require("../utils/jwt");
-
+const idempotency = require("../middleware/idempotency");
 const ingresosFijosController = require("../controllers/ingresosFijosController");
 
 // ─────────────────────────────────────
@@ -15,7 +15,7 @@ router.get(
   ingresosFijosController.obtenerHistorial,
 );
 
-router.post("/", verificarToken, ingresosFijosController.crearIngresoFijo);
+router.post("/", verificarToken, idempotency, ingresosFijosController.crearIngresoFijo);
 
 router.put("/:id", verificarToken, ingresosFijosController.editarIngresoFijo);
 

@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { verificarToken } = require('../utils/jwt');
 const finanzasController = require('../controllers/finanzasController');
+const idempotency = require('../middleware/idempotency');
 
 // ── Ingresos ──────────────────────────────────────────────────
-router.post('/ingresos', verificarToken, finanzasController.agregarIngreso);
+router.post('/ingresos', verificarToken, idempotency, finanzasController.agregarIngreso);
 router.get('/ingresos', verificarToken, finanzasController.getIngresos);
 
 // ── Gastos ────────────────────────────────────────────────────
-router.post('/gastos', verificarToken, finanzasController.agregarGasto);
+router.post('/gastos', verificarToken, idempotency, finanzasController.agregarGasto);
 router.get('/gastos', verificarToken, finanzasController.getGastos);
 
 // ── Categorías ────────────────────────────────────────────────

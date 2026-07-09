@@ -6,7 +6,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-const MENSAJES_SILENCIOSOS = [401, 403, 404];
+const MENSAJES_SILENCIOSOS = [401, 403, 404, 409];
 
 api.interceptors.response.use(
   (response) => response,

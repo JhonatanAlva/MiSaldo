@@ -10,6 +10,7 @@ const GastosFijos = () => {
     const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
     const [guardando, setGuardando] = useState(false);
+    const [idempotencyKey, setIdempotencyKey] = useState("");
 
     const [historial, setHistorial] = useState([]);
     const [mostrarHistorial, setMostrarHistorial] = useState(false);
@@ -168,7 +169,8 @@ const GastosFijos = () => {
 
                 await api.post(
                     "/gastos-fijos",
-                    payload
+                    payload,
+                    { headers: { "X-Idempotency-Key": idempotencyKey } }
                 );
 
                 toast.success("Gasto creado");
@@ -286,11 +288,9 @@ const GastosFijos = () => {
                         px-4
                     "
                     onClick={() => {
-
+                        setIdempotencyKey(crypto.randomUUID());
                         setMostrarFormulario(true);
-
                         setEditandoId(null);
-
                     }}
                 >
                     + Agregar gasto fijo

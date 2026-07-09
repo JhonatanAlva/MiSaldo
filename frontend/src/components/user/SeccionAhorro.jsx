@@ -14,6 +14,7 @@ const SeccionAhorro = () => {
   const [showDeposito, setShowDeposito] = useState(false);
   const [abono, setAbono] = useState(0);
   const [guardando, setGuardando] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
 
   const [nuevaMeta, setNuevaMeta] = useState({
     meta: "",
@@ -78,7 +79,7 @@ const SeccionAhorro = () => {
       if (modoEdicion && metaSeleccionada) {
         await api.put(`/ahorro/${metaSeleccionada}`, nuevaMeta);
       } else {
-        await api.post("/ahorro", nuevaMeta);
+        await api.post("/ahorro", nuevaMeta, { headers: { "X-Idempotency-Key": idempotencyKey } });
       }
       toast.success(modoEdicion ? "Meta actualizada" : "Meta guardada");
       setShowModal(false);
@@ -139,6 +140,7 @@ const SeccionAhorro = () => {
 
   const abrirDeposito = (plan) => {
     setMetaSeleccionada(plan.id);
+    setIdempotencyKey(crypto.randomUUID());
     setShowDeposito(true);
     setAbono(0);
   };
@@ -148,7 +150,7 @@ const SeccionAhorro = () => {
       await api.post("/ahorro/abono", {
         plan_id: metaSeleccionada,
         monto: parseFloat(abono),
-      });
+      }, { headers: { "X-Idempotency-Key": idempotencyKey } });
       toast.success("Depósito realizado");
       setShowDeposito(false);
       setAbono(0);
@@ -193,7 +195,7 @@ const SeccionAhorro = () => {
         <Button
           variant="success"
           className="rounded-pill px-4 py-2 fw-semibold shadow"
-          onClick={() => setShowModal(true)}
+          onClick={() => { setIdempotencyKey(crypto.randomUUID()); setShowModal(true); }}
         >
           <Icon
             icon="mdi:plus"

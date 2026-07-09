@@ -13,6 +13,7 @@ const IngresosFijos = () => {
 
   const [errorFormulario, setErrorFormulario] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
 
   const [historial, setHistorial] = useState([]);
 
@@ -112,7 +113,7 @@ const IngresosFijos = () => {
         await api.put(`/ingresos-fijos/${editandoId}`, formulario);
         toast.success("Ingreso actualizado");
       } else {
-        await api.post("/ingresos-fijos", formulario);
+        await api.post("/ingresos-fijos", formulario, { headers: { "X-Idempotency-Key": idempotencyKey } });
         toast.success("Ingreso agregado");
       }
 
@@ -250,7 +251,7 @@ const IngresosFijos = () => {
             px-4
             fw-semibold
           "
-          onClick={() => setMostrarModal(true)}
+          onClick={() => { setIdempotencyKey(crypto.randomUUID()); setMostrarModal(true); }}
         >
           + Agregar ingreso
         </button>

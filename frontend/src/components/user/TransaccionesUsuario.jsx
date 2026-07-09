@@ -22,6 +22,8 @@ const TransaccionesUsuario = () => {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [transaccionSeleccionada, setTransaccionSeleccionada] = useState(null);
   const [alerta, setAlerta] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
 
   const [newTransaction, setNewTransaction] = useState({
     type: "gasto",
@@ -118,6 +120,8 @@ const TransaccionesUsuario = () => {
       return;
     }
 
+    setGuardando(true);
+    const ikey = { headers: { "X-Idempotency-Key": idempotencyKey } };
     try {
       // ─────────────────────────────────
       // EDITAR
@@ -130,15 +134,10 @@ const TransaccionesUsuario = () => {
 
         if (type === "ingreso") {
           payload.fuente = category;
-
           payload.descripcion = description || null;
         } else {
           payload.descripcion = description;
-
-          const catRes = await api.post("/finanzas/categoria", {
-            nombre: category,
-          });
-
+          const catRes = await api.post("/finanzas/categoria", { nombre: category });
           payload.categoria_id = catRes.data.id;
         }
 
@@ -157,39 +156,28 @@ const TransaccionesUsuario = () => {
         if (type === "ingreso") {
           await api.post("/finanzas/ingresos", {
             monto: parseFloat(amount),
-
             fuente: category,
-
             fecha: date,
-
             descripcion: description || null,
-          });
+          }, ikey);
         } else {
-          const catRes = await api.post("/finanzas/categoria", {
-            nombre: category,
-          });
-
+          const catRes = await api.post("/finanzas/categoria", { nombre: category });
           await api.post("/finanzas/gastos", {
             monto: parseFloat(amount),
-
             descripcion: description,
-
             fecha: date,
-
             categoria_id: catRes.data.id,
-          });
+          }, ikey);
         }
 
         toast.success("Transacción guardada");
       }
 
-      // ─────────────────────────────────
-      // REFRESH
-      // ─────────────────────────────────
       await obtenerHistorial();
-
       resetFormulario();
     } catch (err) {
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -245,6 +233,7 @@ const TransaccionesUsuario = () => {
   const abrirModal = (tipo) => {
     resetFormulario();
     setNewTransaction((prev) => ({ ...prev, type: tipo }));
+    setIdempotencyKey(crypto.randomUUID());
     setModalVisible(true);
   };
 
@@ -622,14 +611,15 @@ const TransaccionesUsuario = () => {
               </button>
               <button
                 onClick={handleAddTransaction}
+                disabled={guardando}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white
-                  transition-colors ${
+                  transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     isIngreso
                       ? "bg-[#00c57a] hover:bg-[#00a865]"
                       : "bg-red-500 hover:bg-red-600"
                   }`}
               >
-                {modoEdicion ? "Actualizar" : "Guardar"}
+                {guardando ? "Guardando..." : (modoEdicion ? "Actualizar" : "Guardar")}
               </button>
               {modoEdicion && (
                 <button
