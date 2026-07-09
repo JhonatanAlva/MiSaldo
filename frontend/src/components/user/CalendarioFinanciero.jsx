@@ -57,38 +57,38 @@ const CalendarioFinanciero = () => {
         );
 
     // ─────────────────────────────
-    // Colores estado
+    // Días hasta próximo cobro
     // ─────────────────────────────
-    const getEstadoClase =
-        (estado) => {
+    const diasHasta = (diaCobro) => {
+        const hoy = new Date();
+        const diaHoy = hoy.getDate();
+        const mesHoy = hoy.getMonth();
+        const anioHoy = hoy.getFullYear();
+        let proxPago = new Date(anioHoy, mesHoy, diaCobro);
+        if (diaHoy > diaCobro) {
+            proxPago = new Date(anioHoy, mesHoy + 1, diaCobro);
+        }
+        const base = new Date(anioHoy, mesHoy, diaHoy);
+        return Math.round((proxPago - base) / (1000 * 60 * 60 * 24));
+    };
 
-            switch (estado) {
+    const getEtiqueta = (estado, diaCobro) => {
+        if (estado === "PAGADO") return { texto: "Pagado este mes", color: "#10b981", badge: "bg-success" };
+        const dias = diasHasta(diaCobro);
+        if (dias === 0) return { texto: "Vence hoy",      color: "#ef4444", badge: "bg-danger" };
+        if (dias === 1) return { texto: "Vence mañana",   color: "#f97316", badge: "bg-warning text-dark" };
+        if (dias <= 7)  return { texto: `En ${dias} días`, color: "#f59e0b", badge: "bg-warning text-dark" };
+        return              { texto: `En ${dias} días`, color: "#6b7280", badge: "bg-secondary" };
+    };
 
-                case "HOY":
-                    return {
-                        badge:
-                            "bg-danger",
-                        texto:
-                            "🔴 Vence hoy",
-                    };
-
-                case "PAGADO":
-                    return {
-                        badge:
-                            "bg-success",
-                        texto:
-                            "🟢 Pagado",
-                    };
-
-                default:
-                    return {
-                        badge:
-                            "bg-warning text-dark",
-                        texto:
-                            "🟡 Próximo",
-                    };
-            }
-        };
+    // ─────────────────────────────
+    // Ordenar por urgencia
+    // ─────────────────────────────
+    const eventosOrdenados = [...eventos].sort((a, b) => {
+        if (a.estado === "PAGADO" && b.estado !== "PAGADO") return 1;
+        if (b.estado === "PAGADO" && a.estado !== "PAGADO") return -1;
+        return diasHasta(a.dia_cobro) - diasHasta(b.dia_cobro);
+    });
 
     return (
         <div className="container-fluid">
@@ -155,162 +155,78 @@ const CalendarioFinanciero = () => {
 
                 <div className="row g-4">
 
-                    {eventos.map((evento) => {
+                    {eventosOrdenados.map((evento) => {
 
-                        const estado =
-                            getEstadoClase(
-                                evento.estado
-                            );
+                        const etiqueta = getEtiqueta(evento.estado, evento.dia_cobro);
 
                         return (
 
                             <div
                                 key={evento.id}
-                                className="
-                  col-12
-                  col-md-6
-                  col-xl-4
-                "
+                                className="col-12 col-md-6 col-xl-4"
                             >
 
                                 <div
-                                    className="
-                    card
-                    border-0
-                    shadow-sm
-                    rounded-4
-                    h-100
-                  "
+                                    className="card shadow-sm rounded-4 h-100"
+                                    style={{
+                                        border: "none",
+                                        borderLeft: `4px solid ${etiqueta.color}`,
+                                    }}
                                 >
 
                                     <div className="card-body">
 
                                         {/* Header */}
-                                        <div
-                                            className="
-                        d-flex
-                        justify-content-between
-                        align-items-start
-                        mb-3
-                      "
-                                        >
+                                        <div className="d-flex justify-content-between align-items-start mb-2">
 
                                             <div>
-
-                                                <h5 className="fw-bold mb-1">
-                                                    {evento.nombre}
-                                                </h5>
-
-                                                <small className="text-muted">
-                                                    Día {evento.dia_cobro}
-                                                </small>
-
+                                                <h5 className="fw-bold mb-0">{evento.nombre}</h5>
+                                                <small className="text-muted">Día {evento.dia_cobro} de cada mes</small>
                                             </div>
 
-                                            <div
-                                                className="
-                          badge
-                          bg-danger
-                          px-3
-                          py-2
-                          rounded-pill
-                          fs-6
-                        "
-                                            >
+                                            <span className="badge bg-danger px-3 py-2 rounded-pill fs-6">
                                                 Q{evento.monto}
-                                            </div>
-
-                                        </div>
-
-                                        {/* Categoría */}
-                                        {evento.categoria_nombre && (
-
-                                            <div className="mb-3">
-
-                                                <span
-                                                    className="
-                            badge
-                            bg-light
-                            text-dark
-                            border
-                          "
-                                                >
-                                                    📂{" "}
-                                                    {
-                                                        evento.categoria_nombre
-                                                    }
-                                                </span>
-
-                                            </div>
-
-                                        )}
-
-                                        {/* Estado */}
-                                        <div className="mb-3">
-
-                                            <span
-                                                className={`
-                          badge
-                          ${estado.badge}
-                          px-3
-                          py-2
-                          rounded-pill
-                        `}
-                                            >
-                                                {estado.texto}
                                             </span>
 
                                         </div>
 
+                                        {/* Días hasta el cobro — protagonista */}
+                                        <div className="my-3">
+                                            <span
+                                                className="fw-bold"
+                                                style={{ color: etiqueta.color, fontSize: "1.05rem" }}
+                                            >
+                                                {etiqueta.texto}
+                                            </span>
+                                        </div>
+
+                                        {/* Categoría */}
+                                        {evento.categoria_nombre && (
+                                            <div className="mb-3">
+                                                <span className="badge bg-light text-dark border">
+                                                    📂 {evento.categoria_nombre}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         {/* Cuotas */}
                                         {evento.tiene_cuotas && (
-
-                                            <div>
-
-                                                <div
-                                                    className="
-                            d-flex
-                            justify-content-between
-                            mb-2
-                          "
-                                                >
-
-                                                    <small>
-                                                        💳 Cuotas
-                                                    </small>
-
+                                            <div className="mt-2">
+                                                <div className="d-flex justify-content-between mb-1">
+                                                    <small>💳 Cuotas</small>
                                                     <small className="fw-bold">
-                                                        {
-                                                            evento.cuotas_pagadas
-                                                        }
-                                                        /
-                                                        {
-                                                            evento.cuotas_total
-                                                        }
+                                                        {evento.cuotas_pagadas}/{evento.cuotas_total}
                                                     </small>
-
                                                 </div>
-
-                                                <div className="progress rounded-pill">
-
+                                                <div className="progress rounded-pill" style={{ height: "8px" }}>
                                                     <div
-                                                        className="
-                              progress-bar
-                              bg-warning
-                            "
+                                                        className="progress-bar bg-warning"
                                                         style={{
-                                                            width: `${(
-                                                                evento.cuotas_pagadas /
-                                                                evento.cuotas_total
-                                                            ) * 100
-                                                                }%`,
+                                                            width: `${(evento.cuotas_pagadas / evento.cuotas_total) * 100}%`,
                                                         }}
                                                     />
-
                                                 </div>
-
                                             </div>
-
                                         )}
 
                                     </div>

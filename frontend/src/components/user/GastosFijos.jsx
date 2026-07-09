@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
+import { Icon } from "@iconify/react";
 import EstadoVacio from "../ui/EstadoVacio";
 
 const GastosFijos = () => {
@@ -107,27 +108,13 @@ const GastosFijos = () => {
     const guardarGastoFijo = async () => {
 
         if (!formData.nombre.trim()) {
-
-            return Swal.fire({
-                icon: "warning",
-                title: "Nombre requerido",
-                text: "Debes ingresar un nombre.",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
-
+            toast.error("Debes ingresar un nombre");
+            return;
         }
 
         if (!formData.categoria_id) {
-
-            return Swal.fire({
-                icon: "warning",
-                title: "Categoría requerida",
-                text: "Selecciona una categoría.",
-                background: "#1e1e1e",
-                color: "#fff",
-            });
-
+            toast.error("Selecciona una categoría");
+            return;
         }
 
         setGuardando(true);
@@ -301,6 +288,16 @@ const GastosFijos = () => {
             {/* Cards */}
             <div className="row g-4">
 
+                {!loading && gastos.length === 0 && (
+                    <div className="col-12">
+                        <EstadoVacio
+                            icono="📌"
+                            titulo="Sin gastos fijos"
+                            descripcion="Agrega tu primer gasto recurrente para llevar un control mensual."
+                        />
+                    </div>
+                )}
+
                 {gastos.map((gasto) => (
 
                     <div
@@ -326,25 +323,21 @@ const GastosFijos = () => {
                                 ">
 
                                     <div>
-
-                                        <h5 className="fw-bold">
-                                            {gasto.nombre}
-                                        </h5>
-
+                                        <div className="d-flex align-items-center gap-2 mb-1">
+                                            <h5 className="fw-bold mb-0">{gasto.nombre}</h5>
+                                            <span
+                                                className={`badge rounded-pill ${gasto.activo ? "bg-success" : "bg-secondary"}`}
+                                                style={{ fontSize: "0.7rem" }}
+                                            >
+                                                {gasto.activo ? "Activo" : "Inactivo"}
+                                            </span>
+                                        </div>
                                         <small className="text-muted">
                                             Cobro cada día {gasto.dia_cobro}
                                         </small>
-
                                     </div>
 
-                                    <span className="
-                                        badge
-                                        bg-danger
-                                        rounded-pill
-                                        fs-6
-                                        px-3
-                                        py-2
-                                    ">
+                                    <span className="badge bg-danger rounded-pill fs-6 px-3 py-2">
                                         Q{gasto.monto}
                                     </span>
 
@@ -419,53 +412,30 @@ const GastosFijos = () => {
                                 )}
 
                                 {/* Botones */}
-                                <div className="d-flex gap-2">
-
+                                <div className="d-flex justify-content-end align-items-center gap-2 mt-3 pt-2 border-top">
                                     <button
-                                        className="
-                                            btn
-                                            btn-outline-primary
-                                            rounded-pill
-                                            flex-fill
-                                        "
-                                        onClick={() =>
-                                            editarGasto(gasto)
-                                        }
+                                        className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1"
+                                        onClick={() => abrirHistorial(gasto)}
+                                        title="Ver historial"
                                     >
-                                        ✏️ Editar
+                                        <Icon icon="lucide:history" width={15} />
+                                        <span>Historial</span>
                                     </button>
-
                                     <button
-                                        className="
-                                            btn
-                                            btn-outline-danger
-                                            rounded-pill
-                                            flex-fill
-                                        "
-                                        onClick={() =>
-                                            eliminarGasto(gasto)
-                                        }
+                                        className="btn btn-sm btn-outline-primary rounded-3"
+                                        onClick={() => editarGasto(gasto)}
+                                        title="Editar"
                                     >
-                                        🗑️ Eliminar
+                                        <Icon icon="lucide:pencil" width={15} />
                                     </button>
-
+                                    <button
+                                        className="btn btn-sm btn-outline-danger rounded-3"
+                                        onClick={() => eliminarGasto(gasto)}
+                                        title="Eliminar"
+                                    >
+                                        <Icon icon="lucide:trash-2" width={15} />
+                                    </button>
                                 </div>
-
-                                {/* Historial */}
-                                <button
-                                    className="
-                                        btn
-                                        btn-outline-dark
-                                        rounded-pill
-                                        w-100
-                                        mt-3
-                                    "
-                                    onClick={() =>
-                                        abrirHistorial(gasto)
-                                    }
-                                >
-                                    📜 Ver historial
-                                </button>
 
                             </div>
 
@@ -694,37 +664,37 @@ const GastosFijos = () => {
 
                             {/* cuotas */}
                             <div className="col-12">
-
-                                <div className="
-                                    form-check
-                                    form-switch
-                                ">
-
+                                <div className="form-check form-switch">
                                     <input
-                                        className="
-                                            form-check-input
-                                        "
+                                        className="form-check-input"
                                         type="checkbox"
-                                        checked={
-                                            formData.tiene_cuotas
-                                        }
+                                        checked={formData.tiene_cuotas}
                                         onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                tiene_cuotas:
-                                                    e.target.checked,
-                                            })
+                                            setFormData({ ...formData, tiene_cuotas: e.target.checked })
                                         }
                                     />
-
-                                    <label className="
-                                        form-check-label
-                                    ">
-                                        Tiene cuotas
-                                    </label>
-
+                                    <label className="form-check-label">Tiene cuotas</label>
                                 </div>
+                            </div>
 
+                            {/* activo */}
+                            <div className="col-12">
+                                <div className="form-check form-switch">
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        checked={formData.activo}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, activo: e.target.checked })
+                                        }
+                                    />
+                                    <label className="form-check-label">
+                                        Activo
+                                        <span className={`ms-2 badge rounded-pill ${formData.activo ? "bg-success" : "bg-secondary"}`} style={{ fontSize: "0.7rem" }}>
+                                            {formData.activo ? "Sí" : "No"}
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
 
                             {formData.tiene_cuotas && (

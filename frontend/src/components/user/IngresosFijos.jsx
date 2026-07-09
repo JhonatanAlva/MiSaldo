@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
+import { Icon } from "@iconify/react";
 import api from "../../services/api";
 import EstadoVacio from "../ui/EstadoVacio";
 
@@ -11,7 +12,6 @@ const IngresosFijos = () => {
 
   const [editandoId, setEditandoId] = useState(null);
 
-  const [errorFormulario, setErrorFormulario] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState("");
 
@@ -72,8 +72,6 @@ const IngresosFijos = () => {
       activo: true,
     });
 
-    setErrorFormulario("");
-
     setEditandoId(null);
 
     setMostrarModal(false);
@@ -85,26 +83,24 @@ const IngresosFijos = () => {
   const guardarIngreso = async (e) => {
     e.preventDefault();
 
-    setErrorFormulario("");
-
     if (!formulario.nombre.trim()) {
-      return setErrorFormulario("Debes ingresar un nombre.");
+      toast.error("Debes ingresar un nombre");
+      return;
     }
 
     if (!formulario.monto || Number(formulario.monto) <= 0) {
-      return setErrorFormulario("Debes ingresar un monto válido.");
+      toast.error("Debes ingresar un monto válido");
+      return;
     }
 
-    if (formulario.frecuencia === "mensual") {
-      if (!formulario.dia_pago) {
-        return setErrorFormulario("Debes ingresar el día de pago.");
-      }
+    if (formulario.frecuencia === "mensual" && !formulario.dia_pago) {
+      toast.error("Debes ingresar el día de pago");
+      return;
     }
 
-    if (formulario.frecuencia === "quincenal") {
-      if (!formulario.dia_pago || !formulario.dia_pago_secundario) {
-        return setErrorFormulario("Debes ingresar ambos días de pago.");
-      }
+    if (formulario.frecuencia === "quincenal" && (!formulario.dia_pago || !formulario.dia_pago_secundario)) {
+      toast.error("Debes ingresar ambos días de pago");
+      return;
     }
 
     setGuardando(true);
@@ -121,7 +117,6 @@ const IngresosFijos = () => {
 
       obtenerIngresos();
     } catch (error) {
-      setErrorFormulario("No se pudo guardar el ingreso.");
     } finally {
       setGuardando(false);
     }
@@ -186,13 +181,7 @@ const IngresosFijos = () => {
       setMostrarHistorial(true);
     } catch (error) {
       console.error(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error al obtener historial",
-        background: "#1e1e1e",
-        color: "#fff",
-      });
+      toast.error("No se pudo cargar el historial");
     }
   };
 
@@ -327,19 +316,6 @@ const IngresosFijos = () => {
               />
             </div>
 
-            {/* Error */}
-            {errorFormulario && (
-              <div
-                className="
-                  alert
-                  alert-danger
-                  py-2
-                "
-              >
-                {errorFormulario}
-              </div>
-            )}
-
             {/* Form */}
             <form onSubmit={guardarIngreso}>
               {/* Nombre */}
@@ -473,14 +449,28 @@ const IngresosFijos = () => {
                 </div>
               )}
 
+              {/* Activo */}
+              <div className="mb-3 form-check form-switch">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="activo"
+                  checked={formulario.activo}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label">
+                  Activo
+                  <span
+                    className={`ms-2 badge rounded-pill ${formulario.activo ? "bg-success" : "bg-secondary"}`}
+                    style={{ fontSize: "0.7rem" }}
+                  >
+                    {formulario.activo ? "Sí" : "No"}
+                  </span>
+                </label>
+              </div>
+
               {/* Botones */}
-              <div
-                className="
-                  d-flex
-                  gap-3
-                  mt-4
-                "
-              >
+              <div className="d-flex gap-3 mt-4">
                 <button
                   type="button"
                   className="
@@ -638,6 +628,16 @@ const IngresosFijos = () => {
 
       {/* Cards */}
       <div className="row g-4">
+        {ingresos.length === 0 && (
+          <div className="col-12">
+            <EstadoVacio
+              icono="💰"
+              titulo="Sin ingresos fijos"
+              descripcion="Agrega tu primer ingreso recurrente para llevar un control mensual."
+            />
+          </div>
+        )}
+
         {ingresos.map((ingreso) => (
           <div
             key={ingreso.id}
@@ -674,70 +674,48 @@ const IngresosFijos = () => {
                   "
                 >
                   <div>
-                    <h3 className="fw-bold">{ingreso.nombre}</h3>
-
-                    <p className="text-muted">
-                      {obtenerTextoFrecuencia(ingreso)}
-                    </p>
+                    <div className="d-flex align-items-center gap-2 mb-1">
+                      <h3 className="fw-bold mb-0">{ingreso.nombre}</h3>
+                      <span
+                        className={`badge rounded-pill ${ingreso.activo ? "bg-success" : "bg-secondary"}`}
+                        style={{ fontSize: "0.7rem" }}
+                      >
+                        {ingreso.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </div>
+                    <p className="text-muted mb-0">{obtenerTextoFrecuencia(ingreso)}</p>
                   </div>
 
-                  <span
-                    className="
-                      badge
-                      bg-success
-                      fs-6
-                      px-3
-                      py-2
-                      rounded-pill
-                    "
-                  >
+                  <span className="badge bg-success fs-6 px-3 py-2 rounded-pill">
                     Q{ingreso.monto}
                   </span>
                 </div>
 
                 {/* Botones */}
-                <div
-                  className="
-                    d-flex
-                    gap-2
-                    mt-4
-                  "
-                >
+                <div className="d-flex justify-content-end align-items-center gap-2 mt-3 pt-2 border-top">
                   <button
-                    className="
-                      btn
-                      btn-outline-success
-                      flex-fill
-                    "
-                    onClick={() => editarIngreso(ingreso)}
+                    className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1"
+                    onClick={() => verHistorial(ingreso.id, ingreso.nombre)}
+                    title="Ver historial"
                   >
-                    ✏️ Editar
+                    <Icon icon="lucide:history" width={15} />
+                    <span>Historial</span>
                   </button>
-
                   <button
-                    className="
-                      btn
-                      btn-outline-danger
-                      flex-fill
-                    "
-                    onClick={() => eliminarIngreso(ingreso.id)}
+                    className="btn btn-sm btn-outline-success rounded-3"
+                    onClick={() => editarIngreso(ingreso)}
+                    title="Editar"
                   >
-                    🗑️ Eliminar
+                    <Icon icon="lucide:pencil" width={15} />
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger rounded-3"
+                    onClick={() => eliminarIngreso(ingreso.id)}
+                    title="Eliminar"
+                  >
+                    <Icon icon="lucide:trash-2" width={15} />
                   </button>
                 </div>
-
-                <button
-                  className="
-                    btn
-                    btn-outline-dark
-                    w-100
-                    mt-3
-                    rounded-pill
-                  "
-                  onClick={() => verHistorial(ingreso.id, ingreso.nombre)}
-                >
-                  📜 Ver historial
-                </button>
               </div>
             </div>
           </div>

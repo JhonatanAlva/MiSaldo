@@ -23,86 +23,82 @@ const manejarAsistente =
 
     try {
 
-      const usuarioId =
-        req.usuario.id;
+      const usuarioId = req.usuario.id;
+      const ahora = new Date();
+      const mesActual = ahora.getMonth() + 1;
+      const anioActual = ahora.getFullYear();
 
       // ─────────────────────────────────
-      // Obtener ingresos
+      // Totales exactos del mes actual
       // ─────────────────────────────────
-      const ingresosRes =
-        await db.query(
-          `
-          SELECT descripcion, monto
-          FROM ingresos
-          WHERE usuario_id = $1
-          ORDER BY fecha DESC
-          LIMIT 10
-          `,
-          [usuarioId]
-        );
+      const resumenMesRes = await db.query(
+        `SELECT
+           COALESCE((SELECT SUM(monto) FROM ingresos
+             WHERE usuario_id = $1
+               AND EXTRACT(MONTH FROM fecha) = $2
+               AND EXTRACT(YEAR  FROM fecha) = $3), 0) AS total_ingresos,
+           COALESCE((SELECT SUM(monto) FROM gastos
+             WHERE usuario_id = $1
+               AND EXTRACT(MONTH FROM fecha) = $2
+               AND EXTRACT(YEAR  FROM fecha) = $3), 0) AS total_gastos`,
+        [usuarioId, mesActual, anioActual]
+      );
 
       // ─────────────────────────────────
-      // Obtener gastos
+      // Transacciones recientes con fecha
       // ─────────────────────────────────
-      const gastosRes =
-        await db.query(
-          `
-          SELECT descripcion, monto
-          FROM gastos
-          WHERE usuario_id = $1
-          ORDER BY fecha DESC
-          LIMIT 10
-          `,
-          [usuarioId]
-        );
+      const ingresosRes = await db.query(
+        `SELECT fuente AS descripcion, monto,
+                TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha
+         FROM ingresos
+         WHERE usuario_id = $1
+         ORDER BY fecha DESC
+         LIMIT 20`,
+        [usuarioId]
+      );
+
+      const gastosRes = await db.query(
+        `SELECT g.descripcion, g.monto,
+                TO_CHAR(g.fecha, 'YYYY-MM-DD') AS fecha,
+                c.nombre AS categoria
+         FROM gastos g
+         LEFT JOIN categorias c ON c.id = g.categoria_id
+         WHERE g.usuario_id = $1
+         ORDER BY g.fecha DESC
+         LIMIT 20`,
+        [usuarioId]
+      );
 
       // ─────────────────────────────────
-      // Obtener ingresos fijos
+      // Fijos activos
       // ─────────────────────────────────
-      const ingresosFijosRes =
-        await db.query(
-          `
-          SELECT nombre, monto
-          FROM ingresos_fijos
-          WHERE usuario_id = $1
-          `,
-          [usuarioId]
-        );
+      const ingresosFijosRes = await db.query(
+        `SELECT nombre, monto, frecuencia
+         FROM ingresos_fijos
+         WHERE usuario_id = $1 AND activo = true`,
+        [usuarioId]
+      );
 
-      // ─────────────────────────────────
-      // Obtener gastos fijos
-      // ─────────────────────────────────
-      const gastosFijosRes =
-        await db.query(
-          `
-          SELECT nombre, monto
-          FROM gastos_fijos
-          WHERE usuario_id = $1
-          `,
-          [usuarioId]
-        );
+      const gastosFijosRes = await db.query(
+        `SELECT nombre, monto, dia_cobro
+         FROM gastos_fijos
+         WHERE usuario_id = $1 AND activo = true`,
+        [usuarioId]
+      );
 
       // ─────────────────────────────────
       // Generar respuesta IA
       // ─────────────────────────────────
-      const respuesta =
-        await asistenteService.manejarMensaje({
-
-          mensaje,
-
-          ingresos:
-            ingresosRes.rows,
-
-          gastos:
-            gastosRes.rows,
-
-          ingresosFijos:
-            ingresosFijosRes.rows,
-
-          gastosFijos:
-            gastosFijosRes.rows,
-
-        });
+      const respuesta = await asistenteService.manejarMensaje({
+        mensaje,
+        ingresos:      ingresosRes.rows,
+        gastos:        gastosRes.rows,
+        ingresosFijos: ingresosFijosRes.rows,
+        gastosFijos:   gastosFijosRes.rows,
+        resumenMes:    resumenMesRes.rows[0],
+        mesActual,
+        anioActual,
+      });
 
       res.json({
         respuesta,

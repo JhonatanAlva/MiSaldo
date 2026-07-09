@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ProgressBar, Button } from "react-bootstrap";
 import GraficaBalance from "./GraficaBalance";
-import { FaShoppingBag, FaCreditCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import EstadoVacio from "../ui/EstadoVacio";
@@ -201,7 +200,7 @@ const ResumenDashboard = ({ setVista }) => {
     setFechaFin("");
   };
 
-  const tarjetaBase = modoOscuro ? "card bg-dark text-light" : "card";
+  const tarjetaBase = modoOscuro ? "card bg-dark text-light rounded-4" : "card rounded-4";
   const textoMuted = modoOscuro ? "text-secondary" : "text-muted";
 
   return (
@@ -245,16 +244,27 @@ const ResumenDashboard = ({ setVista }) => {
         {/* Tarjetas mensuales dinámicas */}
         {(tipoVista === "mensual" || tipoVista === "trimestral") &&
           resumenMensual.map((mes, i) => {
-            // Buscar el mes anterior
             const gastoAnterior = resumenMensual[i + 1]?.gastos || 0;
             const cambio = gastoAnterior
               ? ((mes.gastos - gastoAnterior) / gastoAnterior) * 100
               : 0;
+            const esMesActual = i === 0;
 
             return (
-              <div className="card resumen-item" key={i}>
+              <div
+                className="card resumen-item"
+                key={i}
+                style={esMesActual ? { borderTop: "3px solid #00c57a" } : {}}
+              >
                 <div className="card-body text-center">
-                  <h6 className="card-title">{mes.periodo}</h6>
+                  <div className="d-flex justify-content-center align-items-center gap-2 mb-1">
+                    <h6 className="card-title mb-0">{mes.periodo}</h6>
+                    {esMesActual && (
+                      <span className="badge rounded-pill" style={{ backgroundColor: "#00c57a", fontSize: "0.65rem" }}>
+                        Este mes
+                      </span>
+                    )}
+                  </div>
                   <p className="mb-1 text-success fw-bold">
                     Ingresos: Q {mes.ingresos.toFixed(2)}
                   </p>
@@ -264,18 +274,10 @@ const ResumenDashboard = ({ setVista }) => {
                   <p className="mb-0 fw-bold">
                     Balance: Q {mes.saldo.toFixed(2)}
                   </p>
-
-                  {/* 📊 Mostrar porcentaje solo si hay un mes anterior */}
                   {resumenMensual[i + 1] && gastoAnterior > 0 && (
-                    <p
-                      className={`mt-2 fw-bold ${
-                        cambio < 0 ? "text-success" : "text-danger"
-                      }`}
-                    >
+                    <p className={`mt-2 fw-bold ${cambio < 0 ? "text-success" : "text-danger"}`}>
                       {cambio < 0 ? "📉" : "📈"} {Math.abs(cambio).toFixed(1)}%{" "}
-                      {cambio < 0
-                        ? "menos gastos que el mes anterior"
-                        : "más gastos que el mes anterior"}
+                      {cambio < 0 ? "menos gastos que el mes anterior" : "más gastos que el mes anterior"}
                     </p>
                   )}
                 </div>
@@ -426,40 +428,35 @@ const ResumenDashboard = ({ setVista }) => {
                   Ver todas
                 </Button>
               </div>
-
-              {/* 🔽 Agregamos scroll a este div */}
-              <div
-                style={{
-                  maxHeight: "250px",
-                  overflowY: "auto",
-                  paddingRight: "6px",
-                }}
-              >
-                <ul className="list-unstyled">
-                  {movimientos.gastos.map((gasto, i) => (
-                    <li
-                      key={`gasto-${i}`}
-                      className="d-flex justify-content-between mb-2"
-                    >
-                      <div>
-                        <FaShoppingBag className="me-2 text-danger" />{" "}
-                        {gasto.descripcion}
-                      </div>
-                      <span className="text-danger">-Q {gasto.monto}</span>
-                    </li>
-                  ))}
-                  {movimientos.ingresos.map((ingreso, i) => (
-                    <li
-                      key={`ingreso-${i}`}
-                      className="d-flex justify-content-between mb-2"
-                    >
-                      <div>
-                        <FaCreditCard className="me-2 text-success" />{" "}
-                        {ingreso.fuente}
-                      </div>
-                      <span className="text-success">+Q {ingreso.monto}</span>
-                    </li>
-                  ))}
+              <div style={{ maxHeight: "250px", overflowY: "auto", paddingRight: "6px" }}>
+                <ul className="list-unstyled mb-0">
+                  {[
+                    ...movimientos.gastos.map(g => ({ ...g, tipo: "gasto", label: g.descripcion || g.categoria })),
+                    ...movimientos.ingresos.map(i => ({ ...i, tipo: "ingreso", label: i.fuente })),
+                  ]
+                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                    .slice(0, 8)
+                    .map((mov, i) => (
+                      <li key={i} className="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div className="d-flex align-items-center gap-2">
+                          <span style={{ fontSize: "1.1rem" }}>
+                            {mov.tipo === "gasto" ? "🔴" : "🟢"}
+                          </span>
+                          <div>
+                            <div className="fw-semibold" style={{ fontSize: "0.85rem" }}>
+                              {mov.label}
+                            </div>
+                            <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                              {mov.fecha ? new Date(mov.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "short" }) : ""}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`fw-bold ${mov.tipo === "gasto" ? "text-danger" : "text-success"}`}
+                              style={{ fontSize: "0.85rem" }}>
+                          {mov.tipo === "gasto" ? "-" : "+"}Q {Number(mov.monto).toFixed(2)}
+                        </span>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>

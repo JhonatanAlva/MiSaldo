@@ -6,6 +6,15 @@ import React, {
 
 import api from "../../services/api";
 
+const SUGERENCIAS = [
+  "¿Cuánto gasté este mes?",
+  "¿En qué categoría gasto más?",
+  "¿Cuánto puedo ahorrar al mes?",
+  "Dame consejos para reducir gastos",
+  "¿Cuánto he ingresado este mes?",
+  "¿Cómo mejorar mis finanzas personales?",
+];
+
 const AsistenteIA = ({
   nombreUsuario = "Usuario",
 }) => {
@@ -96,64 +105,30 @@ const AsistenteIA = ({
   // ─────────────────────────────────────
   // Enviar mensaje
   // ─────────────────────────────────────
-  const manejarEnvio = async (e) => {
-
-    e.preventDefault();
-
-    if (
-      !mensaje.trim() ||
-      cargando
-    ) return;
-
-    const pregunta = mensaje.trim();
-
-    setRespuestas((prev) => [
-      ...prev,
-      {
-        rol: "usuario",
-        texto: pregunta,
-      },
-    ]);
-
+  const enviarTexto = async (texto) => {
+    if (!texto.trim() || cargando) return;
+    setRespuestas((prev) => [...prev, { rol: "usuario", texto }]);
     setMensaje("");
-
     setCargando(true);
-
     try {
-
-      const res = await api.post(
-        "/asistente",
-        {
-          mensaje: pregunta,
-          nombre: nombreUsuario,
-        }
-      );
-
-      setRespuestas((prev) => [
-        ...prev,
-        {
-          rol: "asistente",
-          texto:
-            res.data.respuesta,
-        },
-      ]);
-
+      const res = await api.post("/asistente", { mensaje: texto, nombre: nombreUsuario });
+      setRespuestas((prev) => [...prev, { rol: "asistente", texto: res.data.respuesta }]);
     } catch {
-
-      setRespuestas((prev) => [
-        ...prev,
-        {
-          rol: "asistente",
-          texto:
-            "❌ Hubo un error al conectarse con el asistente IA.",
-        },
-      ]);
-
+      setRespuestas((prev) => [...prev, { rol: "asistente", texto: "❌ Hubo un error al conectarse con el asistente IA." }]);
     } finally {
-
       setCargando(false);
-
     }
+  };
+
+  const manejarEnvio = (e) => {
+    e.preventDefault();
+    enviarTexto(mensaje.trim());
+  };
+
+  const limpiarChat = () => {
+    const saludo = [{ rol: "asistente", texto: `Hola ${nombreUsuario} 👋 ¿En qué puedo ayudarte con tus finanzas hoy?` }];
+    setRespuestas(saludo);
+    sessionStorage.setItem("asistente_ia_chat", JSON.stringify(saludo));
   };
 
   // ─────────────────────────────────────
@@ -386,21 +361,24 @@ const AsistenteIA = ({
             🤖
           </div>
 
-          <div>
+          <div className="flex-grow-1">
             <h4 className="fw-bold m-0">
               Asistente IA
             </h4>
-
-            <small
-              className={
-                modoOscuro
-                  ? "text-light opacity-75"
-                  : "text-muted"
-              }
-            >
+            <small className={modoOscuro ? "text-light opacity-75" : "text-muted"}>
               Finanzas inteligentes
             </small>
           </div>
+
+          {respuestas.length > 1 && (
+            <button
+              onClick={limpiarChat}
+              title="Limpiar conversación"
+              className={`btn btn-sm rounded-pill px-3 ${modoOscuro ? "btn-outline-secondary" : "btn-outline-secondary"}`}
+            >
+              🗑️ Limpiar
+            </button>
+          )}
 
         </div>
 
@@ -429,52 +407,49 @@ const AsistenteIA = ({
 
                 <div
                   key={i}
-                  className={`
-                    p-3
-                    rounded-4
-                    shadow-sm
-                    ${burbuja(
-                    r.rol
-                  )}
-                  `}
+                  className={`p-3 rounded-4 shadow-sm ${burbuja(r.rol)}`}
                   style={{
-                    maxWidth:
-                      window.innerWidth <
-                        640
-                        ? "95%"
-                        : "75%",
-                    width:
-                      "fit-content",
+                    maxWidth: window.innerWidth < 640 ? "95%" : "75%",
+                    width: "fit-content",
+                    whiteSpace: "pre-wrap",
+                    lineHeight: "1.5",
                   }}
                 >
-
                   {r.texto}
-
                 </div>
 
               )
             )}
 
-            {cargando && (
-
-              <div
-                className={`
-                  p-3
-                  rounded-4
-                  shadow-sm
-                  ${modoOscuro
-                    ? "bg-secondary text-light"
-                    : "bg-light"
-                  }
-                `}
-                style={{
-                  width:
-                    "fit-content",
-                }}
-              >
-                ✍️ Escribiendo...
+            {/* Preguntas sugeridas — solo cuando chat está vacío */}
+            {respuestas.length === 1 && !cargando && (
+              <div className="mt-1 d-flex flex-wrap gap-2 justify-content-center">
+                {SUGERENCIAS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => enviarTexto(s)}
+                    className={`btn btn-sm rounded-pill px-3 py-2 ${
+                      modoOscuro
+                        ? "btn-outline-light opacity-75"
+                        : "btn-outline-secondary"
+                    }`}
+                    style={{ fontSize: "0.8rem" }}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
+            )}
 
+            {cargando && (
+              <div
+                className={`p-3 rounded-4 shadow-sm ${modoOscuro ? "bg-secondary text-light" : "bg-light text-muted"}`}
+                style={{ width: "fit-content" }}
+              >
+                <span className="me-1">✍️</span>
+                <span>Escribiendo</span>
+                <span className="ms-1" style={{ letterSpacing: "2px" }}>...</span>
+              </div>
             )}
 
             <div ref={bottomRef} />

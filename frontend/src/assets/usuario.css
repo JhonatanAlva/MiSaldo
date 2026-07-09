@@ -84,11 +84,16 @@ html, body {
 }
 
 /* Tarjeta de resumen destacada */
-.resumen-card, 
+.resumen-card,
 .resumen-item, .card-body {
   background-color: var(--resumen-bg) !important;
   color: var(--resumen-text) !important;
   border: none !important;
+}
+
+.resumen-card,
+.resumen-item {
+  border-radius: 1rem !important;
 }
 .resumen-card .card-body {
   background-color: transparent;

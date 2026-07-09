@@ -9,32 +9,65 @@ const manejarMensaje = async ({
   gastos,
   ingresosFijos,
   gastosFijos,
+  resumenMes,
+  mesActual,
+  anioActual,
 }) => {
 
+  const nombreMes = new Date(anioActual, mesActual - 1, 1)
+    .toLocaleString("es-GT", { month: "long" });
+
+  const totalIngresos = Number(resumenMes?.total_ingresos || 0);
+  const totalGastos   = Number(resumenMes?.total_gastos   || 0);
+  const balance       = totalIngresos - totalGastos;
+
+  const mesStr = `${anioActual}-${String(mesActual).padStart(2, "0")}`;
+  const ingresosMes = (ingresos || []).filter(i => String(i.fecha || "").startsWith(mesStr));
+  const gastosMes   = (gastos   || []).filter(g => String(g.fecha || "").startsWith(mesStr));
+  const ingresosAnt = (ingresos || []).filter(i => !String(i.fecha || "").startsWith(mesStr)).slice(0, 5);
+  const gastosAnt   = (gastos   || []).filter(g => !String(g.fecha || "").startsWith(mesStr)).slice(0, 5);
+
+  const hoy = new Date().toLocaleDateString("es-GT", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
   const prompt = `
-El usuario preguntó:
-"${mensaje}"
+Eres un asistente financiero personal. Hoy es ${hoy}.
 
-Información financiera actual:
+El usuario preguntó: "${mensaje}"
 
+━━ TOTALES EXACTOS DE ${nombreMes.toUpperCase()} ${anioActual} ━━
+Total ingresos este mes: Q${totalIngresos.toFixed(2)}
+Total gastos este mes:   Q${totalGastos.toFixed(2)}
+Balance este mes:        Q${balance.toFixed(2)}
+
+━━ TRANSACCIONES DE ESTE MES ━━
 Ingresos:
-${JSON.stringify((ingresos || []).slice(0, 10))}
+${ingresosMes.length > 0 ? JSON.stringify(ingresosMes) : "Ninguno registrado este mes"}
 
 Gastos:
-${JSON.stringify((gastos || []).slice(0, 10))}
+${gastosMes.length > 0 ? JSON.stringify(gastosMes) : "Ninguno registrado este mes"}
 
-Ingresos fijos:
-${JSON.stringify((ingresosFijos || []).slice(0, 10))}
+━━ TRANSACCIONES DE MESES ANTERIORES ━━
+Ingresos anteriores (últimos 5):
+${ingresosAnt.length > 0 ? JSON.stringify(ingresosAnt) : "Ninguno"}
 
-Gastos fijos:
-${JSON.stringify((gastosFijos || []).slice(0, 10))}
+Gastos anteriores (últimos 5):
+${gastosAnt.length > 0 ? JSON.stringify(gastosAnt) : "Ninguno"}
 
-Reglas:
-- responde usando solamente la información proporcionada
-- si no existe información suficiente, indícalo
-- máximo 120 palabras
-- respuesta clara y directa
-- sin markdown
+━━ CONFIGURACIONES FIJAS (no son transacciones reales) ━━
+Ingresos fijos activos:
+${ingresosFijos?.length > 0 ? JSON.stringify(ingresosFijos) : "Ninguno"}
+
+Gastos fijos activos:
+${gastosFijos?.length > 0 ? JSON.stringify(gastosFijos) : "Ninguno"}
+
+REGLAS ESTRICTAS:
+- Usa ÚNICAMENTE los datos proporcionados. Nunca inventes ni estimes cifras.
+- Si el usuario pregunta por "este mes", usa los TOTALES EXACTOS de ${nombreMes} ${anioActual}.
+- Los ingresos/gastos fijos son configuraciones, no son transacciones reales del mes.
+- Si no hay datos para responder, dilo claramente.
+- Máximo 100 palabras. Respuesta directa, sin markdown, en español.
 `;
 
   return generarRespuestaIA(prompt);

@@ -5,6 +5,11 @@ import Swal from "sweetalert2";
 import { toast } from "sonner";
 import EstadoVacio from "../ui/EstadoVacio";
 
+const localToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 const fuentesIngreso = [
   "Salario",
   "Freelance",
@@ -21,16 +26,18 @@ const TransaccionesUsuario = () => {
   const [modoOscuro, setModoOscuro] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [transaccionSeleccionada, setTransaccionSeleccionada] = useState(null);
-  const [alerta, setAlerta] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
 
   const [newTransaction, setNewTransaction] = useState({
     type: "gasto",
     category: "",
     description: "",
     amount: "",
-    date: new Date().toISOString().split("T")[0],
+    date: localToday(),
   });
 
   useEffect(() => {
@@ -54,11 +61,6 @@ const TransaccionesUsuario = () => {
       document.body.style.overflow = "";
     };
   }, [modalVisible]);
-
-  const mostrarAlerta = (mensaje, tipo = "success") => {
-    setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), 3000);
-  };
 
   const obtenerCategorias = async () => {
     try {
@@ -96,27 +98,22 @@ const TransaccionesUsuario = () => {
     // ─────────────────────────────────────
 
     if (!category) {
-      mostrarAlerta("Debes seleccionar una categoría", "danger");
-
+      toast.error("Debes seleccionar una categoría");
       return;
     }
 
     if (!amount || Number(amount) <= 0) {
-      mostrarAlerta("Ingresa un monto válido", "danger");
-
+      toast.error("Ingresa un monto válido");
       return;
     }
 
     if (!date) {
-      mostrarAlerta("Debes seleccionar una fecha", "danger");
-
+      toast.error("Debes seleccionar una fecha");
       return;
     }
 
-    // Validación descripción en gastos
     if (type === "gasto" && !description.trim()) {
-      mostrarAlerta("Debes ingresar una descripción del gasto", "danger");
-
+      toast.error("Debes ingresar una descripción del gasto");
       return;
     }
 
@@ -226,7 +223,7 @@ const TransaccionesUsuario = () => {
       category: "",
       description: "",
       amount: "",
-      date: new Date().toISOString().split("T")[0],
+      date: localToday(),
     });
   };
 
@@ -252,14 +249,39 @@ const TransaccionesUsuario = () => {
       amount: t.monto || "",
       date: t.fecha
         ? t.fecha.split("T")[0]
-        : new Date().toISOString().split("T")[0],
+        : localToday(),
     });
   };
 
   const filtered = useMemo(() => {
-    if (filter === "todos") return transactions;
-    return transactions.filter((t) => t.type === filter);
-  }, [filter, transactions]);
+    let list = filter === "todos" ? transactions : transactions.filter((t) => t.type === filter);
+    if (busqueda.trim()) {
+      const q = busqueda.toLowerCase();
+      list = list.filter(
+        (t) =>
+          (t.description || "").toLowerCase().includes(q) ||
+          (t.descripcion || "").toLowerCase().includes(q) ||
+          (t.categoria || "").toLowerCase().includes(q),
+      );
+    }
+    if (fechaDesde) {
+      list = list.filter((t) => (t.fecha || "").split("T")[0] >= fechaDesde);
+    }
+    if (fechaHasta) {
+      list = list.filter((t) => (t.fecha || "").split("T")[0] <= fechaHasta);
+    }
+    return list;
+  }, [filter, busqueda, fechaDesde, fechaHasta, transactions]);
+
+  const totals = useMemo(() => {
+    const ingresos = filtered
+      .filter((t) => t.type === "ingreso")
+      .reduce((acc, t) => acc + parseFloat(t.amount || t.monto || 0), 0);
+    const gastos = filtered
+      .filter((t) => t.type === "gasto")
+      .reduce((acc, t) => acc + parseFloat(t.amount || t.monto || 0), 0);
+    return { ingresos, gastos };
+  }, [filtered]);
 
   const formatCurrency = (v) => `Q ${parseFloat(v).toFixed(2)}`;
   const formatDate = (d) => {
@@ -365,48 +387,113 @@ const TransaccionesUsuario = () => {
         ))}
       </div>
 
-      {/* ── Lista ────────────────────────────────────────── */}
-      <div className="overflow-y-auto pr-1" style={{ maxHeight: "460px" }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((t) => (
-            <div
-              key={`${t.type}-${t.id}`}
-              className={card}
-              onClick={() => handleEditarTransaccion(t)}
-            >
-              <div className="flex justify-between items-start mb-1">
-                <span className="font-semibold text-sm truncate pr-2">
-                  {t.description}
-                </span>
-                <span
-                  className={`font-bold text-sm shrink-0
-    ${t.type === "ingreso" ? "text-[#00c57a]" : "text-red-400"}`}
-                >
-                  {t.type === "ingreso" ? "+" : "-"}
-                  {formatCurrency(t.amount || t.monto)}
-                </span>
-              </div>
+      {/* ── Búsqueda ─────────────────────────────────────── */}
+      <div className="relative mb-3">
+        <Icon
+          icon="lucide:search"
+          className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${muted}`}
+        />
+        <input
+          type="text"
+          placeholder="Buscar por descripción o categoría..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none transition-colors
+            ${modoOscuro
+              ? "bg-[#1a1a1a] text-gray-100 border border-white/10 focus:border-[#00c57a]"
+              : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"
+            }`}
+        />
+      </div>
 
-              {/* Descripción solo si existe y es diferente al título */}
-              {t.descripcion && t.descripcion !== t.description && (
-                <p
-                  className={`text-xs mb-1 italic ${modoOscuro ? "text-gray-300" : "text-gray-500"}`}
-                >
-                  {t.descripcion}
-                </p>
-              )}
-
-              <p className={`text-xs ${muted}`}>• {formatDate(t.fecha)}</p>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <EstadoVacio
-              icono="🔍"
-              titulo="Sin resultados"
-              descripcion="No hay transacciones que coincidan con los filtros aplicados."
-            />
-          )}
+      {/* ── Filtro de fecha ──────────────────────────────── */}
+      <div className="flex gap-2 mb-3 items-end">
+        <div className="flex-1">
+          <label className={`text-xs block mb-1 ${muted}`}>Desde</label>
+          <input
+            type="date"
+            value={fechaDesde}
+            onChange={(e) => setFechaDesde(e.target.value)}
+            className={`w-full px-3 py-2 rounded-xl text-sm outline-none transition-colors
+              ${modoOscuro
+                ? "bg-[#1a1a1a] text-gray-100 border border-white/10 focus:border-[#00c57a]"
+                : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"
+              }`}
+          />
         </div>
+        <div className="flex-1">
+          <label className={`text-xs block mb-1 ${muted}`}>Hasta</label>
+          <input
+            type="date"
+            value={fechaHasta}
+            onChange={(e) => setFechaHasta(e.target.value)}
+            className={`w-full px-3 py-2 rounded-xl text-sm outline-none transition-colors
+              ${modoOscuro
+                ? "bg-[#1a1a1a] text-gray-100 border border-white/10 focus:border-[#00c57a]"
+                : "bg-gray-50 text-[#2e2828] border border-gray-200 focus:border-[#00c57a]"
+              }`}
+          />
+        </div>
+        {(fechaDesde || fechaHasta) && (
+          <button
+            onClick={() => { setFechaDesde(""); setFechaHasta(""); }}
+            title="Limpiar fechas"
+            className={`p-2 rounded-xl transition-colors mb-0.5
+              ${modoOscuro ? "text-gray-400 hover:text-red-400 hover:bg-white/5" : "text-gray-400 hover:text-red-400 hover:bg-gray-100"}`}
+          >
+            <Icon icon="lucide:x" className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* ── Resumen del filtro ────────────────────────────── */}
+      <div className={`flex justify-between items-center text-xs mb-2 px-1 ${muted}`}>
+        <span>{filtered.length} transacción{filtered.length !== 1 ? "es" : ""}</span>
+        <div className="flex gap-3">
+          <span className="text-[#00c57a] font-medium">+{formatCurrency(totals.ingresos)}</span>
+          <span className="text-red-400 font-medium">-{formatCurrency(totals.gastos)}</span>
+        </div>
+      </div>
+
+      {/* ── Lista ────────────────────────────────────────── */}
+      <div
+        className={`overflow-y-auto rounded-xl divide-y
+          ${modoOscuro ? "divide-white/5 bg-[#111]" : "divide-gray-100 bg-white shadow-sm"}`}
+        style={{ maxHeight: "460px" }}
+      >
+        {filtered.map((t) => (
+          <div
+            key={`${t.type}-${t.id}`}
+            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
+              ${modoOscuro ? "hover:bg-white/5" : "hover:bg-gray-50"}`}
+            onClick={() => handleEditarTransaccion(t)}
+          >
+            <div
+              className={`w-2 h-2 rounded-full shrink-0
+                ${t.type === "ingreso" ? "bg-[#00c57a]" : "bg-red-400"}`}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate">{t.description}</p>
+              {t.descripcion && t.descripcion !== t.description && (
+                <p className={`text-xs truncate ${muted}`}>{t.descripcion}</p>
+              )}
+              <p className={`text-xs ${muted}`}>{formatDate(t.fecha)}</p>
+            </div>
+            <span
+              className={`font-bold text-sm shrink-0
+                ${t.type === "ingreso" ? "text-[#00c57a]" : "text-red-400"}`}
+            >
+              {t.type === "ingreso" ? "+" : "-"}{formatCurrency(t.amount || t.monto)}
+            </span>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <EstadoVacio
+            icono="🔍"
+            titulo="Sin resultados"
+            descripcion="No hay transacciones que coincidan con los filtros aplicados."
+          />
+        )}
       </div>
 
       {/* ── Modal ────────────────────────────────────────── */}
@@ -425,29 +512,6 @@ const TransaccionesUsuario = () => {
             className={`w-full max-w-md rounded-2xl p-6 shadow-2xl
             transition-all duration-300 ${modalBg}`}
           >
-            {/* ── ALERTA MODAL ───────────────────────── */}
-            {alerta && (
-              <div
-                className={`
-      mb-4
-      px-4
-      py-3
-      rounded-xl
-      text-sm
-      font-medium
-      text-center
-      border
-      animate-pulse
-      ${
-        alerta.tipo === "success"
-          ? "bg-[#00c57a]/10 text-[#00c57a] border-[#00c57a]/20"
-          : "bg-red-500/10 text-red-400 border-red-500/20"
-      }
-    `}
-              >
-                {alerta.mensaje}
-              </div>
-            )}
             {/* Header modal */}
             <div className="flex justify-between items-center mb-5">
               <h5 className="font-bold text-lg">

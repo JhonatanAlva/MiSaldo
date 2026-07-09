@@ -42,6 +42,12 @@ const GraficaBalance = ({ datos, modoVista }) => {
       minimumFractionDigits: 2,
     })}`;
 
+  const formatYAxis = (value) => {
+    if (value >= 1_000_000) return `Q ${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000)     return `Q ${(value / 1_000).toFixed(0)}k`;
+    return `Q ${value}`;
+  };
+
   const alturaGrafica = modoVista === "diario" ? 220 : 300;
 
   // Calcular barSize dinámico si hay pocos puntos
@@ -75,7 +81,7 @@ const GraficaBalance = ({ datos, modoVista }) => {
             textAnchor="end"
             interval={0}
           />
-          <YAxis stroke={colores.texto} tickFormatter={formatCurrency} />
+          <YAxis stroke={colores.texto} tickFormatter={formatYAxis} width={60} />
           <Tooltip
             formatter={(value) => [formatCurrency(value), ""]}
             contentStyle={{
