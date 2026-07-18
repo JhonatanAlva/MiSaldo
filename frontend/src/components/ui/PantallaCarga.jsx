@@ -24,15 +24,11 @@ export default function PantallaCarga() {
     >
       {/* Logo / marca */}
       <div className="flex flex-col items-center gap-3">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, rgba(0,200,150,0.2), rgba(0,200,150,0.05))",
-            border: "1px solid rgba(0,200,150,0.25)",
-          }}
-        >
-          <span className="text-[#00c896] font-black text-3xl leading-none select-none">S</span>
-        </div>
+        <img
+          src="/logo.png"
+          alt="SaldoGt"
+          className="w-20 h-20 object-contain drop-shadow-lg"
+        />
         <div className="text-center">
           <p className="text-white font-bold text-lg tracking-tight">SaldoGt</p>
           <p className="text-gray-600 text-xs tracking-widest uppercase">Finanzas Personales</p>
