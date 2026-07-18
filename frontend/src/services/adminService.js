@@ -26,3 +26,7 @@ export const getUsoCategorias = () => api.get('/categorias/uso');
 export const crearCategoria = (data) => api.post('/categorias', data);
 export const editarCategoria = (id, data) => api.put(`/categorias/${id}`, data);
 export const eliminarCategoria = (id) => api.delete(`/categorias/${id}`);
+
+// Configuración del sistema
+export const getConfiguracion = () => api.get('/admin/configuracion');
+export const guardarConfiguracion = (data) => api.put('/admin/configuracion', data);

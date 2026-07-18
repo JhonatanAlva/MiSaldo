@@ -40,7 +40,7 @@ const ReporteCard = ({ icon: Icon, title, desc, color, onCSV, onJSON, loading })
           <button
             onClick={onCSV}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#00c896]/10 text-[#00c896] text-xs font-semibold
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#00c896]/10 text-[#00c896] text-xs font-semibold
                        hover:bg-[#00c896]/20 transition-all disabled:opacity-40"
           >
             <FiDownload size={12} /> Exportar CSV
@@ -48,7 +48,7 @@ const ReporteCard = ({ icon: Icon, title, desc, color, onCSV, onJSON, loading })
           <button
             onClick={onJSON}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.05] text-gray-400 text-xs font-semibold
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.05] text-gray-400 text-xs font-semibold
                        hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-40"
           >
             <FiDownload size={12} /> Exportar JSON

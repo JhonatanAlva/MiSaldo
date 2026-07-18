@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
+import { toast } from "sonner";
 import SidebarAdmin from "../components/admin/SidebarAdmin";
 import VistaDashboard from "../components/admin/VistaDashboard";
 import VistaUsuarios from "../components/admin/VistaUsuarios";
@@ -8,6 +9,7 @@ import VistaIA from "../components/admin/VistaIA";
 import VistaCategorias from "../components/admin/VistaCategorias";
 import VistaBitacora from "../components/admin/VistaBitacora";
 import VistaReportes from "../components/admin/VistaReportes";
+import VistaConfiguracion from "../components/admin/VIstaConfiguracion";
 import {
   getUsuarios, actualizarUsuario,
 
@@ -54,7 +56,7 @@ export default function Admin() {
   };
 
   const reenviarConfirmacion = async (id) => {
-    try { await reenviarConfirmacionAPI(id); alert("Correo de confirmación reenviado."); } catch (e) { console.error(e); }
+    try { await reenviarConfirmacionAPI(id); toast.success("Correo de confirmación reenviado"); } catch (e) { console.error(e); toast.error("Error al reenviar el correo"); }
   };
 
   const guardarCambios = async (u) => {
@@ -100,6 +102,7 @@ export default function Admin() {
       case "bitacora": return <VistaBitacora />;
       case "reportes": return <VistaReportes />;
       case "ia": return <VistaIA />;
+      case "configuracion": return <VistaConfiguracion />;
       default: return null;
     }
   };

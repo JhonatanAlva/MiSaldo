@@ -31,6 +31,8 @@ const TransaccionesUsuario = () => {
   const [busqueda, setBusqueda] = useState("");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const POR_PAGINA = 15;
 
   const [newTransaction, setNewTransaction] = useState({
     type: "gasto",
@@ -273,6 +275,12 @@ const TransaccionesUsuario = () => {
     return list;
   }, [filter, busqueda, fechaDesde, fechaHasta, transactions]);
 
+  // Reset página cuando cambian los filtros
+  useEffect(() => { setPagina(1); }, [filter, busqueda, fechaDesde, fechaHasta]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtered.length / POR_PAGINA));
+  const paginado = filtered.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+
   const totals = useMemo(() => {
     const ingresos = filtered
       .filter((t) => t.type === "ingreso")
@@ -457,11 +465,10 @@ const TransaccionesUsuario = () => {
 
       {/* ── Lista ────────────────────────────────────────── */}
       <div
-        className={`overflow-y-auto rounded-xl divide-y
+        className={`rounded-xl divide-y
           ${modoOscuro ? "divide-white/5 bg-[#111]" : "divide-gray-100 bg-white shadow-sm"}`}
-        style={{ maxHeight: "460px" }}
       >
-        {filtered.map((t) => (
+        {paginado.map((t) => (
           <div
             key={`${t.type}-${t.id}`}
             className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
@@ -495,6 +502,56 @@ const TransaccionesUsuario = () => {
           />
         )}
       </div>
+
+      {/* ── Paginación ───────────────────────────────────── */}
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-center gap-1 mt-4">
+          <button
+            onClick={() => setPagina((p) => Math.max(1, p - 1))}
+            disabled={pagina === 1}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-30
+              ${modoOscuro ? "text-gray-300 hover:bg-white/10" : "text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Icon icon="lucide:chevron-left" className="w-4 h-4" />
+          </button>
+
+          {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+            .filter((n) => n === 1 || n === totalPaginas || Math.abs(n - pagina) <= 1)
+            .reduce((acc, n, idx, arr) => {
+              if (idx > 0 && n - arr[idx - 1] > 1) acc.push("...");
+              acc.push(n);
+              return acc;
+            }, [])
+            .map((item, idx) =>
+              item === "..." ? (
+                <span key={`dots-${idx}`} className={`px-1 text-sm ${muted}`}>…</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => setPagina(item)}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors
+                    ${pagina === item
+                      ? "bg-[#00c57a] text-white shadow-sm"
+                      : modoOscuro
+                        ? "text-gray-400 hover:bg-white/10"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                >
+                  {item}
+                </button>
+              )
+            )}
+
+          <button
+            onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+            disabled={pagina === totalPaginas}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-30
+              ${modoOscuro ? "text-gray-300 hover:bg-white/10" : "text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Icon icon="lucide:chevron-right" className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* ── Modal ────────────────────────────────────────── */}
       {modalVisible && (

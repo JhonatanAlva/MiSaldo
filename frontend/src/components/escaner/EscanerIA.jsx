@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Swal from "sweetalert2";
+import { toast } from "sonner";
 import api from "../../services/api";
 import TarjetaMovimientoDetectado from "./TarjetaMovimientoDetectado";
 import ModalMovimientoEscaneado from "./ModalMovimientoEscaneado";
 import { construirMovimientoInicial } from "./utils";
+
+const localToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 const EscanerIA = () => {
 
@@ -40,10 +46,8 @@ const EscanerIA = () => {
 
   const analizarImagen = async () => {
     if (!imagen) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Selecciona una imagen",
-      });
+      toast.error("Selecciona una imagen primero");
+      return;
     }
 
     try {
@@ -53,25 +57,15 @@ const EscanerIA = () => {
       formData.append("imagen", imagen);
 
       const res = await api.post("/escaner-ia", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const movimientos = (res.data.movimientos || []).map(
-        construirMovimientoInicial
-      );
-
+      const movimientos = (res.data.movimientos || []).map(construirMovimientoInicial);
       setResultado(movimientos);
 
     } catch (error) {
       console.error(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "No se pudo analizar",
-      });
-
+      toast.error("No se pudo analizar la imagen");
     } finally {
       setCargando(false);
     }
@@ -225,34 +219,17 @@ const EscanerIA = () => {
         await api.post("/finanzas/gastos", {
           monto: Number(mov.monto),
           descripcion: mov.descripcion,
-          fecha: new Date()
-            .toISOString()
-            .split("T")[0],
+          fecha: localToday(),
           categoria_id: categoriaId,
         });
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Movimiento guardado",
-        timer: 1500,
-        showConfirmButton: false,
-        background: "#1e1e1e",
-        color: "#fff",
-      });
-
+      toast.success("Movimiento guardado");
       setModalOpen(false);
 
     } catch (error) {
-
       console.error(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error al guardar",
-        background: "#1e1e1e",
-        color: "#fff",
-      });
+      toast.error("Error al guardar el movimiento");
     }
   };
 

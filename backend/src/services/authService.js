@@ -10,14 +10,83 @@ const { registrarBitacora } = require("../utils/bitacora");
 const { BACKEND_URL, FRONTEND_URL } = require("../utils/urls");
 const { generarEmailConfirmacion } = require("../utils/emailTemplates");
 const { generarEmailRecuperacion } = require("../utils/emailTemplates");
+const { notificarNuevoUsuario } = require('./notifAdminService');
+
+// ── Control de intentos fallidos (en memoria) ─────────────────
+// { [correo]: { count: number, lockedUntil: Date | null } }
+const _intentos = new Map();
+const LOCK_MS   = 15 * 60 * 1000; // 15 minutos de bloqueo
+
+let _configIntentos   = { limite: 5,   ts: 0 };
+let _configExpiracion = { valor: '2h', ts: 0 };
+const CONFIG_TTL      = 30_000; // refrescar cada 30s
+
+const getLimiteIntentos = async () => {
+  const ahora = Date.now();
+  if (ahora - _configIntentos.ts > CONFIG_TTL) {
+    try {
+      const { rows } = await db.query(
+        "SELECT valor FROM configuracion_sistema WHERE clave = 'intentos_login'"
+      );
+      _configIntentos.limite = parseInt(rows[0]?.valor, 10) || 5;
+      _configIntentos.ts     = ahora;
+    } catch { /* mantener valor anterior si falla */ }
+  }
+  return _configIntentos.limite;
+};
+
+// "30m"→1800000, "1h"→3600000, "2h"→7200000, "8h"→28800000
+const expiracionAMs = (str) => {
+  const n = parseInt(str, 10);
+  if (str.endsWith('m')) return n * 60 * 1000;
+  if (str.endsWith('h')) return n * 60 * 60 * 1000;
+  return 2 * 60 * 60 * 1000; // default 2h
+};
+
+const getExpiracionSesion = async () => {
+  const ahora = Date.now();
+  if (ahora - _configExpiracion.ts > CONFIG_TTL) {
+    try {
+      const { rows } = await db.query(
+        "SELECT valor FROM configuracion_sistema WHERE clave = 'expiracion_sesion'"
+      );
+      _configExpiracion.valor = rows[0]?.valor || '2h';
+      _configExpiracion.ts    = ahora;
+    } catch { /* mantener valor anterior si falla */ }
+  }
+  return _configExpiracion.valor;
+};
+
+const registrarFallo  = (correo, limite) => {
+  const est   = _intentos.get(correo) || { count: 0, lockedUntil: null };
+  const count = est.count + 1;
+  const bloqueado = count >= limite
+    ? new Date(Date.now() + LOCK_MS)
+    : null;
+  _intentos.set(correo, { count, lockedUntil: bloqueado });
+  return { count, bloqueado, restantes: Math.max(0, limite - count) };
+};
+
+const limpiarIntentos = (correo) => _intentos.delete(correo);
 
 // ── Login ─────────────────────────────────────────────────────
 const login = async (correo, contrasena) => {
-  const result = await db.query("SELECT * FROM usuarios WHERE correo = $1", [
-    correo,
-  ]);
+  const limite = await getLimiteIntentos();
+  const est    = _intentos.get(correo) || { count: 0, lockedUntil: null };
+
+  // Verificar si está bloqueado
+  if (est.lockedUntil && new Date() < est.lockedUntil) {
+    const mins = Math.ceil((est.lockedUntil - Date.now()) / 60000);
+    return {
+      error: 429,
+      mensaje: `Cuenta bloqueada por demasiados intentos. Intenta de nuevo en ${mins} minuto${mins !== 1 ? "s" : ""}.`,
+    };
+  }
+
+  const result = await db.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
 
   if (result.rows.length === 0) {
+    // No revelamos si el correo existe, pero tampoco rastreamos correos inexistentes
     return { error: 401, mensaje: "Datos incorrectos" };
   }
 
@@ -28,22 +97,35 @@ const login = async (correo, contrasena) => {
   }
 
   if (!usuario.activo) {
-    return {
-      error: 403,
-      mensaje: "Tu cuenta está desactivada. Contacta al administrador.",
-    };
+    return { error: 403, mensaje: "Tu cuenta está desactivada. Contacta al administrador." };
   }
 
   const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
   if (!coincide) {
-    return { error: 401, mensaje: "Datos incorrectos" };
+    const { restantes, bloqueado } = registrarFallo(correo, limite);
+    if (bloqueado) {
+      return {
+        error: 429,
+        mensaje: `Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos.`,
+      };
+    }
+    return {
+      error: 401,
+      mensaje: `Datos incorrectos. Te quedan ${restantes} intento${restantes !== 1 ? "s" : ""}.`,
+    };
   }
 
+  // Login exitoso → limpiar intentos
+  limpiarIntentos(correo);
+
+  const expiracion = await getExpiracionSesion();
+
   await registrarBitacora(usuario.id, "Inicio de sesión");
-  const token = generarToken(usuario);
+  const token = generarToken(usuario, expiracion);
 
   return {
     token,
+    cookieMaxAge: expiracionAMs(expiracion),
     usuario: {
       nombres: usuario.nombres,
       correo: usuario.correo,
@@ -81,6 +163,9 @@ const registro = async ({
   const html = generarEmailConfirmacion(nombres, url);
 
   await sendEmail(correo, "Confirma tu cuenta en SaldoGt", html);
+
+  // Notificar al admin (sin bloquear el registro si falla)
+  notificarNuevoUsuario({ nombres, apellidos, correo }).catch(() => {});
 
   return {
     mensaje: "Registro exitoso. Revisa tu correo para confirmar tu cuenta.",

@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import Swal from "sweetalert2";
 import {
   FiPlus,
   FiEdit2,
@@ -124,16 +125,23 @@ export default function VistaCategorias() {
   };
 
   const handleEliminar = async (id) => {
-    if (
-      !window.confirm(
-        "¿Eliminar esta categoría?"
-      )
-    )
-      return;
+    const result = await Swal.fire({
+      title: "¿Eliminar categoría?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      background: "#1a1a1a",
+      color: "#ffffff",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       await eliminarCategoriaAPI(id);
-
       await fetchCategorias();
       await fetchUso();
     } catch (e) {
@@ -269,7 +277,7 @@ export default function VistaCategorias() {
               guardando ||
               !nuevaCat.trim()
             }
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00c896] text-black text-sm font-bold hover:bg-[#00b388] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#00c896] text-black text-sm font-bold hover:bg-[#00b388] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiPlus size={15} />
 
@@ -548,7 +556,7 @@ export default function VistaCategorias() {
 
               <button
                 onClick={handleGuardar}
-                className="px-4 py-2 rounded-xl bg-[#00c896] text-black text-sm font-bold hover:bg-[#00b388] transition-all"
+                className="px-4 py-2 rounded-full bg-[#00c896] text-black text-sm font-bold hover:bg-[#00b388] transition-all"
               >
                 Guardar
               </button>

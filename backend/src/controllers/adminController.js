@@ -1,4 +1,5 @@
 const adminService = require('../services/adminService');
+const configuracionSistemaService = require('../services/configuracionSistemaService');
 const logger = require('../utils/logger');
 
 // ── Obtener todos los usuarios ────────────────────────────────
@@ -134,6 +135,27 @@ const getEvolucionMensual = async (req, res) => {
     }
 };
 
+// ── Configuración del sistema ─────────────────────────────────
+const getConfiguracion = async (req, res) => {
+    try {
+        const config = await configuracionSistemaService.getConfiguracion();
+        res.json(config);
+    } catch (err) {
+        logger.error({ err }, 'Error al obtener configuración del sistema');
+        res.status(500).json({ mensaje: 'Error al obtener configuración' });
+    }
+};
+
+const guardarConfiguracion = async (req, res) => {
+    try {
+        await configuracionSistemaService.guardarConfiguracion(req.body);
+        res.json({ mensaje: 'Configuración guardada' });
+    } catch (err) {
+        logger.error({ err }, 'Error al guardar configuración del sistema');
+        res.status(500).json({ mensaje: 'Error al guardar configuración' });
+    }
+};
+
 module.exports = {
     listarUsuarios,
     actualizarUsuario,
@@ -147,4 +169,6 @@ module.exports = {
     getActividadDatos,
     getEstadisticasOperaciones,
     getEvolucionMensual,
+    getConfiguracion,
+    guardarConfiguracion,
 };

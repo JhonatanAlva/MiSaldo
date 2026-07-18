@@ -1,12 +1,12 @@
 import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import SpinnerCentrado from '../ui/SpinnerCentrado';
+import PantallaCarga from '../ui/PantallaCarga';
 
 const RutaUsuario = ({ children }) => {
   const { usuario, cargando } = useContext(AuthContext);
 
-  if (cargando) return <div className="min-h-screen flex items-center justify-center bg-[#111318]"><SpinnerCentrado /></div>;
+  if (cargando) return <PantallaCarga />;
 
   if (!usuario) return <Navigate to="/login" />;
 

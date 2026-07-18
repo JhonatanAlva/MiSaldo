@@ -19,4 +19,8 @@ router.get('/actividad-datos', verificarToken, verificarAdmin, adminController.g
 router.get('/estadisticas/operaciones', verificarToken, verificarAdmin, adminController.getEstadisticasOperaciones);
 router.get('/estadisticas/evolucion-mensual', verificarToken, verificarAdmin, adminController.getEvolucionMensual);
 
+// ── Configuración del sistema ─────────────────────────────────
+router.get('/configuracion', verificarToken, verificarAdmin, adminController.getConfiguracion);
+router.put('/configuracion', verificarToken, verificarAdmin, adminController.guardarConfiguracion);
+
 module.exports = router;

@@ -2,17 +2,18 @@ import { useState } from "react";
 import {
   FiUsers, FiBarChart2, FiTag, FiCpu,
   FiLogOut, FiMenu, FiX, FiGrid,
-  FiFileText, FiBook
+  FiFileText, FiBook, FiSettings
 } from "react-icons/fi";
 
 const NAV = [
-  { id: "dashboard",   label: "Dashboard",    Icon: FiGrid },
-  { id: "usuarios",    label: "Usuarios",     Icon: FiUsers },
-  { id: "estadisticas",label: "Estadísticas", Icon: FiBarChart2 },
-  { id: "categorias",  label: "Categorías",   Icon: FiTag },
-  { id: "bitacora",    label: "Bitácora",     Icon: FiBook },
-  { id: "reportes",    label: "Reportes",     Icon: FiFileText },
-  { id: "ia",          label: "Asistente IA", Icon: FiCpu },
+  { id: "dashboard",     label: "Dashboard",     Icon: FiGrid },
+  { id: "usuarios",      label: "Usuarios",      Icon: FiUsers },
+  { id: "estadisticas",  label: "Estadísticas",  Icon: FiBarChart2 },
+  { id: "categorias",    label: "Categorías",    Icon: FiTag },
+  { id: "bitacora",      label: "Bitácora",      Icon: FiBook },
+  { id: "reportes",      label: "Reportes",      Icon: FiFileText },
+  { id: "ia",            label: "Asistente IA",  Icon: FiCpu },
+  { id: "configuracion", label: "Configuración", Icon: FiSettings },
 ];
 
 export default function SidebarAdmin({ seccionActiva, setSeccionActiva, cerrarSesion }) {

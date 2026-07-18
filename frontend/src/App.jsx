@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import Login from "./pages/Login";
@@ -9,11 +10,26 @@ import PanelUsuario from "./pages/PanelUsuario";
 import OAuthSuccess from "./pages/OAuthSuccess";
 import OlvideContrasena from "./pages/OlvideContrasena";
 import RestablecerContrasena from "./pages/RestablecerContrasena";
+import MantenimientoOverlay from "./components/MantenimientoOverlay";
 
 function App() {
+  const [enMantenimiento, setEnMantenimiento] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setEnMantenimiento(true);
+    window.addEventListener("app:mantenimiento", handler);
+    return () => window.removeEventListener("app:mantenimiento", handler);
+  }, []);
+
+  const handleTerminar = useCallback(() => {
+    setEnMantenimiento(false);
+    window.location.href = "/login";
+  }, []);
+
   return (
     <BrowserRouter>
       <Toaster position="top-right" richColors closeButton />
+      {enMantenimiento && <MantenimientoOverlay onTerminar={handleTerminar} />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />

@@ -199,7 +199,7 @@ export default function VistaIA() {
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-gray-600 font-semibold mb-1">Análisis automático</p>
             <p className="text-gray-500 text-xs sm:text-sm mb-4">La IA analiza los datos actuales y genera observaciones y recomendaciones.</p>
             <button onClick={generarAnalisis} disabled={analizando || cargandoStats || !statsData}
-              className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[#00c896] text-black text-xs sm:text-sm font-bold
+              className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#00c896] text-black text-xs sm:text-sm font-bold
                          hover:bg-[#00b388] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               <FiCpu size={13} />
               {analizando ? "Analizando..." : cargandoStats ? "Cargando..." : "Analizar con IA"}

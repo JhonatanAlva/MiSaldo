@@ -70,7 +70,55 @@ const generarEmailRecuperacion = (nombres, url) => {
 `;
 };
 
+const generarEmailNuevoUsuario = (nuevoUsuario) => {
+  const nombre = escapeHtml(`${nuevoUsuario.nombres} ${nuevoUsuario.apellidos}`);
+  const correo = escapeHtml(nuevoUsuario.correo);
+  const fecha  = new Date().toLocaleString("es-GT", { dateStyle: "long", timeStyle: "short" });
+  return `
+  <div style="font-family:Arial,sans-serif; background:#0f172a; padding:40px;">
+    <div style="max-width:500px; margin:auto; background:#111827; padding:30px; border-radius:12px;">
+      <h1 style="color:#00c896; margin:0 0 4px;">SaldoGt Admin</h1>
+      <p style="color:#6b7280; font-size:12px; margin:0 0 24px;">Notificación automática</p>
+      <h2 style="color:#ffffff; margin:0 0 16px;">Nuevo usuario registrado</h2>
+      <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:20px;">
+        <p style="color:#9ca3af; font-size:13px; margin:0 0 8px;"><strong style="color:#e2e8f0;">Nombre:</strong> ${nombre}</p>
+        <p style="color:#9ca3af; font-size:13px; margin:0 0 8px;"><strong style="color:#e2e8f0;">Correo:</strong> ${correo}</p>
+        <p style="color:#9ca3af; font-size:13px; margin:0;"><strong style="color:#e2e8f0;">Fecha:</strong> ${fecha}</p>
+      </div>
+      <p style="color:#6b7280; font-size:12px; margin:0;">
+        Este mensaje fue enviado porque la notificación de nuevo usuario está activada en la configuración del sistema.
+      </p>
+    </div>
+  </div>
+  `;
+};
+
+const generarEmailErrorCritico = (mensaje, ruta) => {
+  const msg   = escapeHtml(String(mensaje).slice(0, 300));
+  const path  = escapeHtml(String(ruta || "—").slice(0, 200));
+  const fecha = new Date().toLocaleString("es-GT", { dateStyle: "long", timeStyle: "short" });
+  return `
+  <div style="font-family:Arial,sans-serif; background:#0f172a; padding:40px;">
+    <div style="max-width:500px; margin:auto; background:#111827; padding:30px; border-radius:12px;">
+      <h1 style="color:#ef4444; margin:0 0 4px;">SaldoGt Admin</h1>
+      <p style="color:#6b7280; font-size:12px; margin:0 0 24px;">Alerta de error crítico</p>
+      <h2 style="color:#ffffff; margin:0 0 16px;">Error en el servidor</h2>
+      <div style="background:#1e293b; border:1px solid #ef444430; border-radius:8px; padding:16px; margin-bottom:20px;">
+        <p style="color:#9ca3af; font-size:13px; margin:0 0 8px;"><strong style="color:#e2e8f0;">Ruta:</strong> ${path}</p>
+        <p style="color:#9ca3af; font-size:13px; margin:0 0 8px;"><strong style="color:#e2e8f0;">Mensaje:</strong> ${msg}</p>
+        <p style="color:#9ca3af; font-size:13px; margin:0;"><strong style="color:#e2e8f0;">Fecha:</strong> ${fecha}</p>
+      </div>
+      <p style="color:#6b7280; font-size:12px; margin:0;">
+        Este mensaje fue enviado porque la notificación de errores críticos está activada en la configuración del sistema.
+      </p>
+    </div>
+  </div>
+  `;
+};
+
 module.exports = {
   generarEmailConfirmacion,
   generarEmailRecuperacion,
+  generarEmailNuevoUsuario,
+  generarEmailErrorCritico,
 };

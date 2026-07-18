@@ -21,6 +21,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (status === 503 && error.response?.data?.mantenimiento) {
+      window.dispatchEvent(new CustomEvent('app:mantenimiento'));
+      return Promise.reject(error);
+    }
+
     const isAuthRoute = error.config?.url?.includes('/auth/');
     if (!MENSAJES_SILENCIOSOS.includes(status) && !isAuthRoute) {
       const mensaje = error.response?.data?.mensaje || 'Ocurrió un error inesperado';

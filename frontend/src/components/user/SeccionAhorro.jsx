@@ -72,6 +72,21 @@ const SeccionAhorro = () => {
     return porcentaje.toFixed(0);
   };
 
+  const diasRestantes = (fechaFin) => {
+    if (!fechaFin) return null;
+    const fin = new Date(fechaFin.split("T")[0]);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return Math.max(0, Math.ceil((fin - hoy) / (1000 * 60 * 60 * 24)));
+  };
+
+  const ahorroDiarioNecesario = (plan) => {
+    const falta = Math.max(0, parseFloat(plan.meta || 0) - parseFloat(plan.total_ahorrado || 0));
+    const dias = diasRestantes(plan.fecha_fin);
+    if (!dias || dias === 0) return null;
+    return falta / dias;
+  };
+
   const handleGuardarMeta = async (e) => {
     e.preventDefault();
     setGuardando(true);
@@ -241,8 +256,10 @@ const SeccionAhorro = () => {
       {/* GRID */}
       <div className="row g-4">
         {planes.map((plan) => {
-          const progreso =
-            calcularProgreso(plan);
+          const progreso     = calcularProgreso(plan);
+          const dias         = diasRestantes(plan.fecha_fin);
+          const diarioNecesario = ahorroDiarioNecesario(plan);
+          const metaAlcanzada = parseFloat(progreso) >= 100;
 
           return (
             <div
@@ -282,17 +299,26 @@ const SeccionAhorro = () => {
                       {plan.descripcion}
                     </h3>
 
-                    <p
-                      className={`mb-0 ${modoOscuro
-                          ? "text-secondary"
-                          : "text-muted"
-                        }`}
-                    >
-                      Fecha límite:{" "}
-                      {plan.fecha_fin?.split(
-                        "T"
-                      )[0]}
+                    <p className={`mb-2 ${modoOscuro ? "text-secondary" : "text-muted"}`}>
+                      Fecha límite: {plan.fecha_fin?.split("T")[0]}
                     </p>
+
+                    {/* Badge días restantes */}
+                    {metaAlcanzada ? (
+                      <span className="badge bg-success rounded-pill px-3 py-1">
+                        ✅ Meta alcanzada
+                      </span>
+                    ) : dias === 0 ? (
+                      <span className="badge bg-danger rounded-pill px-3 py-1">
+                        ⚠️ Plazo vencido
+                      </span>
+                    ) : dias !== null && (
+                      <span className={`badge rounded-pill px-3 py-1 ${
+                        dias < 7 ? "bg-danger" : dias < 30 ? "bg-warning text-dark" : "bg-primary"
+                      }`}>
+                        📅 {dias} día{dias !== 1 ? "s" : ""} restante{dias !== 1 ? "s" : ""}
+                      </span>
+                    )}
                   </div>
 
                   <div className="text-end">
@@ -347,12 +373,12 @@ const SeccionAhorro = () => {
                   <small className="fw-semibold">
                     {progreso}% completado
                   </small>
-
-                  <small className="fw-semibold">
-                    Q{" "}
-                    {plan.monto_diario ||
-                      0}
-                    / día
+                  <small className="fw-semibold" style={{ color: "#10b981" }}>
+                    {metaAlcanzada
+                      ? "¡Completado!"
+                      : diarioNecesario !== null
+                        ? `Q ${diarioNecesario.toFixed(2)} / día necesario`
+                        : `Q ${plan.monto_diario || 0} / día`}
                   </small>
                 </div>
 

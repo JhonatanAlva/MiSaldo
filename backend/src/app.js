@@ -11,6 +11,8 @@ const pinoHttp = require("pino-http");
 const logger = require("./utils/logger");
 const { FRONTEND_URL } = require("./utils/urls");
 const db = require("./config/db");
+const { verificarMantenimiento } = require("./middleware/mantenimiento");
+const { notificarErrorCritico }  = require("./services/notifAdminService");
 
 require("./config/passport");
 
@@ -168,6 +170,11 @@ app.get("/health", async (req, res) => {
 // ─────────────────────────────────────
 app.use("/auth", require("./routes/auth"));
 
+app.use("/admin", require("./routes/admin"));
+
+// ── Modo mantenimiento ── bloquea usuarios normales en todas las rutas siguientes
+app.use(verificarMantenimiento);
+
 app.use("/asistente", iaLimiter, require("./routes/asistente"));
 
 app.use(
@@ -181,8 +188,6 @@ app.use("/finanzas", require("./routes/finanzas"));
 app.use("/configuraciones", require("./routes/configuracionesRoutes"));
 
 app.use("/ahorro", require("./routes/ahorro"));
-
-app.use("/admin", require("./routes/admin"));
 
 app.use("/notificaciones", require("./routes/notificacionesRoutes"));
 
@@ -199,6 +204,11 @@ app.use((err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
 
   logger.error({ err, method: req.method, path: req.path, status }, err.message);
+
+  // Notificar al admin solo en errores 500 reales
+  if (status === 500) {
+    notificarErrorCritico(err.message, `${req.method} ${req.path}`).catch(() => {});
+  }
 
   res.status(status).json({
     mensaje: status === 500 ? "Error interno del servidor" : err.message,

@@ -2,15 +2,15 @@ const authService = require("../services/authService");
 const { FRONTEND_URL } = require("../utils/urls");
 
 // Helper para no repetir lógica
-const getCookieOptions = () => {
+const getCookieOptions = (maxAge = 2 * 60 * 60 * 1000) => {
   const isProduction = process.env.NODE_ENV === "production";
 
   return {
     httpOnly: true,
-    secure: isProduction, // en local false
+    secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     domain: isProduction ? ".misaldo.lat" : undefined,
-    maxAge: 2 * 60 * 60 * 1000,
+    maxAge,
   };
 };
 
@@ -57,8 +57,8 @@ const login = async (req, res) => {
       domain: isProduction ? ".misaldo.lat" : undefined,
     });
 
-    // crear nueva sesión
-    res.cookie("token", data.token, getCookieOptions());
+    // crear nueva sesión con la expiración configurada
+    res.cookie("token", data.token, getCookieOptions(data.cookieMaxAge));
 
     res.json({
       mensaje: "Inicio de sesión exitoso",

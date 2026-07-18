@@ -60,7 +60,7 @@ const verificarAdmin = (req, res, next) => {
 };
 
 // Generar token con solo la info necesaria
-const generarToken = (usuario) => {
+const generarToken = (usuario, expiresIn = '2h') => {
   return jwt.sign(
     {
       id: usuario.id,
@@ -70,7 +70,7 @@ const generarToken = (usuario) => {
       apellidos: usuario.apellidos,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '2h' }
+    { expiresIn }
   );
 };
 
