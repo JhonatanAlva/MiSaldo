@@ -143,7 +143,7 @@ export default function ConfiguracionUsuario() {
   const labelCls = `block text-[10px] font-bold mb-1.5 uppercase tracking-wider ${modoOscuro ? "text-gray-500" : "text-gray-400"}`;
   const divider  = modoOscuro ? "divide-white/10" : "divide-gray-100";
   const tabBg    = modoOscuro ? "bg-[#111]" : "bg-gray-100";
-  const btnBase  = `px-6 py-3 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50
+  const btnBase  = `px-6 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-50
     bg-[#00c57a] text-white hover:bg-[#00a865] active:scale-[0.98]`;
 
   if (cargando) return <SpinnerCentrado />;
